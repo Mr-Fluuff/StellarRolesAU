@@ -15,19 +15,18 @@ Even more roles are coming soon. :)
 | [Warlock](#warlock) | [Mayor](#mayor) | [Arsonist](#arsonist) | [Anti Teleport](#anti-teleport) |
 | [Cleaner](#cleaner) | [Engineer](#engineer) | [Jackal](#jackal) | [Tie Breaker](#tie-breaker) |
 | [Morphling](#morphling) | [Sheriff](#sheriff) | [Sidekick](#sidekick) | [Bait](#bait) |
-| [Camouflager](#camouflager) | [Deputy](#deputy) | [Vulture](#vulture) | [Lovers](#lovers) |
+| [Trickster](#trickster) | [Deputy](#deputy) | [Vulture](#vulture) | [Lovers](#lovers) |
 | [Vampire](#vampire) | [Lighter](#lighter) | [Lawyer](#lawyer) | [Sunglasses](#sunglasses) |
-| [Trickster](#trickster) | [Detective](#detective) | | [Mini](#mini) |
-|  | [Time Master](#time-master) | | [VIP](#vip) |
-|  | [Medic](#medic) |  | [Invert](#invert) |
-|  | [Swapper](#swapper) | | [Giant](#giant) |
+| [Undertaker](#undertaker) | [Detective](#detective) | [Executioner](#executioner) | [Mini](#mini) |
+| [Miner](#miner) | [Security Guard](#security-guard) | | [VIP](#vip) |
+| [Cultist](#cultist) | [Medic](#medic) |  | [Invert](#invert) |
+| [Follower](#follower) | [Swapper](#swapper) | | [Giant](#giant) |
 |  | [Seer](#seer) |  | [Assassin](#assassin) |
 |  | [Hacker](#hacker) |  |  |
 |  | [Tracker](#tracker) |  |  |
 |  | [Snitch](#snitch) |  |  |
 |  | [Spy](#spy) |  |  |
-|  | [Vigilante](#guesser) |  |  |
-|  | [Security Guard](#security-guard) |  |  |
+|  | [Vigilante](#vigilante) |  |  |
 
 The [Role Assignment](#role-assignment) sections explains how the roles are being distributed among the players.
 
@@ -203,7 +202,6 @@ First you need to choose how many special roles of each kind (Impostor/Neutral/C
 The count you set will only be reached, if there are enough Crewmates/Impostors in the game and if enough roles are set to be in the game (i.e. they are set to > 0%). The roles are then being distributed as follows:
 - First all roles that are set to 100% are being assigned to arbitrary players.
 - After that each role that has 10%-90% selected adds 1-9 tickets to a ticket pool (there exists a ticket pool for Crewmates, Neutrals and Impostors). Then the roles will be selected randomly from the pools as long it's possible (until the selected number is reached, until there are no more Crewmates/Impostors or until there are no more tickets). If a role is selected from the pool, obviously all the tickets of that role are being removed.
-- The Mafia, Lovers and Mini are being selected independently (without using the ticket system) according to the spawn chance you selected. After that the Crewmate, Neutral and Impostor roles are selected and assigned in a random order.
 
 **Example:**\
 Settings: 2 special Crewmate roles, Snitch: 100%, Hacker: 10%, Tracker: 30%\
@@ -216,7 +214,7 @@ Note: Changing the settings to Hacker: 20%, Tracker: 60% would statistically res
 The Morphling is an Impostor which can additionally scan the appearance of a player. After an arbitrary time they can take on that appearance for 10s.\
 \
 **NOTE:**
-- They shrink to the size of the Mini when they copy its look.
+- They shrink to the size of the Mini and Grow to the size of the Giant when they copy their look.
 - The Hacker sees the new color on the admin table.
 - The color of the footprints changes accordingly (also the ones that were already on the ground).
 - The other Impostor still sees that they are an Impostor (the name remains red).
@@ -328,6 +326,64 @@ Depending on the options, there'll be an arrow pointing towards the current targ
 | Bounty Hunter Arrow Update Interval | Sets how often the position is being updated
 -----------------------
 
+## Undertaker
+### **Team: Impostors**
+The Undertaker is an Impostor, that can drag the bodies of Crewmates.\
+
+**NOTE:**
+- Placing a body at the edge of the map is still reportable for Everyone, but sometimes is not reportable for the Undertaker.
+- Kill Cooldown will pause when dragging a body.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Undertaker Spawn Chance | -
+| Undertaker Drag After Kill Cooldown | -
+| Can Vent While Dragging Body | -
+| Drag Cooldown | -
+-----------------------
+
+## Miner
+### **Team: Impostors**
+The Miner is an Impostor, that can place vents around the map.\
+
+**NOTE:**
+- Placing a vent will not be usable/visible until next round.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Miner Spawn Chance | -
+| Mine Cooldown | -
+-----------------------
+
+## Cultist
+### **Team: Impostors**
+The Cultist is an Impostor, that can convert a crewmate to a Follower.\
+
+**NOTE:**
+- Cultist and Follower get a chat box mid round.
+- Cultist gets an arrow pointing to their Follower at all times.
+- Cultist gets a red flash when the Follower Kills.
+- When a Cultist Spawns, it will spawn as a solo Impostor.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Cultist Spawn Chance | -
+| Exe/Cultist | Executioner Can Spawn along side Cultist?
+-----------------------
+
+## Follower
+### **Team: Impostors**
+The Follower is an Impostor, that was converted by the Cultist.\
+
+**NOTE:**
+- Follower and Cultist get a chat box mid round.
+- Follower gets an arrow pointing to the Cultist at all times.
+- Follower gets a red flash when the Cultist Kills.
+-----------------------
+
 ## Jester
 ### **Team: Neutral**
 The Jester does not have any tasks. They win the game as a solo, if they get voted out during a meeting.
@@ -354,6 +410,18 @@ After dousing everyone alive the Arsonist can ignite all the players which resul
 | Arsonist Douse Duration | The time it takes to douse a player
 -----------------------
 
+## Executioner
+### **Team: Neutral**
+The Executioner is someone that is assigned a Crewmate. Their goal is to get that Crewmate voted out at all costs.\
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Executioner Spawn Chance | -
+| Executioner Becomes on Target Death | Jester/Pursuer
+| Executioner Becomes on Target Conversion | Lawyer/Jester
+-----------------------
+
 ## Jackal
 ### **Team: Jackal**
 The Jackal is part of an extra team, that tries to eliminate all the other players.\
@@ -369,19 +437,17 @@ The team Jackal enables multiple new outcomes of the game, listing some examples
 - The Crew could be eliminated, then the Team Jackal fight against the Impostors (The Crew can still make a task win in this scenario)
 
 The priority of the win conditions is the following:
-1. Crewmate Mini lose by vote
-2. Jester wins by vote
-3. Arsonist win
-4. Team Impostor wins by sabotage
-5. Team Crew wins by tasks (also possible if the whole Crew is dead)
-6. Lovers among the last three players win
-7. Team Jackal wins by outnumbering (When the team Jackal contains an equal or greater amount of players than the Crew and there are 0 Impostors left and team Jackal contains no Lover)
-8. Team Impostor wins by outnumbering (When the team Impostors contains an equal or greater amount of players than the Crew and there are 0 players of the team Jackal left and team Impostors contains no Lover)
-9. Team Crew wins by outnumbering (When there is no player of the team Jackal and the team Impostors left)
+1. Jester wins by vote
+2. Arsonist win
+3. Team Impostor wins by sabotage
+4. Team Crew wins by tasks (also possible if the whole Crew is dead)
+5. Lovers among the last three players win
+6. Team Jackal wins by outnumbering (When the team Jackal contains an equal or greater amount of players than the Crew and there are 0 Impostors left and team Jackal contains no Lover)
+7. Team Impostor wins by outnumbering (When the team Impostors contains an equal or greater amount of players than the Crew and there are 0 players of the team Jackal left and team Impostors contains no Lover)
+8. Team Crew wins by outnumbering (When there is no player of the team Jackal and the team Impostors left)
 
 **NOTE:**
 - The Jackal (and their Sidekick) may be killed by a Sheriff.
-- A Jackal cannot target the Mini, while it's growing up. After that they can kill it or select it as its Sidekick.
 - The Crew can still win, even if all of their members are dead, if they finish their tasks fast enough (That's why converting the last Crewmate with tasks left into a Sidekick results in a task win for the crew.)
 
 If both Impostors and Jackals are in the game, the game continues even if all Crewmates are dead. Crewmates may still win in this case by completing their tasks. Jackal and Impostor have to kill each other.
@@ -407,7 +473,6 @@ Upon the death of the Jackal (depending on the options), they might get promoted
 **NOTE:**
 - A player that converts into a Sidekick loses their previous role and tasks (if they had one).
 - The Sidekick may be killed by a Sheriff.
-- The Sidekick cannot target the Mini, while it's growing up.
 
 ### Game Options
 | Name | Description
@@ -478,6 +543,29 @@ If the killer fires the "Blank", shields (e.g. Medic shield or Time Master shiel
 The Pursuer has tasks (which can already be done while being a Lawyer), that count towards the task win for the Crewmates. If the Pursuer dies, their tasks won't be counted anymore.
 -----------------------
 
+## Vigilante
+### **Team: Crewmates**
+The Vigilante can shoot players during the meeting, by guessing its role. If the guess is wrong, the Vigilante dies instead.\
+You can select how many players can be shot per game and if multiple players can be shot during a single meeting.\
+The guesses Impostor and Crewmate are only right, if the player is part of the corresponding team and has no special role.\
+You can only shoot during the voting time.\
+Depending on the options, the Vigilante can't guess the shielded player and depending on the Medic options the Medic/shielded player might be notified (no one will die, independently of what the Guesser guessed).\
+\
+**NOTE:**
+- If a player gets shot, you'll get back your votes
+- Jester wins won't be triggered, if the Guesser shoots the Jester before the Jester gets voted out
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Vigilante Spawn Chance | -
+| Number Of Shots Per Game | -
+| Can Shoot Multiple Times Per Meeting |  -
+| Guesses Visible In Ghost Chat | -
+| Guesses Ignore The Medic Shield | -
+
+-----------------------
+
 ## Mayor
 ### **Team: Crewmates**
 The Mayor leads the Crewmates by having a vote that counts twice.\
@@ -520,7 +608,6 @@ If they try to kill a Crewmate, they die instead.\
 \
 **NOTE:**
 - If the Sheriff shoots the person the Medic shielded, the Sheriff and the shielded person **both remain unharmed**.
-- If the Sheriff shoots a Mini Impostor while growing up, nothing happens. If it's fully grown, the Mini Impostor dies.
 
 ### Game Options
 | Name | Description |
@@ -807,15 +894,12 @@ Depending on the options, the Assassin can't guess the shielded player and depen
 ### Game Options
 | Name | Description |
 |----------|:-------------:|
-| Guesser Spawn Chance | -
-| Chance That The Guesser Is An Impostor | -
-| Guesser Number Of Shots Per Game | -
-| Guesser Can Shoot Multiple Times Per Meeting |  -
-| Guesses Visible In Ghost Chat | -
+| Number Of Assassins | 0-3
+| Number Of Shots Per Game | -
+| Can Shoot Multiple Times Per Meeting |  -
 | Guesses Ignore The Medic Shield | -
-| Evil Guesser Can Guess The Spy | -
-| Both Guesser Spawn Rate | -
-| Guesser Can't Guess Snitch When Tasks Completed | -
+| Can Guess The Spy | -
+| Can't Guess Snitch When Tasks Completed | -
 
 -----------------------
 
@@ -923,31 +1007,29 @@ The vision will also be affected when lights out.
 ## Mini
 
 The Mini's character is smaller and hence visible to everyone in the game.\
-The Mini cannot be killed until it turns 18 years old, however it can be voted out.
-
-**Impostor/Jackal Mini:**
-- While growing up the kill cooldown is doubled. When it's fully grown up its kill cooldown is 2/3 of the default one.
-- If it gets thrown out of the ship, everything is fine.
-
-**Crewmate Mini:**
-- The Crewmate Mini aims to play out the strength its invincibility in the early game.
-- If it gets thrown out of the ship before it turns 18, everyone loses. So think twice before you vote out a Mini.
-
-**Neutral Mini:**
-- The cooldown is not effected, except for the Team Jackal/Sidekick.
-- If it gets thrown out of the ship, everything is fine except for the Jester.
-- If the Jester Mini gets voted out the game will end in a Jester win.
 
 **NOTE:**
-- If the Sheriff tries to kill the Mini before it's fully grown, nothing happens.
-- The Sheriff can kill the Impostor/Neutral Mini, but only if it's fully grown up.
-- If the Mini's primary role is guessed correctly, it dies like every other role and nothing further happens.
+- Mini Cannot be guessed, the guesser must know the primary role.
 
 ### Game Options
 | Name | Description |
 |----------|:-------------:|
 | Mini Spawn Chance | -
-| Mini  | Mini Growing Up Duration
+| Mini Speed Modifier | =
+-----------------------
+
+## Giant
+
+The Giant's character is larger and hence visible to everyone in the game.\
+
+**NOTE:**
+- Giant cannot be guessed, the guesser must know the primary role.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Giant Spawn Chance | -
+| Giant Speed Modifier | -
 -----------------------
 
 ## VIP
