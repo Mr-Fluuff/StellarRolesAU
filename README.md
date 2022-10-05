@@ -13,7 +13,7 @@ Even more roles are coming soon. :)
 |----------|-------------|-----------------|----------------|
 | [Bounty Hunter](#bounty-hunter) | [Medium](#medium) | [Jester](#jester) | [Bloody](#bloody) |
 | [Warlock](#warlock) | [Mayor](#mayor) | [Arsonist](#arsonist) | [Anti Teleport](#anti-teleport) |
-| [Cleaner](#cleaner) | [Engineer](#engineer) | [Jackal](#jackal) | [Tie Breaker](#tie-breaker) |
+| [Janitor](#janitor) | [Engineer](#engineer) | [Jackal](#jackal) | [Tie Breaker](#tie-breaker) |
 | [Morphling](#morphling) | [Sheriff](#sheriff) | [Sidekick](#sidekick) | [Bait](#bait) |
 | [Trickster](#trickster) | [Deputy](#deputy) | [Vulture](#vulture) | [Lovers](#lovers) |
 | [Vampire](#vampire) | [Lighter](#lighter) | [Lawyer](#lawyer) | [Sunglasses](#sunglasses) |
@@ -267,19 +267,19 @@ If the boxes are converted to a vent network, the Trickster gains a new ability 
 | Trickster Lights Out Duration | Duration after which the light is automatically restored
 -----------------------
 
-## Cleaner
+## Janitor
 ### **Team: Impostors**
-The Cleaner is an Impostor who has the ability to clean up dead bodies.\
+The Janitor is an Impostor who has the ability to clean up dead bodies.\
 \
 **NOTE:**
 - The Kill and Clean cooldown are shared, preventing them from immediately cleaning their own kills.
-- If there is a Cleaner in the game, there can't be a Vulture.
+- If there is a Janitor in the game, there can't be a Vulture.
 
 ### Game Options
 | Name | Description |
 |----------|:-------------:|
-| Cleaner Spawn Chance | -
-| Cleaner Cooldown | Cooldown for cleaning dead bodies
+| Janitor Spawn Chance | -
+| Clean Cooldown | Cooldown for cleaning dead bodies
 -----------------------
 
 ## Warlock
