@@ -21,7 +21,7 @@ Even more roles are coming soon. :)
 | [Miner](#miner) | [Security Guard](#security-guard) | | [VIP](#vip) |
 | [Cultist](#cultist) | [Medic](#medic) |  | [Invert](#invert) |
 | [Follower](#follower) | [Swapper](#swapper) | | [Giant](#giant) |
-|  | [Seer](#seer) |  | [Assassin](#assassin) |
+| [Wraith](#wraith) | [Seer](#seer) |  | [Assassin](#assassin) |
 |  | [Hacker](#hacker) |  |  |
 |  | [Tracker](#tracker) |  |  |
 |  | [Snitch](#snitch) |  |  |
@@ -355,6 +355,29 @@ The Miner is an Impostor, that can place vents around the map.\
 |----------|:-------------:|
 | Miner Spawn Chance | -
 | Mine Cooldown | -
+-----------------------
+
+## Wraith
+### **Team: Impostors**
+The Wraith is an Impostor, that has two abilities.
+1. Phase - Speed up yourself for a short period of time.
+2. Lantern - Place a lantern to later teleport back too.\
+
+**NOTE:**
+- If you do not return to the lantern before time is up or a meeting is called you will leave evidence behind.
+- Option to turn Wraith invisible after return button is clicked.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Wraith Spawn Chance | -
+| Phase Cooldown | -
+| Phase Duration | -
+| Lantern | On/Off
+| Lantern Cooldown | -
+| Lantern Duration | -
+| Invisibility | Should Wraith turn invisible after return?
+| Invisibility Duration | -
 -----------------------
 
 ## Cultist
