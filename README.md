@@ -149,7 +149,7 @@ Here are a few instructions, on how to create a custom hat:
 - **Submission:** If you got a hat design, you can submit it on our [Discord](https://discord.gg/tKNVCXsP). We'll look at all the hats and add all the good ones to the game.
 
 # Colors
-![TOR Colors](./Images/TOR_colors.jpg)
+![Stellar Colors](./Images/TOR_colors.jpg)
 
 # Roles
 
