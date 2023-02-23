@@ -6,6 +6,28 @@ This mod is not affiliated with Among Us or Innersloth LLC, and the content cont
 # StellarRoles
 
 **StellarRoles** is a mod for [Among Us](https://store.steampowered.com/app/945360/Among_Us) which adds new roles, new [Settings](#settings) and new [Custom Hats](#custom-hats) to the game.
+Even more roles are coming soon. o.o
+
+| Impostors | Crewmates | Neutral | Neutral Killers |
+|----------|-------------|-----------------|----------------|
+| [Wraith] (#wraith)| [Mayor](#mayor) | [Arsonist](#arsonist) | [Nightmare](#nightmare)|
+| [Cultist](#cultist)| [Engineer](#engineer) | [Romantic](#romantic) |[Pyromaniac](#pyromaniac)  |
+| [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter] (#headhunter) |
+| [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters] (#rogueimposters)|
+| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic] (#vengeful) |[Renegade](#renegade)|
+| [Shade](#shade)| [Detective](#detective) |[Beloved](#beloved) | |
+| [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee)) | |
+| [Janitor](#janitor) | [Medic](#medic) | [Jester](#jester) | |
+| [Warlock](#warlock) | [Swapper](#swapper) |
+| [Bounty Hunter](#bounty-hunter) | [Watcher](#watcher) |  |
+| [Miner](#miner)| [Investigator](#investigator) |  |  |
+| [Changeling](#changeling)| [Tracker](#tracker) |  |  |
+| [Assassin](#guesser)|[Trapper](#trapper) |  |  |
+| [Bomber] (#bomber)| [Spy](#spy) |  |  |
+|  |[Guardian](#guardian) |  |  |
+|  | |  |  |
+|  | [Medium](#medium) |  |  |
+|  | [Vigilante](#guesser) |  |
 
 # Releases
 | Among Us - Version| Mod Version | Link |
@@ -20,6 +42,7 @@ This mod is not affiliated with Among Us or Innersloth LLC, and the content cont
 **Version 1.0.5**  
 
 </details>
+
 
 # Installation
 
@@ -165,6 +188,43 @@ Settings: 2 special Crewmate roles, Tracker: 100%, Watcher: 10%, Detective: 30%\
 Result: Tracker is assigned, then one role out of the pool [Watcher, Detective, Detective, Detective] is being selected\
 Note: Changing the settings to Watcher: 20%, Detective: 60% would statistically result in the same outcome .
 
+## Changeling
+### **Team: Imposters**
+The Changeling is a 'choose your fighter'-style impostor role who behaves exactly like a vanilla impostor until they use their one-time use ability.\
+\
+**NOTE:**
+- This ability will open up a menu with a list of all impostor roles with >0% spawn rate, excluding cultist and the role of their impostor partner(s). This menu will also respect roles that are exclusive of each other; for example: if the partner is a warlock, then both warlock and vampire will not be on the list. Selecting the role will permanently change the player into it. This can only be done once, and cannot be undone.
+- The host can decide the power level of the Changeling through its ability to vent or increasing its kill cooldown before it changes.
+- Ability cooldowns are set to 50% of their base cooldown upon changing.
+- The kill cooldown will continue to count as normal upon changing.
+- The Changeling can be guessed, but must be guessed as the proper role after they change.
+- To prevent discouragement from late-game picks for roles that place objects: For every dead player in the game, miner vents and trickster boxes cooldowns are reduced by 15% (If this number is >=100%, objects will not have a cooldown). This effect is static at the time the changeling changes, meaning cooldowns are not reduced further after they change into the role.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Changeling Spawn Chance | -
+-----------------------
+
+## Camouflager
+### **Team: Impostors**
+The Camouflager is an Impostor which can additionally activate a camouflage mode.\
+The camouflage mode lasts for 10s and while it is active, all player names/pets/hats\
+are hidden and all players have the same color.\
+\
+**NOTE:**
+- The Mini/Giant will look like all the other players
+- The color of the footprints turns gray (also the ones that were already on the ground).
+- The shield is not visible anymore
+- Tracker arrows keep working
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Camouflager Spawn Chance | -
+| Camouflager Cooldown | -
+| Camo Duration | Time players stay camouflaged
+-----------------------
 
 ## Morphling
 ### **Team: Impostors**
@@ -298,25 +358,39 @@ The Miner is an Impostor, that can place vents around the map.\
 
 ## Wraith
 ### **Team: Impostors**
-The Wraith is an Impostor, that has two abilities.
-1. Phase - Speed up yourself for a short period of time.
-2. Lantern - Place a lantern to later teleport back too.\
-
-**NOTE:**
-- If you do not return to the lantern before time is up or a meeting is called you will leave evidence behind.
-- Option to turn Wraith invisible after return button is clicked.
-
+The Wraith is an impostor role with two abilities. The first ability, Dash, increases the movement speed of the Wraith for a few seconds on a cooldown. The second ability is a Lantern. The Wraith can place the Lantern on the ground, and reactivate it to teleport to it. The Lantern has a short, limited duration, and is only visible to the Wraith. Failing to reactivate a Lantern will leave a broken lantern on the ground permanently that is visible to all players.\
+\
+**Abilities**
+- Phase: Increases player movement speed -potential balance check if needed: canceled on kill/vent use
+- Lantern: Places a Lantern on the ground that can be teleported to later. Leaves permanent evidence if unused before expiration.
+- Optional: Teleporting to the lantern grants temporary Invisibility.
 ### Game Options
 | Name | Description |
 |----------|:-------------:|
 | Wraith Spawn Chance | -
-| Phase Cooldown | -
-| Phase Duration | -
-| Lantern | On/Off
-| Lantern Cooldown | -
-| Lantern Duration | -
-| Invisibility | Should Wraith turn invisible after return?
-| Invisibility Duration | -
+| Dash Cooldown | -
+| Dash Duration | - 
+| Dash Speed Multiplier | -
+| Lantern | Enable Lantern Ability
+| Lantern Cooldown| -
+| Latern Duration| -
+| Invisibility| -
+| Invisibility Duration | Time players stays invisible after using lantern
+-----------------------
+
+## Shade
+### **Team: Impostors**
+The Shade is an impostor who can temporarily turn invisible. Upon scoring X kills, The Shade gains a 'Blind' Ability. Evidence of when a stealth turns invisible, and when they reappear is configurable. Pressing stealth again prematurely will cancel the effect.\
+\
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Shade Spawn Chance | -
+| Vanish Cooldown | -
+| Vanish Duration | -
+| Evidence Duration| -
+| Blind Button | -
+| Blind Duration |
 -----------------------
 
 ## Cultist
@@ -390,7 +464,12 @@ The Executioner is someone that is assigned a Crewmate. Their goal is to get tha
 The Scavenger does not have any tasks, they have to win the game as a solo.\
 The Scavenger is a neutral role that must eat a specified number of corpses (depending on the options) in order to win.\
 Depending on the options, when a player dies, the Scavenger gets an arrow pointing to the corpse.\
-If there is a Scavenger in the game, there can't be a Janitor.
+If there is a Scavenger in the game, there can't be a Janitor. If the Scavenger's win condition can no longer be met, they
+become a Refugee.\
+\
+**Abilities:**
+- Scavenge: Opens a time window where the Scavenger has arrows pointing to all corpses currently on the map.
+- Eat: Consumes a corpse, causing it to disappear and no longer be reportable. The body will show as a disconnect on vitals, and will not be displayed on a report screen at the start of a meeting.
 
 **NOTE**
 - If the corpse is on a different floor on Submerged, the arrow will always point to the elevator
@@ -399,10 +478,11 @@ If there is a Scavenger in the game, there can't be a Janitor.
 | Name | Description |
 |----------|:-------------:|
 | Scavenger Spawn Chance | -
-| Scavenger Countdown | -
-| Number Of Corpses Needed To Be Eaten | Corpes needed to be eaten to win the game
+| Eat Countdown | -
+| Number Of Eats to Win | Corpes needed to be eaten to win the game
 | Scavenger Can Use Vents | -
-| Show Arrows Pointing Towards The Corpes | -
+| Scavenge Cooldown | -
+| Scavenge Duration | How long Scavenger will have arrows pointing to dead bodies
 -----------------------
 
 ## Vigilante
@@ -425,7 +505,133 @@ Depending on the options, the Vigilante can't guess the shielded player and depe
 | Can Shoot Multiple Times Per Meeting |  -
 | Guesses Visible In Ghost Chat | -
 | Guesses Ignore The Medic Shield | -
+-----------------------
 
+## Romantic
+### **Team: Neutral**
+The Romantic is role who Declares their love to any player. When they do this, their alignment becomes tied to them. They will win if their chosen target does, with a couple minor exceptions.
+- The Romantic will win with the crewmates or with neutrals if they are killed or assassinated, and can still win with crew or neutrals if they are voted out(granted the proper alignment has won the game).\
+\
+**Abilities**
+- The Romantic Declare button chooses your selected love. This button is replaced with Shield when a target is chosen. There is no indicator on the target's end that they are selected.
+- Shield will protect your target for a short duration, causing the first attack made against them to fail and put the attacker's kill on a five second cooldown.
+- The shield is ONLY visible to the Romantic, no one else.
+-If at any point your selected target is killed or assassinated, your role will immediately change into the "Vengeful Romantic" role.
+-The Vengeful Romantic CAN be assassinated
+-The Vengeful Romantic's 'Shield' button is replaced with a 'Kill' button.
+-This kill button behaves exactly like a sheriff's kill button but instead of misfiring on crewmates, this kill will misfire on everyone but the person who killed or assassinated your love. It starts on cooldown, matching base impostor cooldown.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Romantic Spawn Chance | -
+| Protect Countdown | -
+| Protect Duration | -
+| Romantic Knows Target Identity | -
+| Romantic Target Knows they are selected | -
+| Display Meeting Indicators | -
+-----------------------
+
+## Vengeful Romantic
+### **Team: Neutral**
+
+## Beloved
+### **Team: Neutral**
+
+## Head Hunter
+### **Team: Neutral Killer**
+The headhunter is a neutral killing role who has three assigned kill targets every round.
+These names are displayed to the headhunter in an alternate color during rounds and meetings.\
+\
+**Notes**
+- The headhunter cannot target impostors or players who were dead first round of the previous game as its first three targets.
+- The headhunter can never target more than one impostor at one time, and cannot target a solo impostor unless there are not enough players remaining or the impostor was already a target.
+- If any of the headhunter's targets are killed, the headhunter will get new targets at the start of the next meeting.
+- The headhunter has impostor vision and can vent. The Headhunter starts the game with a kill cooldown 5s higher than impostors.
+- Every time the Headhunter kills a target, its kill cooldown is reduced by 5s. This effect is permanent.
+- Every time the Headhunter kills a non-target, its kill cooldown is increased by 10s. This effect is permanent.
+- The headhunter has a "Pursue" button to get arrows pointing to their targets for a set duration. This arrow will point to the targets death location in the event a target has been killed. The arrow will remain at the death location, and will not follow a corpse in the event the body is displaced.
+
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Head Hunter Spawn Chance | -
+| Pursue Countdown | -
+| Pursue Duration | -
+| Can Target Imposters Round One | -
+| One Time Target Shuffle | -
+-----------------------
+
+## Nightmare
+### **Team: Neutral Killers**
+Nightmare plays into a players worst nightmares! They have two abilities, Blind and Paralyze! 
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Nightmare Spawn Chance | -
+| Paralyze Countdown | -
+| Paralyze Duration | -
+| Blind Cooldown | -
+| Blind Duration | -
+-----------------------
+
+## Pyromaniac
+### **Team: Neutral Killers**
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Douse Cooldown | -
+| Douse Duration | -
+| Doused Kill Cooldown | -
+| Douses Display In Meetings | -
+-----------------------
+
+
+## Rogue Imposters
+### **Team: Neutral Killers**
+
+Option to turn any imposter role into a Neutral Killer Role. You can enable each role as a neutral killer, and 
+it will use the spawn chance under the imposter settings. It cannot spawn as an imposter if enabled for Neutral Killer. 
+
+## Mayor
+### **Team: Crewmates**
+The Mayor leads the Crewmates by having a vote that counts twice.\
+The Mayor can always use their meeting, even if the maximum number of meetings was reached.\
+The Mayor has a portable Meeting Button, depending on the options.\
+The Mayor can see the vote colors after completing a configurable amount of tasks, depending on the options.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Mayor Spawn Chance | -
+| Mayor Can See Vote Colors | -
+| Completed Tasks Needed To See Vote Colors | -
+-----------------------
+
+## Parity Cop
+### **Team: Crewmates**
+**WARNING: This role is one of the most complex roles in the mod, and should only be used in advanced lobbies!**
+The Parity Cop is a role that can select two players during rounds. In meetings these players will be compared to one another, to see if they have the same alignment or not! Players who are killed will not be compared. The two most recently selected living players will be compared during the next meeting. The Parity Cop may use this button as much as they want per round.\
+\
+**Notes**
+- There are two categories that all players fit into: Crewmates, and Non-Crewmates.
+- In meeting, players with matching alignments will be displayed with checkmarks!
+- Mismatched players will be displayed with X's. Dead players may also see these comparisons! If the Parity Cop is killed, their final comparison will still be made! 
+- When any Non-Crewmate role is put in a comparison with another player, they will be made aware of it in meeting with a ? next to their name, and next to the name of the person they were compared to. Crewmate roles do not see these indicators! 
+- The host may decide to increase the difficulty of this role. There are two settings to place Neutral-Evil roles in the Crewmate category, or Crewmate-Killing roles(Sheriff and Vigilante) in the Non-Crewmate category! This setting is generally used for more advanced lobbies, or as a power-check to this strong role!
+- The host may also enable an ability called Fake Out, though this is also recommended for advanced lobbies. Fake out will force the Parity Cop to the top of their running comparison list. If the most recent person they have compared is a Non-Crewmate, they will see a standard comparison has been made to them with the parity cop!
+- Fake Out provides no information to the Parity Cop. It is simply a way for the Parity Cop to keep their role from being singled out, as they cannot compare themselves normally.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Neutral Evil Groups Compared With Crew | -
+| Crewmate Killers Grouped With Crew | -
+| Compare Cooldown | -
+| Enable Fakeout | -
 -----------------------
 
 ## Mayor
@@ -442,6 +648,128 @@ The Mayor can see the vote colors after completing a configurable amount of task
 | Mayor Can See Vote Colors | -
 | Completed Tasks Needed To See Vote Colors | -
 | Mobile Emergency Button | -
+-----------------------
+
+## Administrator
+### **Team: Crewmates**
+The Administrator is another simple role with one power: It can access the Admin Table from anywhere on the map! 
+Like the Medic and the Watcher, the Administrator uses a Task-Powered-Battery to power its mobile Admin Table! The Task Battery gains a host-configured amount of charge whenever the Administrator does tasks! It costs 1 second of charge to open your admin table, and the power of the battery drains over time while it is open.\
+\
+**Notes**
+- When you complete your tasks, the charge of the battery generates on its own! The host can configure an internal cooldown for this charge increase, though the default cooldown is 20 seconds.
+- The host may choose to disable battery charging and access to your mobile power in the first round of the game. This should not discourage you from doing tasks on round one, as when you finish tasks the battery will charge on its own anyway. 
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Administrator Spawn Chance | -
+| Initial Battery Time | -
+| Battery Time Per Task | -
+| Self Charging Battery Cooldown| -
+| Self Charging Battery Duration | -
+| Disable Round One Mobile Access | -
+| Turn Off Administrator On Mira | -
+-----------------------
+
+## Watcher
+### **Team: Crewmates**
+The Watcher is a role with two abilities: Sensors and map-wide camera access!
+Sensors have configurable charges. These charges are refreshed every round. Placed sensors are also cleared every round.
+When the watcher places a sensor on the ground, the next player to stand next to it will alert the Watcher with a flash and an arrow pointing to which sensor was tripped. The arrow is the color of the player who tripped it by default, but the host can make this color anonymous.\
+\
+**Notes**
+- Like the Medic and the Administrator, the Watcher uses a Task-Powered-Battery to power its mobile cameras! The Task Battery gains a host-configured amount of charge whenever the Watcher does tasks! It costs 1 second of charge to open your cameras, and the power of the battery drains over time while it is open.
+- When you complete your tasks, the charge of the battery generates on its own! The host can configure an internal cooldown for this charge increase, though the default cooldown is 20 seconds.
+- The host may choose to disable battery charging and access to your mobile power in the first round of the game. This should not discourage you from doing tasks on round one, as when you finish tasks the battery will charge on its own anyway.
+
+### Game Options
+| Name | Description |
+|----------|:-------------:|
+| Watcher Spawn Chance | -
+| Number of Sensors Per Round | -
+| Enable Meeting Overlay | -
+| Anonymous Arrows | -
+| Initial Battery Time | -
+| Battery Time Per Task | -
+| Self Charging Battery Cooldown| -
+| Self Charging Battery Duration | -
+| Disable Round One Mobile Access | -
+| Turn Off Watcher On Skeld | -
+-----------------------
+
+## Trapper
+### **Team: Crewmates**
+
+The Trapper is a crewmate role that is centered around hindering the ability to use vents. It has two main abilities. Using one of these abilities will trigger the cooldown of the other. The first ability, Cover, is usable when the Trapper is near a vent. This will cover the vent after the next meeting. The second ability, Trap, is also usable when near a vent. This ability will trap the vent, rooting players who attempt to use it in place for a SHORT duration(intended to be ~3 seconds). When triggered, the trap is consumed and the trapper is notified with a flash. Traps are only visible to players who have been in close proximity to them for 3 seconds. Traps and Covers are NOT visible in fog of war. The trapper is aware of when a player is in a specific vent system with a red highlight(this includes the engineer/jester).\
+\
+**Abilities**
+- Trap Vents - Roots people who use a trapped vent and notify the trapper. Traps are consumed when triggered. Traps are permanently visible after 3s of proximity. Placing a Trap triggers Cover cooldown. Traps are active as soon as they are placed. Rooted players are unable to move or take actions.
+- Cover Vents - Permanently seals a vent. Placing a Cover triggers Trap cooldown. Covers are not visible in fog of war. Covers activate after the next meeting.
+
+### Game Options
+| Name | Description
+|----------|:-------------:|
+| Trapper Spawn Chance | -
+| Number of Traps| -
+| Number of Covers | -
+| Trap/Cover Cooldown | -
+| Trap Root Duration | -
+-----------------------
+
+## Detective
+### **Team: Crewmates**
+The Detective is a crewmate role who gathers information from corpses and 'Crime Scenes'\
+\
+A crime scene is only visible to the detective, and is depicted by a blood stain, shown where they were killed.
+Crime Scenes are visible the round after a player has been killed.
+If a body is displaced, a crime scene will still only display where they died and not where they end up. A crime scene will NOT appear if a body has been cleaned.
+The detective has a chat window during rounds where it notes information from inspections. The detective may also use this chat window to take personal notes.\
+\
+The Detective has one ability: Inspect
+- This ability has no cooldown, but has a limit on how many times it can be used per body and per crime scene.
+- Inspect has a duration, and is intended to be usable multiple times per object.
+- Inspecting a corpse will give more valuable information than inspecting a body first, and is intended to have a higher limit to number of possible inspections.
+- Inspect will cause a chat popup in the detective's chat window with a bit of information every time it is used. Order of information is given is random and cannot repeat.
+ 
+**Information(In order of power):** 
+     1. Body Age Before Round ends(Crime Scene) / Body Age Before Inspect(Corpse)
+     2. Whether the player was killed by an ability or a kill button(sheriff misfire, vampire bite, warlock, etc count as abilities)
+     3. Dead Player Role
+     4. Name of another player this person has killed
+     5. Number of Players this killer has killed(if <=2, skip this)
+     6. Killer's Alignment
+     7. Direction the killer ran for up to 2s after killing(time stopped if vent is used)(N, S, E, W, NW, NE, SW, SE)
+     8. Did killer use vent within 5s after killing
+     
+**Notes**
+- Blood stain can only be seen within the detective's vision range(fog of war hides it)
+
+
+### Game Options
+| Name | Description
+|----------|:-------------:|
+| Detective Spawn Chance | -
+| Inspect Duration | The time it takes to question a body
+| Enable A Crime Scene | -
+-----------------------
+
+## Jailor
+### **Team: Crewmates**
+The Jailor is a crewmate-protective role with a meeting-based role-block ability. This role is meant to have a main focus on countering assassins. Their main ability {Jail} can be performed once per meeting, and is earned by completing tasks to build up charges(in a similar fashion to ToR's swapper). The Jailor can choose one person per meeting to jail. When jailed, a player’s name is displayed in dark gray. Players who can see a Jailed Target are configurable. A jailed player is immune to all role-based interactions, and cannot perform role-based interactions themselves. Players who attempt any of these actions will have charges/shots consumed where it applies, and get a gray flash on their screen when they use their action on this player. If a player is jailed and for some reason tries to use a role ability in a meeting, the same thing happens to them. The only interaction a Jailed target can make without repercussion is an attempt to assassinate the jailor.
+\
+**Notes**
+- If an incorrect assassinate attempt on the jailor is made when a target is jailed, their shot is consumed, they do not die, and a charge of their assassin shots are used up. They are not able to guess again in the same meeting.
+- If an attempt is made to assassinate a Jailed target, the shot will fail without killing the assassin, regardless of it being correct or not. They may not make other guesses in that meeting.
+- The Jailor is able to send in game messages to their jailed target, under a gray bean named “Jailor”
+**Abilities:**
+Jail: Choose a player in a meeting to be jailed. This player is now immune to all role-based interactions, and cannot perform role-based interactions. Only an assassin attempt can be made on the Jailor without repercussions.
+### Game Options
+| Name | Description
+|----------|:-------------:|
+| Jailor Spawn Chance | -
+| Initial Jail Charges| -
+| Tasks Per Recharge | -
+| Can Jail Self | -
 -----------------------
 
 ## Engineer
