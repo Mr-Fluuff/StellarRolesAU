@@ -37,7 +37,7 @@ Even more roles are coming soon. o.o
 
 # Changelog
   <details>
-    **<summary>Version 1.3.0</summary>**
+    <summary>{**Version 1.3.0**}</summary>
   
 Bug Fixes/Tweaks:
 - Refugee now displays properly in the in-game guide book
