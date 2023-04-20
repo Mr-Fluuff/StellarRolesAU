@@ -41,33 +41,34 @@ Even more roles are coming soon. o.o
   <summary>Click to show the Changelog</summary>
   
 **Version 1.3.0**
+  
 Bug Fixes/Tweaks:
--Refugee now displays properly in the in-game guide book
--End game screen now plays the proper noise based on which alignment won
--Scavenger button art fixed
--Assassin count now properly spawns the correct number of assassins
--If the lobby setting requires a specific number of tasks to complete an objected (Ex: Mayor seeing vote colors) is higher than the total number of tasks in the lobby, then completing tasks will earn that objective instead
--All guesser menus will now force close when a jail is applied to a player.
--The mini crewmate pet no longer randomly displays the wrong color.
--Pyromaniac douses are no longer interrupted by another player entering the pyromaniac's target highlight
--Scavenger should convert to Refugee at the correct number of players remaining(this time for sure)
--Administrator, Watcher, and Medic batteries should properly pause their charging during meetings when tasks are complete.
+- Refugee now displays properly in the in-game guide book
+- End game screen now plays the proper noise based on which alignment won
+- Scavenger button art fixed
+- Assassin count now properly spawns the correct number of assassins
+- If the lobby setting requires a specific number of tasks to complete an objected (Ex: Mayor seeing vote colors) is higher than the total number of tasks in the lobby, then completing tasks will earn that objective instead
+- All guesser menus will now force close when a jail is applied to a player.
+- The mini crewmate pet no longer randomly displays the wrong color.
+- Pyromaniac douses are no longer interrupted by another player entering the pyromaniac's target highlight
+- Scavenger should convert to Refugee at the correct number of players remaining(this time for sure)
+- Administrator, Watcher, and Medic batteries should properly pause their charging during meetings when tasks are complete.
 
 Role Changes:
--Administrator, Watcher, and Medic now trigger a 5 second cooldown when their mobile info button is initiated
--Non-Crewmates who have been tracked by a tracker now get a flash notification on a configurable delay.
--Non-Crewmates who have killed a player monitored by a medic now get a flash notification on a configurable delay.
--Non-Crewmates who have tripped a Watcher's sensor now get a flash notification on a configurable delay.
--Watcher now has an optional setting to make their sensor arrow anonymous.
--Shuffle is now a default ability of the Headhunter and is no longer optional.
--Cultist kill notification flashes are now red instead of purple.
--Vigilante can no longer be set as the Executioner's target.
--Several role encyclopedia entries have been fixed.
--Impostors and Neutral Killers can no longer be the target of an Assassin(can still be shot by Vigilante).
--Neutral Killers can now have the option to either inherit the Assassin power after impostors have all died or at the start of the game. This option can also be disabled.
+- Administrator, Watcher, and Medic now trigger a 5 second cooldown when their mobile info button is initiated
+- Non-Crewmates who have been tracked by a tracker now get a flash notification on a configurable delay.
+- Non-Crewmates who have killed a player monitored by a medic now get a flash notification on a configurable delay.
+- Non-Crewmates who have tripped a Watcher's sensor now get a flash notification on a configurable delay.
+- Watcher now has an optional setting to make their sensor arrow anonymous.
+- Shuffle is now a default ability of the Headhunter and is no longer optional.
+- Cultist kill notification flashes are now red instead of purple.
+- Vigilante can no longer be set as the Executioner's target.
+- Several role encyclopedia entries have been fixed.
+- Impostors and Neutral Killers can no longer be the target of an Assassin(can still be shot by Vigilante).
+- Neutral Killers can now have the option to either inherit the Assassin power after impostors have all died or at the start of the game. This option can also be disabled.
 
 Other Changes:
--Built-in lobby presets have been reworked, and now include the following presets: Streamer Prox, Streamer Non-Prox, Beginner, Chaotic, Stell's Lobby
+- Built-in lobby presets have been reworked, and now include the following presets: Streamer Prox, Streamer Non-Prox, Beginner, Chaotic, Stell's Lobby
 how does that look
   
 **Version 1.0.5**  
