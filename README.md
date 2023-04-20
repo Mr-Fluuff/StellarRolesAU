@@ -10,22 +10,21 @@ Even more roles are coming soon. o.o
 
 | Impostors | Crewmates | Neutral | Neutral Killers |
 |----------|-------------|-----------------|----------------|
-| [Wraith] (#wraith)| [Mayor](#mayor) | [Arsonist](#arsonist) | [Nightmare](#nightmare)|
-| [Cultist](#cultist)| [Engineer](#engineer) | [Romantic](#romantic) |[Pyromaniac](#pyromaniac)  |
+| [Wraith](#wraith)| [Mayor](#mayor) | [Arsonist](#arsonist) | [Nightmare](#nightmare)|
+| [Cultist](#cultist)| [Engineer](#engineer) | [Romantic](#romantic) | [Pyromaniac](#pyromaniac)  |
 | [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter](#head-hunter) |
-| [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters](#rogueimposters)|
-| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengeful-romantic) |[Ruthless Romantic](#ruthless-romantic)|
-| [Shade](#shade)| [Detective](#detective) |[Beloved](#beloved) | |
-| [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee) | |
+| [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters](#rogue-imposters)|
+| [Vampire](#vampire) |[Parity Cop](#parity-cop) | [Vengeful Romantic](#vengeful-romantic) | [Ruthless Romantic](#ruthless-romantic)|
+| [Shade](#shade)| [Detective](#detective) | [Beloved](#beloved) | |
+| [Undertaker](#undertaker) | [Administrator](#administrator) | [Refugee](#refugee) | |
 | [Janitor](#janitor) | [Medic](#medic) | [Jester](#jester) | |
 | [Warlock](#warlock) | [Swapper](#swapper) |
 | [Bounty Hunter](#bounty-hunter) | [Watcher](#watcher) |  |
 | [Miner](#miner)| [Investigator](#investigator) |  |  |
 | [Changeling](#changeling)| [Tracker](#tracker) |  |  |
-| [Assassin](#guesser)|[Trapper](#trapper) |  |  |
-| [Bomber] (#bomber)| [Spy](#spy) |  |  |
-|  |[Guardian](#guardian) |  |  |
-|  | |  |  |
+| [Assassin](#assassin)|[Trapper](#trapper) |  |  |
+| [Bomber](#bomber)| [Spy](#spy) |  |  |
+|  | [Guardian](#guardian) |  |  |
 |  | [Medium](#medium) |  |  |
 |  | [Vigilante](#guesser) |  |
 
@@ -523,8 +522,7 @@ The Vigilante can shoot players during the meeting, by guessing its role. If the
 You can select how many players can be shot per game and if multiple players can be shot during a single meeting.\
 The guesses Impostor and Crewmate are only right, if the player is part of the corresponding team and has no special role.\
 You can only shoot during the voting time.\
-Depending on the options, the Vigilante can't guess the shielded player and depending on the Medic options the Medic/shielded player might be notified (no one will die, independently of what the Guesser guessed).\
-\
+
 **NOTE:**
 - If a player gets shot, you'll get back your votes
 - Jester wins won't be triggered, if the Guesser shoots the Jester before the Jester gets voted out
@@ -535,8 +533,6 @@ Depending on the options, the Vigilante can't guess the shielded player and depe
 | Vigilante Spawn Chance | -
 | Number Of Shots Per Game | -
 | Can Shoot Multiple Times Per Meeting |  -
-| Guesses Visible In Ghost Chat | -
-| Guesses Ignore The Medic Shield | -
 -----------------------
 
 ## Romantic
@@ -549,9 +545,6 @@ The Romantic is role who Declares their love to any player. When they do this, t
 - Shield will protect your target for a short duration, causing the first attack made against them to fail and put the attacker's kill on a five second cooldown.
 - The shield is ONLY visible to the Romantic, no one else.
 -If at any point your selected target is killed or assassinated, your role will immediately change into the "Vengeful Romantic" role.
--The Vengeful Romantic CAN be assassinated
--The Vengeful Romantic's 'Shield' button is replaced with a 'Kill' button.
--This kill button behaves exactly like a sheriff's kill button but instead of misfiring on crewmates, this kill will misfire on everyone but the person who killed or assassinated your love. It starts on cooldown, matching base impostor cooldown.
 
 ### Game Options
 | Name | Description |
@@ -566,6 +559,11 @@ The Romantic is role who Declares their love to any player. When they do this, t
 
 ## Vengeful-Romantic
 ### **Team: Neutral**
+The Vengeful Romantic was once a romantic to a crewmate. Now that their love has died they must take their revenge! Their protect button now becomes an avenge button. Be careful tho as it will only work on the one who took your love away from you.
+
+-The Vengeful Romantic CAN be assassinated
+-The Vengeful Romantic's 'Shield' button is replaced with a 'Kill' button.
+-This kill button behaves exactly like a sheriff's kill button but instead of misfiring on crewmates, this kill will misfire on everyone but the person who killed or assassinated your love. It starts on cooldown, matching base impostor cooldown.
 
 ## Ruthless-Romantic
 ### **Team: Neutral Killer**
@@ -651,7 +649,7 @@ The Mayor can see the vote colors after completing a configurable amount of task
 | Completed Tasks Needed To See Vote Colors | -
 -----------------------
 
-## Parity Cop
+## Parity-Cop
 ### **Team: Crewmates**
 **WARNING: This role is one of the most complex roles in the mod, and should only be used in advanced lobbies!**
 The Parity Cop is a role that can select two players during rounds. In meetings these players will be compared to one another, to see if they have the same alignment or not! Players who are killed will not be compared. The two most recently selected living players will be compared during the next meeting. The Parity Cop may use this button as much as they want per round.\
@@ -848,11 +846,11 @@ Because of the vents the Engineer might not be able to start some tasks using th
 
 ## Sheriff
 ### **Team: Crewmates**
-The Sheriff has the ability to kill Impostors or Neutral roles if enabled.\
+The Sheriff has the ability to kill Impostors, Neutral Killers, and Neutral roles if enabled.\
 If they try to kill a Crewmate, they die instead.\
 \
 **NOTE:**
-- If the Sheriff shoots the person the Medic shielded, the Sheriff and the shielded person **both remain unharmed**.
+- If the Sheriff shoots the person the Guaridan shielded, the Sheriff and the shielded person **both remain unharmed**.
 
 ### Game Options
 | Name | Description |
@@ -978,8 +976,7 @@ The Assassin can shoot players during the meeting, by guessing its role. If the 
 You can select how many players can be shot per game and if multiple players can be shot during a single meeting.\
 The guesses Impostor and Crewmate are only right, if the player is part of the corresponding team and has no special role.\
 You can only shoot during the voting time.\
-Depending on the options, the Assassin can't guess the shielded player and depending on the Medic options the Medic/shielded player might be notified (no one will die, independently of what the Guesser guessed).\
-\
+
 **NOTE:**
 - If a player gets shot, you'll get back your votes
 - Jester wins won't be triggered, if the Guesser shoots the Jester before the Jester gets voted out
