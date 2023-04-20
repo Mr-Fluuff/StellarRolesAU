@@ -16,7 +16,7 @@ Even more roles are coming soon. o.o
 | [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters](#rogueimposters)|
 | [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengeful-romantic) |[Ruthless Romantic](#ruthless-romantic)|
 | [Shade](#shade)| [Detective](#detective) |[Beloved](#beloved) | |
-| [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee)) | |
+| [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee) | |
 | [Janitor](#janitor) | [Medic](#medic) | [Jester](#jester) | |
 | [Warlock](#warlock) | [Swapper](#swapper) |
 | [Bounty Hunter](#bounty-hunter) | [Watcher](#watcher) |  |
@@ -630,7 +630,7 @@ Nightmare plays into a players worst nightmares! They have two abilities, Blind 
 -----------------------
 
 
-## Rogue Imposters
+## Rogue-Imposters
 ### **Team: Neutral Killers**
 
 Option to turn any imposter role into a Neutral Killer Role. You can enable each role as a neutral killer, and 
@@ -754,6 +754,21 @@ The Trapper is a crewmate role that is centered around hindering the ability to 
 | Number of Covers | -
 | Trap/Cover Cooldown | -
 | Trap Root Duration | -
+-----------------------
+
+## Refugee
+### **Team: Crewmates**
+
+The Refugee is a crewmate that was once another role that has lost its win condition but has gained a second chance to win. Refugee can only win with crew.
+
+**Abilities**
+- Refuge - Protects the Refugee from harm for a configurable duration.
+
+### Game Options
+| Name | Description
+|----------|:-------------:|
+| Refuge Cooldown | -
+| Refuge Duration | -
 -----------------------
 
 ## Detective
