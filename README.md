@@ -38,8 +38,8 @@ Even more roles are coming soon. o.o
 # Changelog
 <details>
   <summary>Click to show the Changelog</summary>
-  
-**Version 1.3.0**
+  <details>
+    <summary>**Version 1.3.0**</summary>
   
 Bug Fixes/Tweaks:
 - Refugee now displays properly in the in-game guide book
@@ -69,6 +69,7 @@ Role Changes:
 Other Changes:
 - Built-in lobby presets have been reworked, and now include the following presets: Streamer Prox, Streamer Non-Prox, Beginner, Chaotic, Stell's Lobby
 how does that look
+  </details>
   
 **Version 1.0.5**  
 
