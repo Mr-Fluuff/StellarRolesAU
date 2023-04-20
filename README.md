@@ -14,7 +14,7 @@ Even more roles are coming soon. o.o
 | [Cultist](#cultist)| [Engineer](#engineer) | [Romantic](#romantic) |[Pyromaniac](#pyromaniac)  |
 | [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter](#head) |
 | [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters](#rogueimposters)|
-| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengeful) |[Ruthless Romantic](#ruthless)|
+| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengefulromantic) |[Ruthless Romantic](#ruthlessromantic)|
 | [Shade](#shade)| [Detective](#detective) |[Beloved](#beloved) | |
 | [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee)) | |
 | [Janitor](#janitor) | [Medic](#medic) | [Jester](#jester) | |
