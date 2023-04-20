@@ -12,9 +12,9 @@ Even more roles are coming soon. o.o
 |----------|-------------|-----------------|----------------|
 | [Wraith] (#wraith)| [Mayor](#mayor) | [Arsonist](#arsonist) | [Nightmare](#nightmare)|
 | [Cultist](#cultist)| [Engineer](#engineer) | [Romantic](#romantic) |[Pyromaniac](#pyromaniac)  |
-| [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter] (#headhunter) |
-| [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters] (#rogueimposters)|
-| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic] (#vengeful) |[Renegade](#renegade)|
+| [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter](#head hunter) |
+| [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters](#rogueimposters)|
+| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengeful romantic) |[Ruthless Romantic](#ruthless romantic)|
 | [Shade](#shade)| [Detective](#detective) |[Beloved](#beloved) | |
 | [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee)) | |
 | [Janitor](#janitor) | [Medic](#medic) | [Jester](#jester) | |
@@ -566,6 +566,14 @@ The Romantic is role who Declares their love to any player. When they do this, t
 
 ## Vengeful Romantic
 ### **Team: Neutral**
+
+## Ruthless Romantic
+### **Team: Neutral Killer**
+The Ruthless Romantic is a neutral killing role that was once the romantic of another neutral killer.
+Their objective now is to kill all crew and be the last killer standing.
+
+**Notes**
+- The Lover of the Ruthless Romantic will win with them.
 
 ## Beloved
 ### **Team: Neutral**
