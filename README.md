@@ -32,6 +32,7 @@ Even more roles are coming soon. o.o
 # Releases
 | Among Us - Version| Mod Version | Link |
 |----------|-------------|-----------------|
+| 2023.03.28| v1.3.0| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.0/StellarRoles.zip)
 | 2023.02.28| v1.2.4 Dev H| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.2.4/StellarRoles.zip)
 | 2022.6.21, 2022.7.12| v1.0.5| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.0.5/StellarRoles.zip)
 
