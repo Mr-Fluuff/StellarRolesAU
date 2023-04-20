@@ -36,10 +36,8 @@ Even more roles are coming soon. o.o
 | 2022.6.21, 2022.7.12| v1.0.5| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.0.5/StellarRoles.zip)
 
 # Changelog
-<details>
-  <summary>Click to show the Changelog</summary>
   <details>
-    <summary>**Version 1.3.0**</summary>
+    **<summary>Version 1.3.0</summary>**
   
 Bug Fixes/Tweaks:
 - Refugee now displays properly in the in-game guide book
@@ -70,11 +68,6 @@ Other Changes:
 - Built-in lobby presets have been reworked, and now include the following presets: Streamer Prox, Streamer Non-Prox, Beginner, Chaotic, Stell's Lobby
 how does that look
   </details>
-  
-**Version 1.0.5**  
-
-</details>
-
 
 # Installation
 
