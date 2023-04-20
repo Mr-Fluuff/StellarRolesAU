@@ -12,9 +12,9 @@ Even more roles are coming soon. o.o
 |----------|-------------|-----------------|----------------|
 | [Wraith] (#wraith)| [Mayor](#mayor) | [Arsonist](#arsonist) | [Nightmare](#nightmare)|
 | [Cultist](#cultist)| [Engineer](#engineer) | [Romantic](#romantic) |[Pyromaniac](#pyromaniac)  |
-| [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter](#head hunter) |
+| [Morphling](#morphling) | [Sheriff](#sheriff) | [Executior](#executioner) | [Head Hunter](#head) |
 | [Camouflager](#camouflager) | [Jailor](#jailor) | [Scavenger](#scavenger) | [Rogue Imposters](#rogueimposters)|
-| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengeful romantic) |[Ruthless Romantic](#ruthless romantic)|
+| [Vampire](#vampire) |[Parity Cop](#paritycop) |[Vengeful Romantic](#vengeful) |[Ruthless Romantic](#ruthless)|
 | [Shade](#shade)| [Detective](#detective) |[Beloved](#beloved) | |
 | [Undertaker](#undertaker) | [Administrator](#administrator) |[Refugee](#refugee)) | |
 | [Janitor](#janitor) | [Medic](#medic) | [Jester](#jester) | |
