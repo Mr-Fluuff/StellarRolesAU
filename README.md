@@ -194,7 +194,7 @@ Here are a few instructions, on how to create a custom hat:
     - The name of the texture needs to follow the pattern `hatname_climb.png`.
 - **Testing:** You can test your hat design by putting all the files in the `\TheOtherHats\Test` subfolder of your mod folder. Then whenever you start a Freeplay game, you and all the dummies will be wearing the new hat. You don't need to restart Among Us if you change the hat files, just exit and reenter the Freeplay mode.
 
-- **Submission:** If you got a hat design, you can submit it on our [Discord](https://discord.gg/tKNVCXsP). We'll look at all the hats and add all the good ones to the game.
+- **Submission:** If you got a hat design, you can submit it on our [Discord](https://discord.gg/7UcvM9CFdY). We'll look at all the hats and add all the good ones to the game.
 
 # Colors
 ![Stellar Colors](./Images/TOR_colors.jpg)
@@ -1031,4 +1031,4 @@ The Giant's character is larger and hence visible to everyone in the game.\
 You can use parts of the code but don't copy paste the whole thing. Make sure you give credits to the other developers, because some parts of the code are based on theirs.
 
 # Bugs, suggestions and requests
-If you found any bugs, have an idea for a new role or any other request, join our [Discord](https://discord.gg/tKNVCXsP).
+If you found any bugs, have an idea for a new role or any other request, join our [Discord](https://discord.gg/7UcvM9CFdY).
