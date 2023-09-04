@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<Version>1.4.3</Version>
+		<Description>StellarRoles</Description>
+		<Authors>Mr_Fluuff,Ilyssa,Om3ga,Sugden</Authors>
+		<LangVersion>latest</LangVersion>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<PlatformTarget>x86</PlatformTarget>
+		<ConfigurationName>Release</ConfigurationName>
+		<AmongUs>../Among Us</AmongUs>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Resources\**" />
+		<PackageReference Include="AmongUs.GameLibs.Steam" Version="2023.07.11" />
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.671" />
+		<PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1" />
+		<PackageReference Include="Reactor" Version="2.2.0" />
+	</ItemGroup>
+
+	<Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="Exists('$(AmongUs)/BepInEx/plugins/')">
+		<Message Text="Second occurrence" />
+		<Copy SourceFiles="$(ProjectDir)\bin\$(Configuration)\net6.0\StellarRoles.dll" DestinationFolder="$(AmongUs)/BepInEx/plugins/" />
+	</Target>
+
+	<Target Name="CopyCustomContent1" AfterTargets="AfterBuild" Condition="Exists('$(AmongUsModded)/BepInEx/plugins/')">
+		<Message Text="Third occurrence" />
+		<Copy SourceFiles="$(ProjectDir)\bin\$(Configuration)\net6.0\StellarRoles.dll" DestinationFolder="$(AmongUsModded)/BepInEx/plugins/" />
+	</Target>
+
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(ConfigurationName)' == 'Release'">
+		<Exec Command="call powershell.exe -executionpolicy bypass -file BuildScripts\Invoke-PackageClean.ps1" />
+	</Target>
+</Project>
