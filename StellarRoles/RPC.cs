@@ -684,6 +684,9 @@ namespace StellarRoles
 
         public static void EngineerFixLights()
         {
+            var switchminigame = Minigame.Instance as SwitchMinigame;
+            if (switchminigame != null) switchminigame.Close();
+
             SwitchSystem switchSystem = MapUtilities.Systems[SystemTypes.Electrical].CastFast<SwitchSystem>();
             switchSystem.ActualSwitches = switchSystem.ExpectedSwitches;
         }
@@ -708,28 +711,24 @@ namespace StellarRoles
         }
         public static void CultistCreateImposter(PlayerControl player)
         {
-            ErasePlayerRoles(player, true);
-            Helpers.TurnToImpostor(player);
+            List<RoleInfo> roles = PlayerGameInfo.GetRoles(player);
+            CreateImpostor(player);
             Cultist.NeedsFollower = false;
-            if (Cultist.FollowerImpRolesEnabled)
+
+            RoleInfo roleInfo = roles.First();
+            RoleId roleId = Cultist.CultistFollowerRole(roleInfo.RoleId);
+
+            if (roleId != RoleId.Follower && Cultist.FollowerImpRolesEnabled)
             {
-                List<RoleInfo> roles = PlayerGameInfo.GetRoles(player);
-                if (roles.Count > 0)
-                {
-                    RoleInfo roleInfo = roles.First();
-                    RoleId roleId = Cultist.CultistFollowerRole(roleInfo.RoleId);
-                    RoleManagerSelectRolesPatch.RoleAssignmentData roleData = RoleManagerSelectRolesPatch.GetRoleAssignmentData();
-
-                    if (roleData.ImpSettings.ContainsKey(roleId) && roleId != RoleId.Follower)
-                    {
-                        Cultist.FollowerSpecialRoleAssigned = true;
-                        SetRole(roleId, player);
-
-                    }
-                }
-
+                Cultist.FollowerSpecialRoleAssigned = true;
+                SetRole(roleId, player);
+                Follower.Player = player;
             }
-            SetRole(RoleId.Follower, player);
+            else
+            {
+                SetRole(RoleId.Follower, player);
+            }
+
             if (player == Executioner.Target)
                 Executioner.Target = null;
             if (Follower.GetsAssassin)
@@ -846,14 +845,18 @@ namespace StellarRoles
             Morphling.MorphTimer = Morphling.Duration;
             Morphling.MorphTarget = target;
             if (Camouflager.CamouflageTimer <= 0f)
+            {
                 Morphling.Player.SetLook(target.Data.PlayerName, target.Data.DefaultOutfit.ColorId, target.Data.DefaultOutfit.HatId, target.Data.DefaultOutfit.VisorId, target.Data.DefaultOutfit.SkinId, target.Data.DefaultOutfit.PetId);
+            }
         }
 
         public static void CamouflagerCamouflage()
         {
             Camouflager.CamouflageTimer = Camouflager.Duration;
             foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            {
                 player.SetLook("", 6, "", "", "", "");
+            }
         }
 
         public static void VampireSetBitten(byte targetId)
@@ -992,6 +995,8 @@ namespace StellarRoles
                 Vigilante.ClearAndReload();
             else if (player.IsParityCop(out _))
                 ParityCop.ParityCopDictionary.Remove(player.PlayerId);
+            else if (player == Psychic.Player) 
+                Psychic.ClearAndReload();
 
             // Impostor roles
             else if (player == Bomber.Player)

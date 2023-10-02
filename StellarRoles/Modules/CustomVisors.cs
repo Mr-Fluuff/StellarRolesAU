@@ -151,21 +151,41 @@ namespace StellarRoles.Modules
         }
 
         [HarmonyPatch(typeof(HatManager), nameof(HatManager.GetVisorById))]
-        private static class HatManagerPatch
+        public static class HatManagerPatch
         {
             private static List<VisorData> allVisorsList;
+            private static List<VisorData> VanillaVisorList;
             static void Prefix(HatManager __instance)
             {
                 if (RUNNING || LOADED) return;
+                LoadVisors(__instance, true);
+            }
+
+            static void Postfix()
+            {
+                RUNNING = false;
+            }
+
+            public static void LoadVisors(HatManager __instance, bool GameStart)
+            {
                 RUNNING = true; // prevent simultanious execution
                 allVisorsList = __instance.allVisors.ToList();
 
+                if (GameStart)
+                {
+                    VanillaVisorList = allVisorsList;
+                }
+                else
+                {
+                    allVisorsList = VanillaVisorList;
+                }
+
                 try
                 {
-                    while (CustomVisorLoader.VistorDetails.Count > 0)
+                    while (CustomVisorLoader.VisorDetails.Count > 0)
                     {
-                        allVisorsList.Add(CreateVisorBehaviour(CustomVisorLoader.VistorDetails[0]));
-                        CustomVisorLoader.VistorDetails.RemoveAt(0);
+                        allVisorsList.Add(CreateVisorBehaviour(CustomVisorLoader.VisorDetails[0]));
+                        CustomVisorLoader.VisorDetails.RemoveAt(0);
                     }
                     __instance.allVisors = allVisorsList.ToArray();
                     LOADED = true;
@@ -175,10 +195,11 @@ namespace StellarRoles.Modules
                     if (!LOADED)
                         System.Console.WriteLine("Unable to add Custom Visors\n" + e);
                 }
-            }
-            static void Postfix()
-            {
-                RUNNING = false;
+
+                if (!GameStart)
+                {
+                    RUNNING = false;
+                }
             }
         }
 
@@ -446,7 +467,7 @@ namespace StellarRoles.Modules
         private static bool Running = false;
         private const string REPO_SV = "https://raw.githubusercontent.com/Mr-Fluuff/StellarHats/main";
 
-        public static readonly List<CustomVisorOnline> VistorDetails = new();
+        public static List<CustomVisorOnline> VisorDetails = new();
         public static void LaunchVisorFetcher()
         {
             if (Running)
@@ -499,6 +520,8 @@ namespace StellarRoles.Modules
                 JToken jObj = JObject.Parse(json)["visors"];
                 if (!jObj.HasValues) return HttpStatusCode.ExpectationFailed;
 
+                List<CustomVisorOnline> visordatas = new();
+
                 for (JToken current = jObj.First; current != null; current = current.Next)
                 {
                     if (current.HasValues)
@@ -534,7 +557,7 @@ namespace StellarRoles.Modules
                             for (int i = 0; i < frames; i++)
                                 animationList.Add($"{info.AnimationPrefix}_{i:000}.png");
                         }
-                        VistorDetails.Add(info);
+                        visordatas.Add(info);
                     }
                 }
 
@@ -547,7 +570,7 @@ namespace StellarRoles.Modules
                 if (!Directory.Exists(animatedFilePath)) Directory.CreateDirectory(animatedFilePath);
                 MD5 md5 = MD5.Create();
 
-                foreach (CustomVisorOnline data in VistorDetails)
+                foreach (CustomVisorOnline data in visordatas)
                 {
                     if (DoesResourceRequireDownload(filePath + data.Resource, data.ResHashA, md5))
                         markedForDownload.Add(data.Resource);
@@ -558,34 +581,52 @@ namespace StellarRoles.Modules
                         string newpath = animatedFilePath + data.Name + @"\";
                         if (!Directory.Exists(newpath)) Directory.CreateDirectory(newpath);
                         int files = Directory.GetFiles(newpath).Count(x => x.StartsWith($"{newpath}{data.AnimationPrefix}"));
+                        if (files > data.Animation.Count)
+                        {
+                            foreach (var item in Directory.GetFiles(newpath))
+                            {
+                                File.Delete(item);
+                            }
+                        }
                         if (DoesResourceRequireDownload(filePath + data.Resource, data.ResHashA, md5) || files != data.Animation.Count)
                             foreach (string frame in data.Animation)
                                 markedForDownload2.Add((data.Name, frame));
                     }
                 }
-                while (markedForDownload.Count > 0)
+
+                if (markedForDownload.Count <= 0 && markedForDownload2.Count <= 0)
                 {
-                    string file = markedForDownload[0];
-                    HttpResponseMessage visorFileResponse = await http.GetAsync($"{REPO_SV}/visors/{file}", HttpCompletionOption.ResponseContentRead);
-                    if (visorFileResponse.StatusCode != HttpStatusCode.OK) continue;
-                    using Stream responseStream = await visorFileResponse.Content.ReadAsStreamAsync();
-                    using FileStream fileStream = File.Create($"{filePath}\\{file}");
-                    responseStream.CopyTo(fileStream);
-                    markedForDownload.RemoveAt(0);
+                    VisorDetails = visordatas;
                 }
-
-                while (markedForDownload2.Count > 0)
+                else
                 {
-                    (string name, string frame) = markedForDownload2[0];
+                    for (int i = 0; i < markedForDownload.Count; i++)
+                    {
+                        string file = markedForDownload[i];
+                        Helpers.Log(file + " Downloaded");
 
-                    string newPath = animatedFilePath + name + @"\";
-                    HttpResponseMessage visorFileResponse = await http.GetAsync($"{REPO_SV}/visors/{name}/{frame}", HttpCompletionOption.ResponseContentRead);
-                    if (visorFileResponse.StatusCode != HttpStatusCode.OK) continue;
-                    using Stream responseStream = await visorFileResponse.Content.ReadAsStreamAsync();
-                    using FileStream fileStream = File.Create($"{newPath}\\{frame}");
-                    responseStream.CopyTo(fileStream);
-                    //Helpers.Log(ErrorLevel.Message, $"Animated Visor {frame} Downloaded");
-                    markedForDownload2.RemoveAt(0);
+                        HttpResponseMessage visorFileResponse = await http.GetAsync($"{REPO_SV}/visors/{file}", HttpCompletionOption.ResponseContentRead);
+                        if (visorFileResponse.StatusCode != HttpStatusCode.OK) continue;
+                        using Stream responseStream = await visorFileResponse.Content.ReadAsStreamAsync();
+                        using FileStream fileStream = File.Create($"{filePath}\\{file}");
+                        responseStream.CopyTo(fileStream);
+                    }
+
+                    for (int i = 0; i < markedForDownload2.Count; i++)
+                    {
+                        var file = markedForDownload2[i];
+                        Helpers.Log(file + " Downloaded");
+                        string name = file.Item1;
+                        string frame = file.Item2;
+
+                        string newPath = animatedFilePath + name + @"\";
+                        HttpResponseMessage visorFileResponse = await http.GetAsync($"{REPO_SV}/visors/{name}/{frame}", HttpCompletionOption.ResponseContentRead);
+                        if (visorFileResponse.StatusCode != HttpStatusCode.OK) continue;
+                        using Stream responseStream = await visorFileResponse.Content.ReadAsStreamAsync();
+                        using FileStream fileStream = File.Create($"{newPath}\\{frame}");
+                        responseStream.CopyTo(fileStream);
+                    }
+                    VisorDetails = visordatas;
                 }
             }
             catch (Exception ex)

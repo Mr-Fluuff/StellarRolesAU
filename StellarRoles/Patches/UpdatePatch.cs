@@ -21,27 +21,31 @@ namespace StellarRoles.Patches
         {
             Vector3 colorBlindTextMeetingInitialLocalPos = new(0.3384f, -0.16666f, -0.01f);
             Vector3 colorBlindTextMeetingInitialLocalScale = new(0.9f, 1f, 1f);
-            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            PlayerControl localPlayer = PlayerControl.LocalPlayer;
+
+            foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
+                PlayerControl player = data.Object;
+                PlayerVoteArea voteArea = null;
 
                 // Colorblind Text in Meeting
-                PlayerVoteArea voteArea = MeetingHud.Instance?.playerStates?.FirstOrDefault(x => x.TargetPlayerId == player.PlayerId);
-                if (voteArea != null && voteArea.ColorBlindName.gameObject.active)
+                if (MeetingHud.Instance != null)
                 {
-                    voteArea.ColorBlindName.alignment = TMPro.TextAlignmentOptions.Left;
-                    voteArea.ColorBlindName.transform.localPosition = colorBlindTextMeetingInitialLocalPos + new Vector3(-.21f, -.1f, 0f);
-                    voteArea.ColorBlindName.transform.localScale = colorBlindTextMeetingInitialLocalScale * 1.3f;
+                    voteArea = MeetingHud.Instance?.playerStates?.FirstOrDefault(x => x.TargetPlayerId == data.PlayerId);
+                    if (voteArea != null && voteArea.ColorBlindName.gameObject.active)
+                    {
+                        voteArea.ColorBlindName.alignment = TMPro.TextAlignmentOptions.Left;
+                        voteArea.ColorBlindName.transform.localPosition = colorBlindTextMeetingInitialLocalPos + new Vector3(-.21f, -.1f, 0f);
+                        voteArea.ColorBlindName.transform.localScale = colorBlindTextMeetingInitialLocalScale * 1.3f;
+                    }
                 }
 
                 // Colorblind Text During the round
-                if (player.cosmetics.colorBlindText != null && player.cosmetics.showColorBlindText && player.cosmetics.colorBlindText.gameObject.active)
+                if (player?.cosmetics?.showColorBlindText == true && player?.cosmetics?.colorBlindText?.gameObject.active == true)
                 {
                     player.cosmetics.colorBlindText.transform.localPosition = new Vector3(0, -1.2f, 0f);
+                    player.cosmetics.nameText.transform.parent.SetLocalZ(-0.0001f);
                 }
-
-                player.cosmetics.nameText.transform.parent.SetLocalZ(-0.0001f);
-
-                PlayerControl localPlayer = PlayerControl.LocalPlayer;
 
                 bool qualifiedRomantic = localPlayer == Romantic.Player && player == Romantic.Lover && (Romantic.KnowsRoleInfoImmediately || !Romantic.Lover.Data.IsDead) && !Romantic.Player.Data.IsDead;
                 bool qualifiedVengefulRomantic = localPlayer == VengefulRomantic.Player && player == VengefulRomantic.Lover && !VengefulRomantic.Player.Data.IsDead;
@@ -53,42 +57,36 @@ namespace StellarRoles.Patches
                 bool sendInExecutioner = Executioner.Player != null && player == Beloved.Player;
                 bool sendInRuthlessRomantic = localPlayer.IsRuthlessRomantic(out RuthlessRomantic ruthlessRomantic) && player == ruthlessRomantic.DeadLover;
 
-                if (qualifiedRomantic || qualifiedVengefulRomantic || sendInRefugee || sendInRuthlessRomantic || sendInExecutioner || player.AmOwner || localPlayer.Data.IsDead || sendInArsonist || sendInScavenger || qualifiedExecutioner || qualifiedCultist)
+                Transform playerInfoTransform = player?.cosmetics?.nameText?.transform.parent.FindChild("Info");
+                TMPro.TextMeshPro playerInfo = playerInfoTransform?.GetComponent<TMPro.TextMeshPro>();
+                string playerInfoText = "";
+
+                if (playerInfo == null && player?.Data.Disconnected == false)
                 {
-                    Transform playerInfoTransform = player.cosmetics.nameText.transform.parent.FindChild("Info");
-                    TMPro.TextMeshPro playerInfo = playerInfoTransform != null ? playerInfoTransform.GetComponent<TMPro.TextMeshPro>() : null;
-                    if (playerInfo == null)
-                    {
-                        playerInfo = Object.Instantiate(player.cosmetics.nameText, player.cosmetics.nameText.transform.parent);
-                        playerInfo.transform.localPosition += Vector3.up * 0.225f;
-                        playerInfo.fontSize *= 0.85f;
-                        playerInfo.gameObject.name = "Info";
-                    }
+                    playerInfo = Object.Instantiate(player.cosmetics.nameText, player.cosmetics.nameText.transform.parent);
+                    playerInfo.transform.localPosition += Vector3.up * 0.225f;
+                    playerInfo.fontSize *= 0.85f;
+                    playerInfo.gameObject.name = "Info";
+                }
 
-                    Transform meetingInfoTransform = voteArea != null ? voteArea.NameText.transform.parent.FindChild("Info") : null;
-                    TMPro.TextMeshPro meetingInfo = meetingInfoTransform != null ? meetingInfoTransform.GetComponent<TMPro.TextMeshPro>() : null;
-                    if (meetingInfo == null && voteArea != null)
-                    {
-                        meetingInfo = Object.Instantiate(voteArea.NameText, voteArea.NameText.transform.parent);
-                        meetingInfo.transform.localPosition += Vector3.down * 0.2f;
-                        meetingInfo.fontSize *= 0.8f;
-                        meetingInfo.gameObject.name = "Info";
-                    }
+                Transform meetingInfoTransform = voteArea?.NameText?.transform.parent.FindChild("Info");
+                TMPro.TextMeshPro meetingInfo = meetingInfoTransform?.GetComponent<TMPro.TextMeshPro>();
+                string meetingInfoText = "";
 
-                    // Set player name higher to align in middle
-                    if (meetingInfo != null && voteArea != null)
-                    {
-                        TMPro.TextMeshPro playerName = voteArea.NameText;
-                        playerName.transform.localPosition = new Vector3(0.3384f, 0.08f, -0.1f);
-                    }
+                if (meetingInfo == null && voteArea != null)
+                {
+                    meetingInfo = Object.Instantiate(voteArea.NameText, voteArea.NameText.transform.parent);
+                    meetingInfo.transform.localPosition += Vector3.down * 0.2f;
+                    meetingInfo.fontSize *= 0.8f;
+                    meetingInfo.gameObject.name = "Info";
+                }
 
+                if (!data.Disconnected)
+                {
                     (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(player.Data);
                     string roleNames = RoleInfo.GetRolesString(player, true, false);
                     string roleText = RoleInfo.GetRolesString(player, true, MapOptions.GhostsSeeModifier);
                     string taskInfo = tasksTotal > 0 ? $"<color=#FAD934FF>({tasksCompleted}/{tasksTotal})</color>" : "";
-
-                    string playerInfoText = "";
-                    string meetingInfoText = "";
 
                     if (((MapOptions.ShowRoles && MapOptions.ToggleRoles) || !MapOptions.ToggleRoles) && !Helpers.IsInvisible(player))
                     {
@@ -144,10 +142,19 @@ namespace StellarRoles.Patches
                             }
                         }
                     }
-
                     playerInfo.text = playerInfoText;
-                    playerInfo.gameObject.SetActive(player.Visible);
-                    if (meetingInfo != null) meetingInfo.text = MeetingHud.Instance.state == MeetingHud.VoteStates.Results ? "" : meetingInfoText;
+                }
+
+                playerInfo.gameObject.SetActive(player.Visible);
+                if (meetingInfo != null)
+                {
+                    meetingInfo.text = MeetingHud.Instance?.state == MeetingHud.VoteStates.Results ? "" : meetingInfoText;
+                    // Set player name higher to align in middle
+                    if (voteArea != null && meetingInfoText != "")
+                    {
+                        TMPro.TextMeshPro playerName = voteArea.NameText;
+                        playerName.transform.localPosition = new Vector3(0.3384f, 0.08f, -0.1f);
+                    }
                 }
             }
         }

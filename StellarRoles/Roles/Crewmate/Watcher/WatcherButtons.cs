@@ -70,7 +70,7 @@ namespace StellarRoles
                 WatcherCamsButton.ActionButton.cooldownTimerText.color = Palette.EnabledColor;
                 WatcherCamsButton.ActionButton.buttonLabelText.SetOutlineColor(Color.cyan);
 
-                return PlayerControl.LocalPlayer.CanMove && !(Watcher.DisableRoundOneAccess && MapOptions.IsFirstRound) && Watcher.BatteryTime > 1.5;
+                return PlayerControl.LocalPlayer.CanMove && !(MapOptions.IsFirstRound && (Watcher.DisableRoundOneAccess || (!Helpers.IsMap(Map.Mira) && MapOptions.NoCamsFirstRound))) && Watcher.BatteryTime > 1.5;
             },
             () =>
             {

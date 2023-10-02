@@ -237,14 +237,32 @@ namespace StellarRoles.Modules
         }
 
         [HarmonyPatch(typeof(HatManager), nameof(HatManager.GetHatById))]
-        private static class HatManagerPatch
+        public static class HatManagerPatch
         {
             private static List<HatData> AllHatsList;
+            private static List<HatData> VanillaHatsList;
             static void Prefix(HatManager __instance)
             {
                 if (IsRunning || Loaded) return;
+                LoadHats(__instance, true);
+            }
+            static void Postfix()
+            {
+                IsRunning = false;
+            }
+
+            public static void LoadHats(HatManager __instance, bool GameStart)
+            {
                 IsRunning = true; // prevent simultanious execution
                 AllHatsList = __instance.allHats.ToList();
+                if (GameStart)
+                {
+                    VanillaHatsList = AllHatsList;
+                }
+                else
+                {
+                    AllHatsList = VanillaHatsList;
+                }
 
                 try
                 {
@@ -261,10 +279,11 @@ namespace StellarRoles.Modules
                     if (!Loaded)
                         System.Console.WriteLine("Unable to add Custom Hats\n" + e);
                 }
-            }
-            static void Postfix()
-            {
-                IsRunning = false;
+
+                if (!GameStart)
+                {
+                    IsRunning = false;
+                }
             }
         }
 
@@ -730,7 +749,7 @@ namespace StellarRoles.Modules
         private static bool IsRunning = false;
         private const string REPO_SH = "https://raw.githubusercontent.com/Mr-Fluuff/StellarHats/main";
 
-        public static readonly List<CustomHatOnline> HatDetails = new();
+        public static List<CustomHatOnline> HatDetails = new();
         public static void LaunchHatFetcher()
         {
             if (IsRunning)
@@ -784,7 +803,7 @@ namespace StellarRoles.Modules
                 JToken jobj = JObject.Parse(json)["hats"];
                 if (!jobj.HasValues) return HttpStatusCode.ExpectationFailed;
 
-                HatDetails.Clear();
+                List<CustomHatOnline> hatdatas = new();
 
                 for (JToken current = jobj.First; current != null; current = current.Next)
                 {
@@ -838,12 +857,12 @@ namespace StellarRoles.Modules
                                 backanimationList.Add($"{info.BackAnimationPrefix}_{i:000}.png");
                         }
 
-                        HatDetails.Add(info);
+                        hatdatas.Add(info);
                     }
                 }
 
                 List<string> markedForDownload = new();
-                List<(string, string)> markedForFownload2 = new();
+                List<(string, string)> markedForDownload2 = new();
 
                 string filePath = Path.GetDirectoryName(Application.dataPath) + @"\StellarHats\";
                 string animatedFilePath = Path.GetDirectoryName(Application.dataPath) + @"\StellarHats\AnimatedHats\";
@@ -851,7 +870,7 @@ namespace StellarRoles.Modules
                 if (!Directory.Exists(animatedFilePath)) Directory.CreateDirectory(animatedFilePath);
                 MD5 md5 = MD5.Create();
 
-                foreach (CustomHatOnline data in HatDetails)
+                foreach (CustomHatOnline data in hatdatas)
                 {
                     if (DoesResourceRequireDownload(filePath + data.Resource, data.ResHashA, md5))
                         markedForDownload.Add(data.Resource);
@@ -868,9 +887,16 @@ namespace StellarRoles.Modules
                         string newpath = animatedFilePath + data.Name + @"\";
                         if (!Directory.Exists(newpath)) Directory.CreateDirectory(newpath);
                         int files = Directory.GetFiles(newpath).Count(x => x.StartsWith($"{newpath}{data.AnimationPrefix}"));
+                        if (files > data.Animation.Count)
+                        {
+                            foreach (var item in Directory.GetFiles(newpath))
+                            {
+                                File.Delete(item);
+                            }
+                        }
                         if (DoesResourceRequireDownload(filePath + data.Resource, data.ResHashA, md5) || files != data.Animation.Count)
                             foreach (string frame in data.Animation)
-                                markedForFownload2.Add((data.Name, frame));
+                                markedForDownload2.Add((data.Name, frame));
                     }
 
                     if (data.BackAnimation.Count > 0)
@@ -878,26 +904,36 @@ namespace StellarRoles.Modules
                         string newPath = animatedFilePath + data.Name + @"\";
                         if (!Directory.Exists(newPath)) Directory.CreateDirectory(newPath);
                         int files = Directory.GetFiles(newPath).Count(x => x.StartsWith($"{newPath}{data.BackAnimationPrefix}"));
+                        if (files > data.BackAnimation.Count)
+                        {
+                            foreach (var item in Directory.GetFiles(newPath))
+                            {
+                                File.Delete(item);
+                            }
+                        }
                         if (DoesResourceRequireDownload(filePath + data.BackResource, data.ResHashB, md5) || files != data.BackAnimation.Count)
                             foreach (string frame in data.BackAnimation)
-                                markedForFownload2.Add((data.Name, frame));
+                                markedForDownload2.Add((data.Name, frame));
                     }
                 }
 
-                while (markedForDownload.Count > 0)
+                for (int i = 0; i < markedForDownload.Count; i++)
                 {
-                    string file = markedForDownload[0];
+                    var file = markedForDownload[i];
+                    Helpers.Log(file + " Downloaded");
                     HttpResponseMessage hatFileResponse = await http.GetAsync($"{REPO_SH}/hats/{file}", HttpCompletionOption.ResponseContentRead);
                     if (hatFileResponse.StatusCode != HttpStatusCode.OK) continue;
                     using Stream responseStream = await hatFileResponse.Content.ReadAsStreamAsync();
                     using FileStream fileStream = File.Create($"{filePath}\\{file}");
                     responseStream.CopyTo(fileStream);
-                    markedForDownload.RemoveAt(0);
                 }
 
-                while (markedForFownload2.Count > 0)
+                for (int i = 0; i < markedForDownload2.Count; i++)
                 {
-                    (string name, string frame) = markedForFownload2[0];
+                    var file = markedForDownload2[i];
+                    Helpers.Log(file + " Downloaded");
+                    string name = file.Item1;
+                    string frame = file.Item2;
 
                     string animatedPath = animatedFilePath + name + @"\";
                     HttpResponseMessage hatFileResponse = await http.GetAsync($"{REPO_SH}/hats/{name}/{frame}", HttpCompletionOption.ResponseContentRead);
@@ -905,8 +941,8 @@ namespace StellarRoles.Modules
                     using Stream responseStream = await hatFileResponse.Content.ReadAsStreamAsync();
                     using FileStream fileStream = File.Create($"{animatedPath}\\{frame}");
                     responseStream.CopyTo(fileStream);
-                    markedForFownload2.RemoveAt(0);
                 }
+                HatDetails = hatdatas;
             }
             catch (Exception ex)
             {

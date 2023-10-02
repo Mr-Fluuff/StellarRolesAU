@@ -32,25 +32,33 @@ namespace StellarRoles.Objects
                 float interP = 0f;
                 if (p < (duration - fadeOutDuration) / duration)
                     interP = 0f;
-                else interP = (p * duration + fadeOutDuration - duration) / fadeOutDuration;
-                if (traceRenderer) traceRenderer.color = new Color(traceRenderer.color.r, traceRenderer.color.g, traceRenderer.color.b, Mathf.Clamp01(1 - interP));
+                else 
+                    interP = (p * duration + fadeOutDuration - duration) / fadeOutDuration;
+
+                if (traceRenderer) 
+                    traceRenderer.color = new Color(traceRenderer.color.r, traceRenderer.color.g, traceRenderer.color.b, Mathf.Clamp01(1 - interP));
             })));
 
             TraceGameObject.SetActive(true);
             Traces.Add(this);
         }
 
+        public void Update()
+        {
+            TimeRemaining -= Time.deltaTime;
+
+            if (TimeRemaining <= 0)
+            {
+                TraceGameObject.SetActive(false);
+                Traces.Remove(this);
+            }
+        }
+
         public static void UpdateAll()
         {
-            foreach (ShadeTrace traceCurrent in Traces)
+            foreach (ShadeTrace trace in Traces)
             {
-                traceCurrent.TimeRemaining -= Time.deltaTime;
-                if (traceCurrent.TimeRemaining < 0)
-                {
-                    traceCurrent.TraceGameObject.SetActive(false);
-                    UnityEngine.Object.Destroy(traceCurrent.TraceGameObject);
-                    Traces.Remove(traceCurrent);
-                }
+                trace.Update();
             }
         }
 

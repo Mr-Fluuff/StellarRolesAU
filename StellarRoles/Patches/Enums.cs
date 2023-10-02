@@ -13,6 +13,8 @@ namespace StellarRoles
         Reactor,
         OxyMask,
         Lights,
+        Charles,
+        Seismic,
         None
     }
     public enum Map

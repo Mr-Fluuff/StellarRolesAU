@@ -115,6 +115,10 @@ namespace StellarRoles.Patches
                         if (p == 1f)
                             Helpers.SetMovement(true);
                     })));
+                    if (Constants.ShouldPlaySfx())
+                    {
+                        SoundManager.Instance.PlaySound(PlayerControl.LocalPlayer.MyPhysics.ImpostorDiscoveredSound, false, 0.8f, null);
+                    }
                 }
 
                 RPCProcedure.Send(CustomRPC.TriggerVentTrap, PlayerControl.LocalPlayer.PlayerId, __instance.Id);
@@ -334,34 +338,34 @@ namespace StellarRoles.Patches
         }
     }
 
-    [HarmonyPatch(typeof(VentilationSystem), nameof(VentilationSystem.BootImpostorFromVent))]
-    class VentCleanMiniGameBeginPatch
+    [HarmonyPatch]
+    public static class VentCleaningMinigamePatch
     {
-        [HarmonyPrefix]
-        static bool Prefix(VentilationSystem __instance)
+        [HarmonyPatch(typeof(VentilationSystem), nameof(VentilationSystem.BootImpostorFromVent))]
+        static class BootImpostorFromVentPatch
         {
-            if (DisableVentCleanEjections)
+            static bool Prefix()
             {
-                Il2CppSystem.Collections.Generic.Dictionary<byte, byte> PlayersInVent = __instance.PlayersInsideVents;
-                foreach (Il2CppSystem.Collections.Generic.KeyValuePair<byte, byte> player in PlayersInVent)
-                {
-                    byte key = player.Key;
-                    __instance.PlayersInsideVents.Add(key, player.Value);
-                    __instance.UpdateVentArrows();
-                }
-                return false;
+                return !DisableVentCleanEjections;
             }
-            else return true;
         }
-    }
 
-    [HarmonyPatch(typeof(VentilationSystem), nameof(VentilationSystem.IsImpostorInsideVent))]
-    class VentCleanMiniGameBeginPatch2
-    {
-        [HarmonyPrefix]
-        static bool Prefix()
+        [HarmonyPatch(typeof(VentilationSystem), nameof(VentilationSystem.IsImpostorInsideVent))]
+        static class IsImpostorInsideVentPatch
         {
-            return !DisableVentCleanEjections;
+            static bool Prefix()
+            {
+                return !DisableVentCleanEjections;
+            }
+        }
+
+        [HarmonyPatch(typeof(VentilationSystem), nameof(VentilationSystem.IsVentCurrentlyBeingCleaned))]
+        static class IsVentCurrentlyBeingCleanedPatch
+        {
+            static bool Prefix()
+            {
+                return !DisableVentCleanEjections;
+            }
         }
     }
 }

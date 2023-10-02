@@ -397,19 +397,22 @@ namespace StellarRoles
             return string.Join('\n', newLines);
         }
 
-        public static void TrackDeadBody(PlayerControl target, Arrow arrow, Color color)
+        public static void TrackTarget(PlayerControl target, Arrow arrow, Color color)
         {
+            if (target == null) return;
+
             bool isDead = target.Data.IsDead;
             Vector3 position = target.transform.position;
+            DeadBody body = null;
             if (isDead)
             { // Check for dead body
-                DeadBody body = UnityEngine.Object.FindObjectsOfType<DeadBody>().FirstOrDefault(b => b.ParentId == target.PlayerId);
-                if (body != null)
-                    position = body.transform.position;
+                body = UnityEngine.Object.FindObjectsOfType<DeadBody>().FirstOrDefault(b => b.ParentId == target.PlayerId);
             }
+            if (body != null)
+                position = body.transform.position;
 
             arrow.Update(position, color);
-            arrow.Object.SetActive(!isDead);
+            arrow.Object.SetActive(!isDead || body != null);
         }
 
         public static void SetBodySize()
@@ -782,27 +785,39 @@ namespace StellarRoles
                     player.cosmetics.nameText.color = Palette.ImpostorRed;
         }
 
+        public static bool IsSaboActive()
+        {
+            return PlayerControl.LocalPlayer.myTasks.GetFastEnumerator().Any(x =>
+            x.TaskType == TaskTypes.FixLights ||
+            x.TaskType == TaskTypes.RestoreOxy ||
+            x.TaskType == TaskTypes.ResetReactor ||
+            x.TaskType == TaskTypes.ResetSeismic ||
+            x.TaskType == TaskTypes.StopCharles ||
+            x.TaskType == TaskTypes.FixLights ||
+            SubmergedCompatibility.IsSubmerged && x.TaskType == SubmergedCompatibility.RetrieveOxygenMask);
+        }
+
         public static SabatageTypes GetActiveSabo()
         {
             foreach (PlayerTask task in PlayerControl.LocalPlayer.myTasks.GetFastEnumerator())
             {
-                switch (task.TaskType)
+                var tasktype = task.TaskType;
+
+                if (tasktype == TaskTypes.FixLights)
+                    return SabatageTypes.Lights;
+                else if (tasktype == TaskTypes.RestoreOxy)
+                    return SabatageTypes.O2;
+                else if (tasktype == TaskTypes.ResetReactor)
+                    return SabatageTypes.Reactor;
+                else if (tasktype == TaskTypes.ResetSeismic)
+                    return SabatageTypes.Seismic;
+                else if (tasktype == TaskTypes.StopCharles)
+                    return SabatageTypes.Charles;
+                else if (tasktype == TaskTypes.FixComms)
+                    return SabatageTypes.Comms;
+                else if (SubmergedCompatibility.IsSubmerged && task.TaskType == SubmergedCompatibility.RetrieveOxygenMask)
                 {
-                    case TaskTypes.FixLights:
-                        return SabatageTypes.Lights;
-                    case TaskTypes.RestoreOxy:
-                        return SabatageTypes.O2;
-                    case TaskTypes.ResetReactor:
-                    case TaskTypes.StopCharles:
-                        return SabatageTypes.Reactor;
-                    case TaskTypes.FixComms:
-                        return SabatageTypes.Comms;
-                    default:
-                        if (SubmergedCompatibility.IsSubmerged && task.TaskType == SubmergedCompatibility.RetrieveOxygenMask)
-                        {
-                            return SabatageTypes.OxyMask;
-                        }
-                        break;
+                    return SabatageTypes.OxyMask;
                 }
             }
             return SabatageTypes.None;
@@ -1036,6 +1051,7 @@ namespace StellarRoles
             target.RawSetHat(hatId, colorId);
             target.RawSetName(ShouldHidePlayerName(target) ? "" : playerName);
             target.RawSetPet(petId, colorId);
+            target.SetPlayerSize();
 
             SkinViewData nextSkin;
             try

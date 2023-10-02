@@ -105,7 +105,6 @@ namespace StellarRoles.Patches
             Helpers.MoveTrash();
             ZoomHudUpdate.HasAlerted = false;
 
-
             if (Ascended.IsAscended(PlayerControl.LocalPlayer))
             {
 
@@ -118,13 +117,12 @@ namespace StellarRoles.Patches
 
             }
 
-
-
             if (MapOptions.HidePetFromOthers)
             {
                 RPCProcedure.Send(CustomRPC.AddPet, PlayerControl.LocalPlayer.PlayerId);
                 MapOptions.PlayerPetsToHide.Add(PlayerControl.LocalPlayer);
             }
+
             Color color = Color.clear;
             color.a = 0.1f;
             foreach (PlayerControl player in Spectator.Players.GetPlayerEnumerator())
@@ -134,6 +132,11 @@ namespace StellarRoles.Patches
                 player.Data.IsDead = true;
                 player.Exiled();
                 player.ClearAllTasks();
+            }
+
+            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            {
+                player.SetPlayerSize();
             }
 
             Helpers.SetStartOfRoundCooldowns();

@@ -57,7 +57,7 @@ namespace StellarRoles
 
         public static Sprite GetCamSprite()
         {
-            return DisableRoundOneAccess && MapOptions.IsFirstRound
+            return MapOptions.IsFirstRound && (DisableRoundOneAccess || MapOptions.NoCamsFirstRound)
                 ? (_RoundOneCamSprite ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.RoundOne.R1WatcherCamera.png", 115f))
                 : (_CamSprite ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.Watcher.WatcherCamera.png", 115f));
         }

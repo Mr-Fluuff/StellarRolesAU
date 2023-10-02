@@ -32,7 +32,7 @@ namespace StellarRoles
                     HeadHunter.PursueCurrentTimer -= Time.deltaTime;
                     foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                         if (HeadHunter.PlayerLocalArrows.TryGetValue(player.PlayerId, out Arrow arrow))
-                            Helpers.TrackDeadBody(player, arrow, HeadHunter.Color);
+                            Helpers.TrackTarget(player, arrow, HeadHunter.Color);
                 }
                 else if (HeadHunter.PlayerLocalArrows != null)
                     foreach (Arrow arrow in HeadHunter.PlayerLocalArrows.Values)

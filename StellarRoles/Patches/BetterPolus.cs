@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using System.Linq;
 using UnityEngine;
 
 namespace StellarRoles
@@ -44,9 +45,9 @@ namespace StellarRoles
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Begin))]
         public static class ShipStatusBeginPatch
         {
-            [HarmonyPrefix]
+            [HarmonyPostfix]
             [HarmonyPatch]
-            public static void Prefix(ShipStatus __instance)
+            public static void Postfix(ShipStatus __instance)
             {
                 ApplyChanges(__instance);
             }
@@ -55,25 +56,11 @@ namespace StellarRoles
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Awake))]
         public static class ShipStatusAwakePatch
         {
-            [HarmonyPrefix]
+            [HarmonyPostfix]
             [HarmonyPatch]
-            public static void Prefix(ShipStatus __instance)
+            public static void Postfix(ShipStatus __instance)
             {
                 ApplyChanges(__instance);
-            }
-        }
-
-        [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.FixedUpdate))]
-        public static class ShipStatusFixedUpdatePatch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch]
-            public static void Prefix(ShipStatus __instance)
-            {
-                if (!IsObjectsFetched || !IsAdjustmentsDone)
-                {
-                    ApplyChanges(__instance);
-                }
             }
         }
 
@@ -106,9 +93,9 @@ namespace StellarRoles
                 }
 
                 if (CustomOptionHolder.VentSystem.GetBool()) AdjustVents();
-
-                IsAdjustmentsDone = true;
             }
+            AddPengu();
+            IsAdjustmentsDone = true;
         }
 
         public static void FindVents()
@@ -279,6 +266,17 @@ namespace StellarRoles
                 Vector3 localScale = dvdScreenTransform.localScale;
                 localScale = new Vector3(DvdScreenNewScale, localScale.y, localScale.z);
                 dvdScreenTransform.localScale = localScale;
+            }
+        }
+
+        static GameObject SnowMan;
+        public static void AddPengu()
+        {
+            SnowMan = Object.FindObjectsOfType<GameObject>().ToList().Find(snowman => snowman.name == "snowman (5)");
+            if (SnowMan != null)
+            {
+                var BoxRenderer = SnowMan.GetComponent<SpriteRenderer>();
+                BoxRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.PolusPengu.png", 400f);
             }
         }
     }

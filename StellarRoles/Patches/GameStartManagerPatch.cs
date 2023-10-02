@@ -161,14 +161,16 @@ namespace StellarRoles.Patches
 
                 // Lobby timer
                 if (!GameData.Instance) return; // No instance
+                var player = GameData.Instance.PlayerCount;
 
-                string currentText = Helpers.ColorString(GameData.Instance.PlayerCount >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{GameData.Instance.PlayerCount}/{CustomOptionHolder.LobbySize.GetSelection() + 4}");
+                string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{CustomOptionHolder.LobbySize.GetInt()}");
 
                 Timer = Mathf.Max(0f, Timer -= Time.deltaTime);
                 int minutes = (int)Timer / 60;
                 int seconds = (int)Timer % 60;
                 string suffix = $"\n({minutes:00}:{seconds:00})";
-                string spectatorCount = $"\nSpectators: {Spectator.ToBecomeSpectator.Count}";
+                int spectators = Spectator.ToBecomeSpectator.Count;
+                string spectatorCount = spectators > 0 ? $"\nSpectators: {spectators}" : "";
 
                 __instance.PlayerCounter.text = currentText + suffix + spectatorCount;
                 __instance.PlayerCounter.alignment = TMPro.TextAlignmentOptions.Center;

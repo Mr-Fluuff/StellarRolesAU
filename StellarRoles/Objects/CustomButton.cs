@@ -135,7 +135,11 @@ namespace StellarRoles.Objects
         {
             Buttons.RemoveAll(item => item.ActionButton == null);
             foreach (CustomButton button in Buttons)
-                button.Update();
+                try
+                {
+                    button.Update();
+                }
+                catch { }
         }
 
         public static void MeetingEndedUpdate()
@@ -143,8 +147,12 @@ namespace StellarRoles.Objects
             Buttons.RemoveAll(item => item.ActionButton == null);
             foreach (CustomButton button in Buttons)
             {
-                button.OnMeetingEndsHandler();
-                button.Update();
+                try
+                {
+                    button.OnMeetingEndsHandler();
+                    button.Update();
+                }
+                catch { }
             }
         }
 
@@ -167,7 +175,7 @@ namespace StellarRoles.Objects
                 SetActive(false);
                 return;
             }
-            HudManager hudManager = FastDestroyableSingleton<HudManager>.Instance;
+            HudManager hudManager = HudManager.Instance;
             SetActive(hudManager.UseButton.isActiveAndEnabled || hudManager.PetButton.isActiveAndEnabled || (MeetingHud.Instance && SeeInMeeting));
             ActionButton.graphic.sprite = Sprite;
             if (ShowButtonText && ButtonText != "")

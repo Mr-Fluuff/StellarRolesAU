@@ -187,7 +187,7 @@ namespace StellarRoles
 
         public int GetInt()
         {
-            return (int)(float)Selections[Selection];
+            return (int)GetFloat();
         }
 
         public int GetQuantity()

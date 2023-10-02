@@ -42,11 +42,15 @@ namespace StellarRoles
                 }
             }
 
-            if (Medic.IsActive && (Minigame.Instance == null || Medic.Battery <= 0f))
+            if (Medic.IsActive && Medic.VitalsMinigame != null && (Medic.Battery <= 0f || Medic.VitalsMinigame.amClosing == Minigame.CloseState.Closing))
             {
                 Helpers.SetMovement(true);
                 Medic.IsActive = false;
+
+                if (Medic.Battery <= 0f)
                 Medic.VitalsMinigame.ForceClose();
+
+                Medic.VitalsMinigame = null;
             }
         }
 

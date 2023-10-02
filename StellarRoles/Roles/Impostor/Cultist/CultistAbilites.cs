@@ -28,29 +28,27 @@ namespace StellarRoles
 
             Arrow arrow = Cultist.LocalArrows[0];
 
-            if (Follower.Player == null || Cultist.Player.Data.IsDead || Impostor.IsRoleAblilityBlocked())
+            if (Follower.Player == null || Impostor.IsRoleAblilityBlocked())
             {
                 arrow.Object.SetActive(false);
                 return;
             }
 
-            Helpers.TrackDeadBody(Follower.Player, arrow, Palette.ImpostorRed);
+            Helpers.TrackTarget(Follower.Player, arrow, Palette.ImpostorRed);
         }
 
         static void FollowerUpdate()
         {
             if (PlayerControl.LocalPlayer != Follower.Player) return;
-            if (Cultist.FollowerSpecialRoleAssigned) return;
-
             Arrow arrow = Cultist.LocalArrows[1];
 
-            if (Cultist.Player == null || Follower.Player.Data.IsDead || Impostor.IsRoleAblilityBlocked())
+            if (Cultist.Player == null || Cultist.FollowerSpecialRoleAssigned || Impostor.IsRoleAblilityBlocked())
             {
                 arrow.Object.SetActive(false);
                 return;
             }
 
-            Helpers.TrackDeadBody(Cultist.Player, arrow, Palette.ImpostorRed);
+            Helpers.TrackTarget(Cultist.Player, arrow, Palette.ImpostorRed);
         }
     }
 }

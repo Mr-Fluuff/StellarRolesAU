@@ -18,7 +18,6 @@ namespace StellarRoles.Modules
                 int maxPlayers;
                 try
                 {
-                    // TODO: does this really need to be in a try catch?
                     maxPlayers = GameOptionsManager.Instance.currentNormalGameOptions.MaxPlayers;
                 }
                 catch

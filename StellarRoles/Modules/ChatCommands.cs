@@ -120,12 +120,25 @@ namespace StellarRoles.Modules
                 return !handled;
             }
         }
+
+        [HarmonyPatch(typeof(ChatController), nameof(ChatController.Toggle))]
+        private static class ChatFont
+        {
+            private static TMP_FontAsset betterFont = null;
+            private static void Postfix(ChatController __instance)
+            {
+                if (betterFont == null)
+                {
+                    betterFont = __instance.scroller.transform.GetChild(1).GetChild(5).GetComponent<TextMeshPro>().font;
+                }
+                __instance.freeChatField.textArea.GetComponent<TextMeshPro>().font = betterFont;
+            }
+        }
         [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
         private static class EnableChat
         {
             private static void Postfix(HudManager __instance)
             {
-                __instance.Chat.freeChatField.textArea.GetComponent<TextMeshPro>().font = __instance.TaskPanel.taskText.font;
                 try
                 {
                     if (

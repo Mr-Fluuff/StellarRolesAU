@@ -27,7 +27,7 @@ namespace StellarRoles
     {
         public static GameObject CustomLobbyPrefab { get; set; }
         public const string Id = "me.fluff.stellarroles";
-        public const string VersionString = "1.4.4";
+        public const string VersionString = "2023.10.1";
         public const string BetaVersion = "";
         public static Version Version = Version.Parse(VersionString);
         internal static BepInEx.Logging.ManualLogSource Logger;

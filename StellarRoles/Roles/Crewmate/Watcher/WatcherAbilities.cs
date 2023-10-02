@@ -60,21 +60,15 @@ namespace StellarRoles
                 }
             }
 
-            if (Watcher.IsActive)
+            if (Watcher.IsActive && Watcher.CameraMinigame != null && (Watcher.BatteryTime <= 0f || Watcher.CameraMinigame.amClosing == Minigame.CloseState.Closing))
             {
-                if (Watcher.BatteryTime <= 0f && Minigame.Instance != null)
-                {
-                    if (Watcher.CameraMinigame != null)
-                    {
-                        Watcher.CameraMinigame.Close();
-                        Watcher.CameraMinigame = null;
-                    }
-                }
-                if (Watcher.CameraMinigame == null)
-                {
-                    Helpers.SetMovement(true);
-                    Watcher.IsActive = false;
-                }
+                Helpers.SetMovement(true);
+                Watcher.IsActive = false;
+
+                if (Watcher.BatteryTime <= 0f)
+                Watcher.CameraMinigame.ForceClose();
+
+                Watcher.CameraMinigame = null;
             }
         }
     }

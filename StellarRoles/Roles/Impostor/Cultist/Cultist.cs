@@ -23,7 +23,7 @@ namespace StellarRoles
 
         public static RoleId CultistFollowerRole(RoleId roleId)
         {
-            RoleId newRole;
+            RoleId newRole = RoleId.Follower;
             switch (roleId)
             {
                 case RoleId.Administrator:
@@ -33,41 +33,54 @@ namespace StellarRoles
                     break;
                 case RoleId.Detective:
                 case RoleId.Jailor:
-                    newRole = RoleId.Undertaker;
+                    if (!Undertaker.IsNeutralKiller)
+                        newRole = RoleId.Undertaker;
                     break;
                 case RoleId.Trapper:
                 case RoleId.Engineer:
-                    newRole = RoleId.Miner;
+                    if (!Miner.IsNeutralKiller)
+                        newRole = RoleId.Miner;
                     break;
                 case RoleId.Guardian:
-                    newRole = RoleId.Vampire;
+                    if (!Vampire.IsNeutralKiller)
+                        newRole = RoleId.Vampire;
                     break;
                 case RoleId.Investigator:
-                    newRole = RoleId.Camouflager; 
+                    if (!Camouflager.IsNeutralKiller)
+                        newRole = RoleId.Camouflager;
                     break;
                 case RoleId.Mayor:
-                    newRole = RoleId.Morphling; 
+                    if (!Morphling.IsNeutralKiller)
+                        newRole = RoleId.Morphling;
                     break;
                 case RoleId.ParityCop:
-                    newRole = RoleId.Wraith; 
+                    if (!Wraith.IsNeutralKiller)
+                        newRole = RoleId.Wraith;
                     break;
                 case RoleId.Psychic:
-                    newRole = RoleId.Warlock; 
+                    if (!Warlock.IsNeutralKiller)
+                        newRole = RoleId.Warlock;
                     break;
                 case RoleId.Tracker:
                 case RoleId.HeadHunter:
-                    newRole = RoleId.BountyHunter; 
+                    if (!BountyHunter.IsNeutralKiller)
+                        newRole = RoleId.BountyHunter;
                     break;
                 case RoleId.Arsonist:
                 case RoleId.Pyromaniac:
-                    newRole = RoleId.Bomber; 
+                    if (!Bomber.IsNeutralKiller)
+                        newRole = RoleId.Bomber;
                     break;
                 case RoleId.Nightmare:
-                    newRole = RoleId.Shade; 
+                    if (!Shade.IsNeutralKiller)
+                        newRole = RoleId.Shade;
                     break;
-                default:
-                    newRole = RoleId.Changeling; 
+                case RoleId.Sheriff:
+                case RoleId.Executioner:
+                case RoleId.Jester:
+                        newRole = RoleId.Changeling;
                     break;
+
             }
             return newRole;
         }
