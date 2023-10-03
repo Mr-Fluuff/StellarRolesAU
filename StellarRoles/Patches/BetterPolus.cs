@@ -64,6 +64,20 @@ namespace StellarRoles
             }
         }
 
+/*        [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.FixedUpdate))]
+        public static class ShipStatusFixedUpdatePatch
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch]
+            public static void Prefix(ShipStatus __instance)
+            {
+                if (!IsObjectsFetched || !IsAdjustmentsDone)
+                {
+                    ApplyChanges(__instance);
+                }
+            }
+        }*/
+
         private static void ApplyChanges(ShipStatus instance)
         {
             if (instance.Type == ShipStatus.MapType.Pb)
@@ -100,92 +114,101 @@ namespace StellarRoles
 
         public static void FindVents()
         {
-            foreach (Vent vent in Object.FindObjectsOfType<Vent>())
-                switch (vent.gameObject.name)
-                {
-                    case "ElectricBuildingVent":
-                        ElectricBuildingVent ??= vent;
-                        break;
-                    case "ElectricalVent":
-                        ElectricalVent ??= vent;
-                        break;
-                    case "ScienceBuildingVent":
-                        ScienceBuildingVent ??= vent;
-                        break;
-                    case "StorageVent":
-                        StorageVent ??= vent;
-                        break;
-                    case "ElecFenceVent":
-                        LightCageVent ??= vent;
-                        break;
-                }
+            var ventsList = Object.FindObjectsOfType<Vent>().ToList();
 
-            IsVentsFetched =
-                ElectricBuildingVent != null &&
-                ElectricalVent != null &&
-                ScienceBuildingVent != null &&
-                StorageVent != null &&
-                LightCageVent != null;
+            if (ElectricBuildingVent == null)
+            {
+                ElectricBuildingVent = ventsList.Find(vent => vent.gameObject.name == "ElectricBuildingVent");
+            }
+
+            if (ElectricalVent == null)
+            {
+                ElectricalVent = ventsList.Find(vent => vent.gameObject.name == "ElectricalVent");
+            }
+
+            if (ScienceBuildingVent == null)
+            {
+                ScienceBuildingVent = ventsList.Find(vent => vent.gameObject.name == "ScienceBuildingVent");
+            }
+
+            if (StorageVent == null)
+            {
+                StorageVent = ventsList.Find(vent => vent.gameObject.name == "StorageVent");
+            }
+
+            if (LightCageVent == null)
+            {
+                LightCageVent = ventsList.Find(vent => vent.gameObject.name == "ElecFenceVent");
+            }
+
+            IsVentsFetched = ElectricBuildingVent != null && ElectricalVent != null && ScienceBuildingVent != null &&
+                              StorageVent != null && LightCageVent != null;
         }
 
         public static void FindRooms()
         {
-            foreach (GameObject gameObject in Object.FindObjectsOfType<GameObject>())
-                switch (gameObject.name)
-                {
-                    case "Comms":
-                        Comms ??= gameObject;
-                        break;
-                    case "Dropship":
-                        DropShip ??= gameObject;
-                        break;
-                    case "Outside":
-                        Outside ??= gameObject;
-                        break;
-                    case "Science":
-                        Science ??= gameObject;
-                        break;
-                }
+            if (Comms == null)
+            {
+                Comms = Object.FindObjectsOfType<GameObject>().ToList().Find(o => o.name == "Comms");
+            }
+
+            if (DropShip == null)
+            {
+                DropShip = Object.FindObjectsOfType<GameObject>().ToList().Find(o => o.name == "Dropship");
+            }
+
+            if (Outside == null)
+            {
+                Outside = Object.FindObjectsOfType<GameObject>().ToList().Find(o => o.name == "Outside");
+            }
+
+            if (Science == null)
+            {
+                Science = Object.FindObjectsOfType<GameObject>().ToList().Find(o => o.name == "Science");
+            }
 
             IsRoomsFetched = Comms != null && DropShip != null && Outside != null && Science != null;
         }
 
         public static void FindObjects()
         {
-            foreach (Console gameObject in Object.FindObjectsOfType<Console>())
-                switch (gameObject.name)
-                {
-                    case "panel_wifi":
-                        WifiConsole ??= gameObject;
-                        break;
-                    case "panel_nav":
-                        NavConsole ??= gameObject;
-                        break;
-                    case "panel_tempcold":
-                        TempCold ??= gameObject;
-                        break;
-                }
+            if (WifiConsole == null)
+            {
+                WifiConsole = Object.FindObjectsOfType<Console>().ToList()
+                    .Find(console => console.name == "panel_wifi");
+            }
+
+            if (NavConsole == null)
+            {
+                NavConsole = Object.FindObjectsOfType<Console>().ToList()
+                    .Find(console => console.name == "panel_nav");
+            }
 
             if (Vitals == null)
             {
-                GameObject vitalsPanel = GameObject.Find("panel_vitals");
-                if (vitalsPanel != null)
-                    Vitals ??= vitalsPanel.TryCast<SystemConsole>();
+                Vitals = Object.FindObjectsOfType<SystemConsole>().ToList()
+                    .Find(console => console.name == "panel_vitals");
             }
 
             if (DvdScreenOffice == null)
             {
-                GameObject dvdScreenAdmin = GameObject.Find("dvdscreen");
-                if (dvdScreenAdmin != null)
-                    DvdScreenOffice = Object.Instantiate(dvdScreenAdmin);
+                GameObject DvdScreenAdmin = Object.FindObjectsOfType<GameObject>().ToList()
+                    .Find(o => o.name == "dvdscreen");
+
+                if (DvdScreenAdmin != null)
+                {
+                    DvdScreenOffice = Object.Instantiate(DvdScreenAdmin);
+                }
             }
 
-            IsObjectsFetched =
-                WifiConsole != null &&
-                NavConsole != null &&
-                Vitals != null &&
-                DvdScreenOffice != null &&
-                TempCold != null;
+            if (TempCold == null)
+            {
+                TempCold = Object.FindObjectsOfType<Console>().ToList()
+                    .Find(console => console.name == "panel_tempcold");
+            }
+
+            IsObjectsFetched = WifiConsole != null && NavConsole != null && Vitals != null &&
+                               DvdScreenOffice != null && TempCold != null;
         }
 
         public static void AdjustVents()
@@ -270,13 +293,15 @@ namespace StellarRoles
         }
 
         static GameObject SnowMan;
+        static Sprite PenguSprite;
         public static void AddPengu()
         {
+            if (PenguSprite == null) PenguSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.PolusPengu.png", 450f);
             SnowMan = Object.FindObjectsOfType<GameObject>().ToList().Find(snowman => snowman.name == "snowman (5)");
             if (SnowMan != null)
             {
                 var BoxRenderer = SnowMan.GetComponent<SpriteRenderer>();
-                BoxRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.PolusPengu.png", 400f);
+                BoxRenderer.sprite = PenguSprite;
             }
         }
     }

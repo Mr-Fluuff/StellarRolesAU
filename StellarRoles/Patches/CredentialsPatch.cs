@@ -10,7 +10,7 @@ namespace StellarRoles.Patches
     {
 
         public static string fullCredentials =
-$@"<size=130%><color=#B2FEFE>StellarRoles</color></size> v{StellarRolesPlugin.Version} {StellarRolesPlugin.BetaVersion}
+$@"<size=130%><color=#B2FEFE>StellarRoles</color></size> v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}
 <size=80%>Created by <color=#C50000>Fluff</color>, <color=#C46AD8>Ilyssa</color>, and <color=#9bd3ff>Stell</color> ";
 
         public static string mainMenuCredentials =
@@ -47,7 +47,7 @@ $@"<size=80f%>Art by Crayonvex, Stell, and Phylo</size>";
                 if (AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Started)
                 {
                     __instance.text.text = Camera.main.orthographicSize == 3f
-                        ? $"<size=130%><color=#B2FEFE>StellarRoles</color></size> v{StellarRolesPlugin.Version} {StellarRolesPlugin.BetaVersion}\n{__instance.text.text}" : "";
+                        ? $"<size=130%><color=#B2FEFE>StellarRoles</color></size> v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}\n{__instance.text.text}" : "";
                     __instance.transform.localPosition = HudManager.Instance.SettingsButton.transform.localPosition + (Vector3.left * 3f) + (Vector3.up * .25f);
                 }
                 else
@@ -93,7 +93,7 @@ $@"<size=80f%>Art by Crayonvex, Stell, and Phylo</size>";
 
                 GameObject credentialObject = new("credentialsSR");
                 TextMeshPro credentials = credentialObject.AddComponent<TextMeshPro>();
-                credentials.SetText($"v{StellarRolesPlugin.Version} {StellarRolesPlugin.BetaVersion}\n<size=40f%>\n</size>{mainMenuCredentials}\n{artCredentials}\n{contributorsCredentials}");
+                credentials.SetText($"v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}\n<size=40f%>\n</size>{mainMenuCredentials}\n{artCredentials}\n{contributorsCredentials}");
                 credentials.alignment = TextAlignmentOptions.Center;
                 credentials.fontSize *= 0.05f;
 

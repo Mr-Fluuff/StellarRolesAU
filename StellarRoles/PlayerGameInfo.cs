@@ -76,6 +76,21 @@ namespace StellarRoles
             return roleInfo.Roles;
         }
 
+        public static List<RoleInfo> GetRoles(GameData.PlayerInfo player)
+        {
+            if (Mapping.TryGetValue(player.PlayerId, out PlayerGameInfo roleInfo))
+                return roleInfo.Roles;
+
+            Mapping.Add(player.PlayerId, roleInfo = new PlayerGameInfo());
+
+            if (player.Role.IsImpostor)
+                roleInfo.Roles.Add(RoleInfo.Impostor);
+            else
+                roleInfo.Roles.Add(RoleInfo.Crewmate);
+
+            return roleInfo.Roles;
+        }
+
         public static void AddRole(byte playerId, RoleInfo role)
         {
             if (!Mapping.TryGetValue(playerId, out PlayerGameInfo gameInfo))

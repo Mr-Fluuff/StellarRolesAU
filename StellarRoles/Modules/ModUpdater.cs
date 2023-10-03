@@ -122,7 +122,7 @@ namespace StellarRoles.Modules
                 try
                 {
                     string updateVersion = SRUpdate.Content[^5..];
-                    if (Version.Parse(StellarRolesPlugin.VersionString).BaseVersion() < Version.Parse(updateVersion).BaseVersion())
+                    if (Version.Parse(StellarRolesPlugin.UpdateString).BaseVersion() < Version.Parse(updateVersion).BaseVersion())
                     {
                         passiveButton.OnClick.RemoveAllListeners();
                         passiveButton.OnClick = new Button.ButtonClickedEvent();
@@ -217,7 +217,7 @@ namespace StellarRoles.Modules
             Task<UpdateData> torUpdateCheck = Task.Run(() => Instance.GetGithubUpdate("Mr-Fluuff", "StellarRolesAU"));
             while (!torUpdateCheck.IsCompleted) yield return null;
             Helpers.Log($"Task Running");
-            if (torUpdateCheck.Result != null && torUpdateCheck.Result.IsNewer(Version.Parse(StellarRolesPlugin.VersionString)))
+            if (torUpdateCheck.Result != null && torUpdateCheck.Result.IsNewer(Version.Parse(StellarRolesPlugin.UpdateString)))
             {
                 Instance.SRUpdate = torUpdateCheck.Result;
             }

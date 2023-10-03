@@ -104,19 +104,20 @@ namespace StellarRoles.Patches
         {
             AdditionalTempData.Clear();
 
-            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            foreach (var player in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
+                PlayerControl p = player.Object ?? null;
                 List<RoleInfo> roles = PlayerGameInfo.GetRoles(player);
-                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(player.Data);
+                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(player);
 
                 AdditionalTempData.PlayerRoles.Add(new AdditionalTempData.PlayerRoleInfo()
                 {
-                    PlayerName = player.Data.PlayerName,
-                    Loved =
-                        roles.Any(x => x.RoleId == RoleId.Beloved) ||
-                        VengefulRomantic.Lover == player ||
-                        Romantic.Lover == player ||
-                        RuthlessRomantic.IsLover(player),
+                    PlayerName = player.PlayerName,
+                    Loved = p != null && 
+                        (roles.Any(x => x.RoleId == RoleId.Beloved) ||
+                        VengefulRomantic.Lover == p ||
+                        Romantic.Lover == p ||
+                        RuthlessRomantic.IsLover(p)),
                     Roles = roles,
                     Modifiers = PlayerGameInfo.GetModifiers(player.PlayerId),
                     TasksTotal = tasksTotal,
