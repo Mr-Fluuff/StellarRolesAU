@@ -8,7 +8,7 @@ namespace StellarRoles
     {
         private static readonly string[] RoleRates = new string[] { "0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%" };
         private static readonly string[] ModifierRates = new string[] { "1", "2", "3" };
-        private static readonly string[] Presets = new string[] { "Default", "Streamer Prox", "Streamer Non-Prox", "Beginner", "Chaotic", "Stell's Lobby", "Custom 1", "Custom 2", "Custom 3" };
+        private static readonly string[] Presets = new string[] { "Default", "Streamer Prox", "Streamer Non-Prox", "Beginner", "Chaotic", "Stell's Lobby","Vanilla Plus", "Custom 1", "Custom 2", "Custom 3" };
         private static readonly string[] SpeedRates = new string[] { ".7x", ".8x", ".9x", "1.0x", "1.1x", "1.2x", "1.3x", "1.4x", "1.5x", "1.6x", "1.7x", "1.8x", "1.9x", "2.0x", "2.1x", "2.2x", "2.3x" };
         private static readonly string[] OddRate15 = new string[] { "Off", "0", "2.5", "5", "7.5", "10", "12.5", "15" };
         #region Presets

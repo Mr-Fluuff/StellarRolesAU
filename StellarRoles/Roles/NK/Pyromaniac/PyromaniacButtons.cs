@@ -137,7 +137,7 @@ namespace StellarRoles
 
             PyromaniacDouseButton.EffectDuration = Pyromaniac.DouseDuration;
             PyromaniacDouseButton.MaxTimer = Pyromaniac.DouseCooldown;
-            PyromaniacKillButton.MaxTimer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            PyromaniacKillButton.MaxTimer = Helpers.KillCooldown();
         }
 
         public static void Postfix(HudManager __instance)

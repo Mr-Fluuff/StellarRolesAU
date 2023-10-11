@@ -72,6 +72,11 @@ namespace StellarRoles
             return PyromaniacDictionary.TryGetValue(playerId, out pyromaniac);
         }
 
+        public static bool IsPyromaniac(PlayerControl player)
+        {
+            return PyromaniacDictionary.TryGetValue(player.PlayerId, out _);
+        }
+
         public static bool IsArsonistEnabled()
         {
             return CustomOptionHolder.ArsonistSpawnRate.GetSelection() > 0 && CustomOptionHolder.NeutralRolesCountMin.GetFloat() > 0;
@@ -86,6 +91,8 @@ namespace StellarRoles
     public static class PyromaniacExtensions
     {
         public static bool IsPyromaniac(this PlayerControl player, out Pyromaniac pyromaniac) => Pyromaniac.IsPyromaniac(player.PlayerId, out pyromaniac);
+        public static bool IsPyromaniac(this PlayerControl player) => Pyromaniac.IsPyromaniac(player);
+
     }
 }
 

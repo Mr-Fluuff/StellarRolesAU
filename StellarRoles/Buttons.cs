@@ -72,7 +72,7 @@ namespace StellarRoles
             ResetZoomButton.MaxTimer = 0f;
             NeutralKillerSaboButton.MaxTimer = 0f;
             NeutralKillerSaboButton.Timer = 0f;
-            ImpKillButton.MaxTimer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            ImpKillButton.MaxTimer = Helpers.KillCooldown();
             SpectatorButton.Timer = 0f;
             SpectatorButton.MaxTimer = 0f;
         }
@@ -219,12 +219,12 @@ namespace StellarRoles
                    {
                        if (Impostor.CurrentTarget == BountyHunter.Bounty)
                        {
-                           ImpKillButton.Timer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown - BountyHunter.BonusTime;
+                           ImpKillButton.Timer = Helpers.KillCooldown() - BountyHunter.BonusTime;
                            BountyHunter.BountyUpdateTimer = 0f; // Force bounty update
                        }
                        else
                        {
-                           ImpKillButton.Timer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown + BountyHunter.PunishmentTime;
+                           ImpKillButton.Timer = Helpers.KillCooldown() + BountyHunter.PunishmentTime;
                        }
                    }
 
@@ -273,7 +273,12 @@ namespace StellarRoles
                    Impostor.CurrentTarget = null;
                    Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddKill);
                },
-               () => Helpers.HasKillButton(PlayerControl.LocalPlayer),
+               () =>
+               {
+                   var localPlayer = PlayerControl.LocalPlayer;
+                   if (localPlayer == Vampire.Player && !Vampire.HasKillButton) return false;
+                   return !localPlayer.Data.IsDead && localPlayer.Data.Role.IsImpostor;
+               },
                () =>
                {
                    bool cultist = PlayerControl.LocalPlayer == Cultist.Player;

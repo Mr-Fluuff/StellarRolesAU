@@ -214,5 +214,6 @@ namespace StellarRoles
         SendResultOfDuel,
         MayorRetire,
         PsychicAddCount,
+        SnapToRpc
     }
 }

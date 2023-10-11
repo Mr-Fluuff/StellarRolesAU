@@ -134,7 +134,7 @@ namespace StellarRoles
                 RomanticButtonsInit();
             }
 
-            VengefulRomanticKillButton.MaxTimer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            VengefulRomanticKillButton.MaxTimer = Helpers.KillCooldown();
             RomanticProtectButton.MaxTimer = Romantic.Cooldown;
             RomanticStalkButton.MaxTimer = 0f;
             RomanticProtectButton.EffectDuration = Romantic.VestDuration;

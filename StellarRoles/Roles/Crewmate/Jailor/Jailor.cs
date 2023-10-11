@@ -69,5 +69,7 @@ namespace StellarRoles
     public static class JailorExtensions
     {
         public static bool IsJailor(this PlayerControl player, out Jailor jailor) => Jailor.IsJailor(player.PlayerId, out jailor);
+        public static bool IsJailed(this PlayerControl player) => Jailor.IsJailorTarget(player);
+
     }
 }

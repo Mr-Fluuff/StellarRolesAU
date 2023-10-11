@@ -158,7 +158,7 @@ namespace StellarRoles
             Player = null;
             CurrentTarget = null;
             Bounties.Clear();
-            HeadHunterCurrentCooldown = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            HeadHunterCurrentCooldown = Helpers.KillCooldown();
 
             PursueCurrentTimer = 0f;
             foreach (PoolablePlayer p in MapOptions.PlayerIcons.Values)

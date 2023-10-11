@@ -148,7 +148,8 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "30%" },
                 {"Streamer Prox", "50%" },
                 {"Chaotic", "40%" },
-                {"Beginner", "30%" }
+                {"Beginner", "30%" },
+                {"Vanilla Plus", "20%" }
             };
             presetIdToMapping.Add(CustomOptionHolder.MorphlingSpawnRate.Id, new PresetMapping(morphlingSpawnRate, 0));
 
@@ -158,7 +159,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 10f },
                 {"Streamer Prox", 10f },
                 {"Chaotic", 10f },
-                {"Beginner", 10f }
+                {"Beginner", 10f },
+                {"Vanilla Plus", 10f }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.MorphlingCooldown.Id, new PresetMapping(morphlingCooldown, 0));
 
@@ -169,7 +172,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 10f },
                 {"Streamer Prox", 10f },
                 {"Chaotic", 10f },
-                {"Beginner", 10f }
+                {"Beginner", 10f },
+                {"Vanilla Plus", 10f }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.MorphlingDuration.Id, new PresetMapping(morphlingDuration, 0));
 
@@ -180,7 +185,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "30%" },
                 {"Streamer Prox", "30%" },
                 {"Chaotic", "40%" },
-                {"Beginner", "0%" }
+                {"Beginner", "0%" },
+                {"Vanilla Plus", "0%" }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.BomberSpawnRate.Id, new PresetMapping(bomberSpawnRate, 0));
 
@@ -254,7 +261,10 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "40%" },
                 {"Streamer Prox", "30%" },
                 {"Chaotic", "30%" },
-                {"Beginner", "40%" }
+                {"Beginner", "40%" },
+                {"Vanilla Plus", "40%" },
+
+
             };
             presetIdToMapping.Add(CustomOptionHolder.HackerSpawnRate.Id, new PresetMapping(hackerSpawnRate, 0));
 
@@ -265,7 +275,8 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "40%" },
                 {"Streamer Prox", "30%" },
                 {"Chaotic", "40%" },
-                {"Beginner", "40%" }
+                {"Beginner", "40%" }, 
+                {"Vanilla Plus", "20%" }
             };
             presetIdToMapping.Add(CustomOptionHolder.WraithSpawnRate.Id, new PresetMapping(wraithSpawnRate, 0));
 
@@ -275,7 +286,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 4f },
                 {"Streamer Prox", 3f },
                 {"Chaotic", 4f },
-                {"Beginner", 4f }
+                {"Beginner", 4f },
+                {"Vanilla Plus", 3f },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.WraithPhaseDuration.Id, new PresetMapping(wraithPhaseDuration, 0));
 
@@ -285,7 +298,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 15f },
                 {"Streamer Prox", 15f },
                 {"Chaotic", 15f },
-                {"Beginner", 15f }
+                {"Beginner", 15f },
+                {"Vanilla Plus", 15f },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.WraithPhaseCooldown.Id, new PresetMapping(wraithPhaseCooldown, 0));
 
@@ -295,7 +310,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On" },
                 {"Streamer Prox", "On" },
                 {"Chaotic", "On" },
-                {"Beginner", "Off" }
+                {"Beginner", "Off" },
+                {"Vanilla Plus", "Off" }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.WraithLantern.Id, new PresetMapping(wraithLantern, 0));
 
@@ -335,7 +352,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "10%" },
                 {"Streamer Prox", "10%" },
                 {"Chaotic", "20%" },
-                {"Beginner", "0%" }
+                {"Beginner", "0%" },
+                {"Vanilla Plus", "0%" }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.ShadeSpawnRate.Id, new PresetMapping(shadeSpawnRate, 0));
 
@@ -677,7 +696,8 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "40%" },
                 {"Streamer Prox", "40%" },
                 {"Chaotic", "40%" },
-                {"Beginner", "20%" }
+                {"Beginner", "20%" },
+                {"Vanilla Plus", "20%" },
             };
             presetIdToMapping.Add(CustomOptionHolder.UndertakerSpawnRate.Id, new PresetMapping(undertakerSpawnRate, 0));
 
@@ -687,7 +707,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 2f },
                 {"Streamer Prox", 4f },
                 {"Chaotic", 0f },
-                {"Beginner", 4f }
+                {"Beginner", 4f },
+                {"Vanilla Plus", 3f }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.UndertakerDragingDelaiAfterKill.Id, new PresetMapping(undertakerDragingDelaiAfterKill, 0));
 
@@ -697,7 +719,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 15f },
                 {"Streamer Prox", 15f },
                 {"Chaotic", 15f },
-                {"Beginner", 15f }
+                {"Beginner", 15f },
+                {"Vanilla Plus", 15f }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.UndertakerDragCooldown.Id, new PresetMapping(undertakerDragCooldown, 0));
 
@@ -707,7 +731,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On" },
                 {"Streamer Prox", "On" },
                 {"Chaotic", "On" },
-                {"Beginner", "Off" }
+                {"Beginner", "Off" },
+                {"Vanilla Plus", "Off" }
+
             };
             presetIdToMapping.Add(CustomOptionHolder.UndertakerCanDragAndVent.Id, new PresetMapping(undertakerCanDragAndVent, 0));
 
@@ -717,7 +743,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "20%" },
                 {"Streamer Prox", "20%" },
                 {"Chaotic", "20%" },
-                {"Beginner", "20%" }
+                {"Beginner", "20%" },
+                {"Vanilla Plus", "40%" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.CultistSpawnRate.Id, new PresetMapping(cultistSpawnRate, 0));
 
@@ -727,7 +755,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "40%" },
                 {"Streamer Prox", "40%"},
                 {"Chaotic", "50%" },
-                {"Beginner", "50%" }
+                {"Beginner", "50%" },
+                {"Vanilla Plus", "40%" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.MinerSpawnRate.Id, new PresetMapping(minerSpawnRate, 0));
 
@@ -737,7 +767,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 15f },
                 {"Streamer Prox", 15f },
                 {"Chaotic", 15f },
-                {"Beginner", 15f }
+                {"Beginner", 15f },
+                {"Vanilla Plus", 15f },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.MinerCooldown.Id, new PresetMapping(minerCooldown, 0));
 
@@ -747,7 +779,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 30f },
                 {"Streamer Prox", 3f },
                 {"Chaotic", 60f },
-                {"Beginner", 4f }
+                {"Beginner", 4f },
+                {"Vanilla Plus", 4f },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.MinerCharges.Id, new PresetMapping(minerCharges, 0));
 
@@ -757,9 +791,23 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On Place" },
                 {"Streamer Prox", "On Place" },
                 {"Chaotic", "On Place" },
-                {"Beginner", "On Place" }
+                {"Beginner", "On Place" },
+                {"Vanilla Plus", "On Place" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.MinerVentsActiveWhen.Id, new PresetMapping(minerVentsActiveInstantly, 0));
+
+            Dictionary<string, object> minerVentsActiveDelay = new()
+            {
+                {"Stell's Lobby", 15f },
+                {"Streamer Non-Prox", 15f },
+                {"Streamer Prox", 15f},
+                {"Chaotic", 15f },
+                {"Beginner", 15f },
+                {"Vanilla Plus", 15f },
+
+            };
+            presetIdToMapping.Add(CustomOptionHolder.MinerVentsDelay.Id, new PresetMapping(minerVentsActiveDelay, 0));
 
             Dictionary<string, object> mayorSpawnRate = new()
             {
@@ -2108,7 +2156,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "Off" },
                 {"Streamer Prox", "Off" },
                 {"Chaotic", "Off" },
-                {"Beginner", "Off" }
+                {"Beginner", "Off" },
+                {"Vanilla Plus", "Off" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.ShieldFirstKill.Id, new PresetMapping(shieldFirstKill, 0));
 
@@ -2118,7 +2168,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 7f },
                 {"Streamer Prox", 2f },
                 {"Chaotic", 0f },
-                {"Beginner", 0f }
+                {"Beginner", 0f },
+                {"Vanilla Plus" , 10f },
+
             };
 
             presetIdToMapping.Add(CustomOptionHolder.RestrictAdminOnMira.Id, new PresetMapping(restrictAdminOnMira, 0));
@@ -2129,7 +2181,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", 5f },
                 {"Streamer Prox", 0f },
                 {"Chaotic", 0f },
-                {"Beginner", 0f }
+                {"Beginner", 0f },
+                {"Vanilla Plus" , 14f },
+
             };
 
             presetIdToMapping.Add(CustomOptionHolder.RestrictCamsOnSkeld.Id, new PresetMapping(restrictCamsOnSkeld, 0));
@@ -2150,7 +2204,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On" },
                 {"Streamer Prox", "On" },
                 {"Chaotic", "On" },
-                {"Beginner", "Off" }
+                {"Beginner", "Off" },
+                {"Vanilla Plus", "On" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.GhostsSeeRoles.Id, new PresetMapping(ghostsSeeRoles, 0));
 
@@ -2160,7 +2216,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On" },
                 {"Streamer Prox", "On" },
                 {"Chaotic", "On" },
-                {"Beginner", "Off" }
+                {"Beginner", "Off" },
+                {"Vanilla Plus", "On" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.GhostsSeeTasks.Id, new PresetMapping(ghostsSeeTasks, 0));
 
@@ -2190,7 +2248,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On" },
                 {"Streamer Prox", "On" },
                 {"Chaotic", "On" },
-                {"Beginner", "On" }
+                {"Beginner", "On" },
+                {"Vanilla Plus", "On" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.NoCamsFirstRound.Id, new PresetMapping(noCamsFirstRound, 0));
 
@@ -2211,7 +2271,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "On" },
                 {"Streamer Prox", "On" },
                 {"Chaotic", "On" },
-                {"Beginner", "On" }
+                {"Beginner", "On" },
+                {"Vanilla Plus", "On" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.DynamicMap.Id, new PresetMapping(dynamicMap, 0));
 
@@ -2221,7 +2283,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "10%" },
                 {"Streamer Prox",  "10%" },
                 {"Chaotic",  "10%" },
-                {"Beginner", "10%" }
+                {"Beginner", "10%" },
+                {"Vanilla Plus", "20%" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.DynamicMapEnableSkeld.Id, new PresetMapping(dynamicMapEnableSkeld, 0));
 
@@ -2231,7 +2295,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "10%" },
                 {"Streamer Prox","10%" },
                 {"Chaotic", "10%" },
-                {"Beginner", "10%" }
+                {"Beginner", "10%" },
+                {"Vanilla Plus", "20%" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.DynamicMapEnableMira.Id, new PresetMapping(dynamicMapEnableMira, 0));
 
@@ -2241,7 +2307,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "0%" },
                 {"Streamer Prox", "0%" },
                 {"Chaotic", "10%" },
-                {"Beginner", "0%" }
+                {"Beginner", "0%" },
+                {"Vanilla Plus", "0%" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.DynamicMapEnableAirShip.Id, new PresetMapping(dynamicMapEnableAirShip, 0));
 
@@ -2251,7 +2319,9 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "0%" },
                 {"Streamer Prox", "0%" },
                 {"Chaotic", "0%" },
-                {"Beginner", "0%" }
+                {"Beginner", "0%" },
+                {"Vanilla Plus", "0%" },
+
             };
             presetIdToMapping.Add(CustomOptionHolder.DynamicMapEnableSubmerged.Id, new PresetMapping(dynamicMapEnableSubmerged, 0));
 
@@ -2261,7 +2331,8 @@ namespace StellarRoles
                 {"Streamer Non-Prox", "70%" },
                 {"Streamer Prox", "70%" },
                 {"Chaotic", "70%" },
-                {"Beginner", "70%" }
+                {"Beginner", "70%" },
+                {"Vanilla Plus", "70%" },
             };
             presetIdToMapping.Add(CustomOptionHolder.DynamicMapEnablePolus.Id, new PresetMapping(dynamicMapEnablePolus, 0));
 
@@ -2310,6 +2381,7 @@ namespace StellarRoles
             {3, "Beginner" }, //Vanilla Only
             {4, "Chaotic"},
             {5, "Stell's Lobby"},
+            {6, "Vanilla Plus" }
         };
 
 

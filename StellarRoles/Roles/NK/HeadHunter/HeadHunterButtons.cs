@@ -131,7 +131,7 @@ namespace StellarRoles
                 InitHeadHunterButtons();
             }
 
-            HeadHunterKillButton.MaxTimer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            HeadHunterKillButton.MaxTimer = Helpers.KillCooldown();
             HeadHunterTrackerButton.EffectDuration = HeadHunter.CalculatePursueDuration();
             HeadHunterTrackerButton.MaxTimer = HeadHunter.Cooldown;
             HeadHunterShuffleButton.Timer = 0;

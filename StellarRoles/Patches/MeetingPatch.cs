@@ -39,12 +39,12 @@ namespace StellarRoles.Patches
                     {
 
                         PlayerControl player = Helpers.PlayerById(playerVoteArea.TargetPlayerId);
-                        PlayerControl voted = Helpers.PlayerById(playerVoteArea.VotedFor);
+                        PlayerControl votedFor = Helpers.PlayerById(playerVoteArea.VotedFor);
                         if (player == null || player.Data == null || player.Data.IsDead || player.Data.Disconnected)
                             continue;
 
 
-                        bool notjailed = !Jailor.IsJailorTarget(player) && !Jailor.IsJailorTarget(voted);
+                        bool notjailed = !player.IsJailed() && (!votedFor.IsJailed() || playerVoteArea.VotedFor == 253);
                         bool isMayor = Mayor.Player != null && Mayor.Player.PlayerId == playerVoteArea.TargetPlayerId && !Mayor.Retired;
 
                         int additionalVotes = (isMayor && notjailed) ? 2 : 1; // Mayor vote
@@ -158,7 +158,7 @@ namespace StellarRoles.Patches
                         PlayerControl targetPlayer = Helpers.PlayerById(targetPlayerId);
 
                         // Major vote, redo this iteration to place a second vote
-                        bool isMayor = Mayor.Player != null && voterState.VoterId == (sbyte)Mayor.Player.PlayerId && !Mayor.Retired;
+                        bool isMayor = Mayor.Player != null && voterState.VoterId == Mayor.Player.PlayerId && !Mayor.Retired;
                         bool isTargetFree = !Jailor.IsJailorTarget(targetPlayer);
                         bool isMayorFree = !Jailor.IsJailorTarget(Mayor.Player);
 

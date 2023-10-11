@@ -616,7 +616,7 @@ namespace StellarRoles.Patches
                 return true;
             PlayerStatistics statistics = new();
             // TODO: does it really matter if one win condition stops all the others being checked as well
-            _ = CheckAndEndGameForRefugeeOnly(statistics) ||
+            if (CheckAndEndGameForRefugeeOnly(statistics) ||
                 CheckAndEndGameForJesterWin() ||
                 CheckAndEndGameForExecutionerWin() ||
                 CheckAndEndGameForArsonistWin() ||
@@ -624,7 +624,7 @@ namespace StellarRoles.Patches
                 CheckAndEndGameForSabotageWin() ||
                 CheckAndEndGameForTaskWin(statistics) ||
                 CheckAndEndGameForCrewmateWin(statistics) ||
-                CheckAndEndGameForImpostorWin(statistics);
+                CheckAndEndGameForImpostorWin(statistics)) return false;
 
             CheckAndEndGameForHeadHunterWin(statistics);
             CheckAndEndGameForPyroAndArsoWin(statistics);
@@ -731,7 +731,7 @@ namespace StellarRoles.Patches
                 statistics.NightmareAlive == 0 &&
                 statistics.RuthlessRomanticAlive == 0 &&
                 statistics.TeamImpostorsAlive == 0 &&
-                (!MapOptions.JoustingPreventNK || (MapOptions.JoustingPreventNK && statistics.PowerCrewAlive == 0))
+                (!MapOptions.JoustingPreventNK || statistics.PowerCrewAlive == 0)
             )
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.HeadHunterWin, false);
         }
@@ -758,7 +758,7 @@ namespace StellarRoles.Patches
                 statistics.HeadHunterAlive == 0 &&
                 statistics.NightmareAlive == 0 &&
                 statistics.TeamImpostorsAlive == 0 &&
-                (!MapOptions.JoustingPreventNK || (MapOptions.JoustingPreventNK && statistics.PowerCrewAlive == 0))
+                (!MapOptions.JoustingPreventNK || statistics.PowerCrewAlive == 0)
             )
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.RuthlessRomanticWin, false);
         }
@@ -771,7 +771,7 @@ namespace StellarRoles.Patches
                 statistics.NightmareAlive == 0 &&
                 statistics.RuthlessRomanticAlive == 0 &&
                 statistics.TeamImpostorsAlive == 0 &&
-                (!MapOptions.JoustingPreventNK || (MapOptions.JoustingPreventNK && statistics.PowerCrewAlive == 0))
+                (!MapOptions.JoustingPreventNK || statistics.PowerCrewAlive == 0)
             )
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.RogueImpostorWin, false);
         }
@@ -784,7 +784,7 @@ namespace StellarRoles.Patches
                 statistics.HeadHunterAlive == 0 &&
                 statistics.RuthlessRomanticAlive == 0 &&
                 statistics.TeamImpostorsAlive == 0 &&
-                (!MapOptions.JoustingPreventNK || (MapOptions.JoustingPreventNK && statistics.PowerCrewAlive == 0))
+                (!MapOptions.JoustingPreventNK || statistics.PowerCrewAlive == 0)
             )
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.PyromaniacWin, false);
         }
@@ -804,7 +804,7 @@ namespace StellarRoles.Patches
                 statistics.HeadHunterAlive == 0 &&
                 statistics.RuthlessRomanticAlive == 0 &&
                 statistics.NightmareAlive == 0 &&
-                (!MapOptions.JoustingPreventImp || (MapOptions.JoustingPreventImp && statistics.PowerCrewAlive == 0))
+                (!MapOptions.JoustingPreventImp || statistics.PowerCrewAlive == 0)
             )
             {
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.ImpostorWin, false);
@@ -816,7 +816,7 @@ namespace StellarRoles.Patches
 
         private static bool CheckAndEndGameForRefugeeOnly(PlayerStatistics statistics)
         {
-            if (statistics.RefugeesAlive == statistics.TotalAlive)
+            if (statistics.RefugeesAlive > 0 && statistics.RefugeesAlive == statistics.TotalAlive)
             {
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.RefugeeOnlyWin, false);
                 return true;
@@ -828,14 +828,7 @@ namespace StellarRoles.Patches
 
         private static bool CheckAndEndGameForCrewmateWin(PlayerStatistics statistics)
         {
-            if (
-                statistics.TeamImpostorsAlive == 0 &&
-                statistics.HeadHunterAlive == 0 &&
-                statistics.RogueImpsAlive == 0 &&
-                statistics.PyromaniacAlive == 0 &&
-                statistics.NightmareAlive == 0 &&
-                statistics.RuthlessRomanticAlive == 0
-            )
+            if (statistics.TotalEvilAlive == 0)
             {
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.CrewmateWin, false);
                 return true;
@@ -867,6 +860,8 @@ namespace StellarRoles.Patches
         public int RefugeesAlive { get; set; }
         public int PowerCrewAlive { get; set; }
         public int TotalCrewAlive { get; set; }
+        public int TotalEvilAlive { get; set; }
+
 
         public PlayerStatistics()
         {
@@ -923,6 +918,8 @@ namespace StellarRoles.Patches
                 else if (VengefulRomantic.Player != null && VengefulRomantic.Player == player && VengefulRomantic.Target != null && !VengefulRomantic.Target.Data.IsDead)
                     PowerCrewAlive++;
             }
+
+            TotalEvilAlive = TeamImpostorsAlive + HeadHunterAlive + PyromaniacAlive + RuthlessRomanticAlive + NightmareAlive + RogueImpsAlive;
 
             if (TeamImpostorsAlive == 0 && RogueImpsAlive == 0 && HeadHunterAlive == 0 && PyromaniacAlive == 0 && NightmareAlive == 0 && RuthlessRomanticAlive == 0 && !Executioner.ConvertsImmediately)
                 Executioner.ExecutionerCheckPromotion();

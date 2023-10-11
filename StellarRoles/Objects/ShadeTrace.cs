@@ -1,16 +1,18 @@
 ﻿using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace StellarRoles.Objects
 {
     public class ShadeTrace
     {
-        public static readonly List<ShadeTrace> Traces = new();
+        public static List<ShadeTrace> Traces = new();
 
         private readonly GameObject TraceGameObject;
         private float TimeRemaining;
+        private int ID;
 
         public ShadeTrace(Vector2 p, float duration = 1f)
         {
@@ -24,6 +26,7 @@ namespace StellarRoles.Objects
             traceRenderer.sprite = Shade.GetShadeEvidenceSprite();
 
             TimeRemaining = duration;
+            ID = Traces.Count + 1;
 
             float fadeOutDuration = 1f;
             if (fadeOutDuration > duration) fadeOutDuration = 0.5f * duration;
@@ -43,33 +46,38 @@ namespace StellarRoles.Objects
             Traces.Add(this);
         }
 
-        public void Update()
-        {
-            TimeRemaining -= Time.deltaTime;
-
-            if (TimeRemaining <= 0)
-            {
-                TraceGameObject.SetActive(false);
-                Traces.Remove(this);
-            }
-        }
-
         public static void UpdateAll()
         {
-            foreach (ShadeTrace trace in Traces)
+            List<ShadeTrace> tracesToRemove = new();
+
+            for (int i = 0; i < Traces.Count; i++)
             {
-                trace.Update();
+                var trace = Traces[i];
+
+                trace.TimeRemaining -= Time.deltaTime;
+
+                if (trace.TimeRemaining <= 0 && tracesToRemove.Any(x => x.ID != trace.ID))
+                {
+                    tracesToRemove.Add(trace);
+                }
+            }
+
+            foreach (var trace in tracesToRemove)
+            {
+                trace.TraceGameObject.SetActive(false);
+                Traces.Remove(trace);
+                UnityEngine.Object.Destroy(trace.TraceGameObject);
             }
         }
 
         public static void ClearTraces()
         {
-            foreach (ShadeTrace traceCurrent in Traces)
+            foreach (ShadeTrace trace in Traces)
             {
-                traceCurrent.TraceGameObject.SetActive(false);
-                UnityEngine.Object.Destroy(traceCurrent.TraceGameObject);
+                trace.TraceGameObject.SetActive(false);
+                UnityEngine.Object.Destroy(trace.TraceGameObject);
             }
-            Traces.Clear();
+            Traces = new();
         }
     }
 }

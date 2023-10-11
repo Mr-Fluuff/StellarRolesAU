@@ -587,26 +587,29 @@ namespace StellarRoles
         public static void SetKillerCooldown()
         {
             PlayerControl player = PlayerControl.LocalPlayer;
+            CustomButton killbutton = null;
             if (NeutralKiller.Players.Contains(player))
             {
-                CustomButton killbutton = RogueButtons.RogueKillButton;
-                killbutton.Timer = killbutton.MaxTimer;
+                killbutton = RogueButtons.RogueKillButton;
             }
             else if (player.Data.Role.IsImpostor)
             {
-                HudManagerStartPatch.ImpKillButton.Timer = HudManagerStartPatch.ImpKillButton.MaxTimer;
+                killbutton = HudManagerStartPatch.ImpKillButton;
             }
-            else if (player.IsPyromaniac(out _))
+            else if (player.IsPyromaniac())
             {
-                CustomButton killbutton = PyromaniacButtons.PyromaniacKillButton;
-                killbutton.Timer = killbutton.MaxTimer;
+                killbutton = PyromaniacButtons.PyromaniacKillButton;
             }
             else if (HeadHunter.Player == player)
             {
-                CustomButton killbutton = HeadHunterButtons.HeadHunterKillButton;
-                killbutton.Timer = killbutton.MaxTimer;
+                killbutton = HeadHunterButtons.HeadHunterKillButton;
             }
-
+            else if (Sheriff.Player == player)
+            {
+                killbutton = SheriffButtons.SheriffKillButton;
+            }
+            if (killbutton != null)
+                killbutton.Timer = killbutton.MaxTimer;
         }
 
         public static bool IsRogueImpostor(byte playerId)
@@ -778,7 +781,7 @@ namespace StellarRoles
             player.RpcSetRole(RoleTypes.Impostor);
             player.Data.Role.TeamType = RoleTeamTypes.Impostor;
             RoleManager.Instance.SetRole(player, RoleTypes.Impostor);
-            player.SetKillTimer(GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown);
+            player.SetKillTimer(Helpers.KillCooldown());
 
             foreach (PlayerControl otherPlayer in PlayerControl.AllPlayerControls.GetFastEnumerator())
                 if (otherPlayer.Data.Role.IsImpostor && PlayerControl.LocalPlayer.Data.Role.IsImpostor)
@@ -893,9 +896,9 @@ namespace StellarRoles
                 return null;
         }
 
-        public static bool HasKillButton(PlayerControl player)
+        public static float KillCooldown()
         {
-            return !player.Data.IsDead && (player.Data.Role.IsImpostor || (Vampire.Player == player && Vampire.HasKillButton));
+            return GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
         }
 
         public static bool IsMiniBody(this DeadBody body)
@@ -1165,6 +1168,9 @@ namespace StellarRoles
                     return MurderAttemptResult.SuppressKill;
                 }
             }
+
+            if (target.Data.IsDead)
+                return MurderAttemptResult.SuppressKill;
 
             return MurderAttemptResult.PerformKill;
         }

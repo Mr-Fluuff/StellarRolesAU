@@ -81,7 +81,8 @@ namespace StellarRoles
                         if (Helpers.CheckBombedAttemptAndKill(bombed.Bomber, bombed.CurrentTarget, showAnimation: false) == MurderAttemptResult.SuppressKill)
                             return;
                         bombed.PassedBomb = true;
-                        PlayerControl.LocalPlayer.NetTransform.RpcSnapTo(bombed.CurrentTarget.transform.position);
+                        RPCProcedure.Send(CustomRPC.SnapToRpc, PlayerControl.LocalPlayer.PlayerId, bombed.CurrentTarget.PlayerId);
+                        PlayerControl.LocalPlayer.NetTransform.SnapTo(bombed.CurrentTarget.transform.position);
                         SoundManager.Instance.PlaySound(PlayerControl.LocalPlayer.KillSfx, false, 0.8f);
                         Helpers.PlayerKilledByAbility(bombed.CurrentTarget);
 

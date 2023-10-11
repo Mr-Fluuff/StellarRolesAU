@@ -27,10 +27,10 @@ namespace StellarRoles
     {
         public static GameObject CustomLobbyPrefab { get; set; }
         public const string Id = "me.fluff.stellarroles";
-        public const string VersionString = "23.10.3";
-        public const string UpdateString = "2023.10.3";
+        public const string VersionString = "23.10.11";
+        public const string UpdateString = "2023.10.11";
         public const string BetaVersion = "";
-        public static Version Version = Version.Parse(VersionString);
+        public static Version Version => Version.Parse(VersionString);
         internal static BepInEx.Logging.ManualLogSource Logger;
 
         public Harmony Harmony { get; } = new Harmony(Id);

@@ -57,12 +57,12 @@ namespace StellarRoles
                     SheriffKillButton.Timer = SheriffKillButton.MaxTimer;
                     Sheriff.CurrentTarget = null;
                 },
-                () => { return Sheriff.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !Sheriff.Haskilled && !PlayerControl.LocalPlayer.IsBombedAndActive(); },
+                () => { return Sheriff.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !Sheriff.Haskilled; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, SheriffKillButton, "SHOOT");
                     SheriffKillButton.ActionButton.buttonLabelText.SetOutlineColor(Sheriff.Color);
-                    return Sheriff.CurrentTarget && PlayerControl.LocalPlayer.CanMove;
+                    return Sheriff.CurrentTarget && PlayerControl.LocalPlayer.CanMove && !PlayerControl.LocalPlayer.IsBombedAndActive();
                 },
                 () => { SheriffKillButton.Timer = SheriffKillButton.MaxTimer; },
                 Sheriff.GetKillButtonSprite(),
@@ -81,7 +81,7 @@ namespace StellarRoles
                 SheriffButton();
             }
 
-            SheriffKillButton.MaxTimer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            SheriffKillButton.MaxTimer = Helpers.KillCooldown();
         }
 
         public static void Postfix()

@@ -24,51 +24,51 @@ namespace StellarRoles.Patches
             PlayerControl localPlayer = PlayerControl.LocalPlayer;
             foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
-                PlayerVoteArea playerVoteArea = null;
-                Transform meetingInfoTransform = null;
-                TMPro.TextMeshPro meetingInfo = null;
+                var playerVoteArea = MeetingHud.Instance != null ? MeetingHud.Instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == data.PlayerId) : null;
+                var meetingInfoTransform = playerVoteArea != null ? playerVoteArea.NameText.transform.parent.FindChild("Info") : null;
+                var meetingInfo = meetingInfoTransform != null ? meetingInfoTransform.GetComponent<TMPro.TextMeshPro>() : null;
 
-                if (MeetingHud.Instance)
+                if (playerVoteArea != null)
                 {
-                    playerVoteArea = MeetingHud.Instance?.playerStates.FirstOrDefault(x => x.TargetPlayerId == data.PlayerId);
-                    meetingInfoTransform = playerVoteArea?.NameText.transform.parent.FindChild("Info");
-                    meetingInfo = meetingInfoTransform?.GetComponent<TMPro.TextMeshPro>();
-
-                    // Colorblind Text in Meeting
-                    if (playerVoteArea != null && playerVoteArea.ColorBlindName.gameObject.active)
+                    if (playerVoteArea.ColorBlindName.gameObject.active)
                     {
+                        // Colorblind Text in Meeting
                         playerVoteArea.ColorBlindName.alignment = TMPro.TextAlignmentOptions.Left;
                         playerVoteArea.ColorBlindName.transform.localPosition = colorBlindTextMeetingInitialLocalPos + new Vector3(-.41f, -.1f, 0f);
                         playerVoteArea.ColorBlindName.transform.localScale = colorBlindTextMeetingInitialLocalScale * 1.2f;
                     }
-
-                    if (meetingInfo == null && playerVoteArea != null)
+                    if (meetingInfo == null)
                     {
                         meetingInfo = Object.Instantiate(playerVoteArea.NameText, playerVoteArea.NameText.transform.parent);
                         meetingInfo.transform.localPosition += Vector3.down * 0.2f;
                         meetingInfo.fontSize *= 0.8f;
                         meetingInfo.gameObject.name = "Info";
+                    }
+                    else
+                    {
                         meetingInfo.text = "";
                     }
                 }
 
+                if (data.Object == null || data.Disconnected) continue;
+
                 PlayerControl player = data.Object;
-                if (player == null) continue;
 
                 (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(player.Data);
                 string roleText = RoleInfo.GetRolesString(player, true, false);
                 string deadRoleText = RoleInfo.GetRolesString(player, true, MapOptions.GhostsSeeModifier);
                 string taskInfo = tasksTotal > 0 ? $"<color=#FAD934FF>({tasksCompleted}/{tasksTotal})</color>" : "";
 
-                Transform playerInfoTransform = player?.cosmetics.nameText.transform.parent.FindChild("Info");
-                TMPro.TextMeshPro playerInfo = playerInfoTransform?.GetComponent<TMPro.TextMeshPro>();
+                var playerInfoTransform = player != null ? player.cosmetics.nameText.transform.parent.FindChild("Info") : null;
+                var playerInfo = playerInfoTransform != null ? playerInfoTransform.GetComponent<TMPro.TextMeshPro>() : null;
 
                 // Colorblind Text During the round
                 if (player.cosmetics.colorBlindText != null && player.cosmetics.showColorBlindText && player.cosmetics.colorBlindText.gameObject.active)
                 {
                     player.cosmetics.colorBlindText.transform.localPosition = new Vector3(0, -1.2f, 0f);
                 }
-                player.cosmetics.nameText.transform.parent.SetLocalZ(-0.0001f);  // This moves both the name AND the colorblindtext behind objects (if the player is behind the object), like the rock on polus
+
+                player?.cosmetics.nameText.transform.parent.SetLocalZ(-0.0001f);  // This moves both the name AND the colorblindtext behind objects (if the player is behind the object), like the rock on polus
 
                 if (playerInfo == null)
                 {
@@ -82,11 +82,6 @@ namespace StellarRoles.Patches
                 bool qualifiedVengefulRomantic = localPlayer == VengefulRomantic.Player && player == VengefulRomantic.Lover && !VengefulRomantic.Player.Data.IsDead;
                 bool qualifiedExecutioner = localPlayer == Executioner.Player && player == Executioner.Target && Ascended.IsAscended(localPlayer);
                 bool qualifiedCultist = localPlayer == Cultist.Player && player == Follower.Player && Cultist.FollowerSpecialRoleAssigned;
-                bool sendInRefugee = localPlayer.IsRefugee(out Refugee refugee) && player == refugee.DeadLover;
-                bool sendInArsonist = Arsonist.Player != player == Beloved.Player;
-                bool sendInScavenger = Scavenger.Player != null && player == Beloved.Player;
-                bool sendInExecutioner = Executioner.Player != null && player == Beloved.Player;
-                bool sendInRuthlessRomantic = localPlayer.IsRuthlessRomantic(out RuthlessRomantic ruthlessRomantic) && player == ruthlessRomantic.DeadLover;
 
                 string meetingInfoText = "";
                 string playerInfoText = "";
@@ -111,7 +106,7 @@ namespace StellarRoles.Patches
                     else if (qualifiedRomantic || qualifiedVengefulRomantic)
                     {
                         if (Romantic.RomanticKnowsRole)
-                            playerInfoText = meetingInfoText = $"{roleText}";
+                            playerInfoText = meetingInfoText = roleText;
                         else if (Helpers.IsNeutral(player))
                             playerInfoText = meetingInfoText = "<color=#333333>Neutral</color>";
                         else if (player.Data.Role.IsImpostor)
@@ -121,7 +116,7 @@ namespace StellarRoles.Patches
                     }
                     else if (qualifiedExecutioner || qualifiedCultist)
                     {
-                        playerInfoText = meetingInfoText = $"{roleText}";
+                        playerInfoText = meetingInfoText = roleText;
 
                     }
                     else if (localPlayer.Data.IsDead)

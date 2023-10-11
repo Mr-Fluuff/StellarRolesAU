@@ -22,11 +22,11 @@ namespace StellarRoles
                    {
                        if (NeutralKiller.CurrentTarget == BountyHunter.Bounty)
                        {
-                           RogueKillButton.Timer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown - BountyHunter.BonusTime;
+                           RogueKillButton.Timer = Helpers.KillCooldown() - BountyHunter.BonusTime;
                            BountyHunter.BountyUpdateTimer = 0f; // Force bounty update
                        }
                        else
-                           RogueKillButton.Timer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown + BountyHunter.PunishmentTime;
+                           RogueKillButton.Timer = Helpers.KillCooldown() + BountyHunter.PunishmentTime;
                    }
                    if (PlayerControl.LocalPlayer == Undertaker.Player)
                    {
@@ -74,12 +74,9 @@ namespace StellarRoles
                    {
                        RogueKillButton.ActionButton.buttonLabelText.SetOutlineColor(NeutralKiller.Color);
                    }
-                   bool vampire = Vampire.Player == PlayerControl.LocalPlayer;
-                   bool killers = NeutralKiller.Players.Contains(localPlayer);
-                   bool vampirehasbutton = vampire && killers && Vampire.HasKillButton;
-                   bool hasbutton = vampirehasbutton || (killers && !vampire);
 
-                   return hasbutton && !PlayerControl.LocalPlayer.Data.IsDead;
+                   if (localPlayer == Vampire.Player && !Vampire.HasKillButton) return false;
+                   return NeutralKiller.Players.Contains(localPlayer) && !PlayerControl.LocalPlayer.Data.IsDead;
                },
                () => { return NeutralKiller.CurrentTarget != null && PlayerControl.LocalPlayer.CanMove && !PlayerControl.LocalPlayer.IsBombedAndActive(); },
                () => { RogueKillButton.Timer = RogueKillButton.MaxTimer; },
@@ -98,7 +95,7 @@ namespace StellarRoles
             {
                 RogueImpostorKillButton();
             }
-            RogueKillButton.MaxTimer = GameOptionsManager.Instance.currentNormalGameOptions.KillCooldown;
+            RogueKillButton.MaxTimer = Helpers.KillCooldown();
         }
 
         public static void Postfix(HudManager __instance)

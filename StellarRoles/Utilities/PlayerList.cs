@@ -1,9 +1,23 @@
-﻿using StellarRoles.Utilities;
+﻿using HarmonyLib;
+using StellarRoles.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 
 namespace StellarRoles
 {
+    public class TargetMethodClass
+    {
+        [HarmonyPatch]
+        [HarmonyTargetMethod]
+        public static MethodBase TargetMethod()
+        {
+            var type = typeof(PlayerControl).GetNestedTypes(AccessTools.all).FirstOrDefault(t => t.Name.Contains("Start"));
+            return AccessTools.Method(type, nameof(IEnumerator.MoveNext));
+        }
+    }
     public class PlayerList : List<byte>
     {
         public IEnumerable<PlayerControl> GetPlayerEnumerator()

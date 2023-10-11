@@ -2018,6 +2018,9 @@ namespace StellarRoles
                 case CustomRPC.PsychicAddCount:
                     Psychic.AbilitesUsed++;
                     break;
+                case CustomRPC.SnapToRpc:
+                    reader.ReadPlayer().NetTransform.SnapTo(reader.ReadPlayer().transform.position);
+                    break;
 
             }
         }
