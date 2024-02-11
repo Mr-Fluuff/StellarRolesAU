@@ -61,6 +61,9 @@ namespace StellarRoles
                 new StaticHttpRegionInfo("Modded NA (MNA)", StringNames.NoTranslation,"www.aumods.us",new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://www.aumods.us",  443, false) })).CastFast<IRegionInfo>(),
                 new StaticHttpRegionInfo("Modded EU (MEU)", StringNames.NoTranslation,"au-eu.duikbo.at",new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au-eu.duikbo.at",  443, false) })).CastFast<IRegionInfo>(),
                 new StaticHttpRegionInfo("Modded Asia (MAS)", StringNames.NoTranslation,"au-as.duikbo.at",new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au-as.duikbo.at",  443, false) })).CastFast<IRegionInfo>(),
+                new StaticHttpRegionInfo("<color=#00FFFF>小猫服<color=#FFFF00>[青色北京]", StringNames.NoTranslation,"au.3q.fan",new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au.3q.fan",  22020, false) })).CastFast<IRegionInfo>(),
+                new StaticHttpRegionInfo("<color=#FF1493>小猫服<color=#FFFF00>[粉色北京]", StringNames.NoTranslation,"au.3q.fan",new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au.3q.fan",  22020, false) })).CastFast<IRegionInfo>(),
+                new StaticHttpRegionInfo("<color=#800080>小猫服<color=#FFFF00>[紫色北京]", StringNames.NoTranslation,"au.3q.fan",new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au.3q.fan",  22020, false) })).CastFast<IRegionInfo>(),//注意 猫服可能出现安装bug，毕竟第一次做这！
                 new StaticHttpRegionInfo("Custom", StringNames.NoTranslation, Ip.Value,new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Custom", Ip.Value,  Port.Value, false) })).CastFast<IRegionInfo>()
             };
 
