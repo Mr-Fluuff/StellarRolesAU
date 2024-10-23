@@ -1,18 +1,29 @@
-﻿using AmongUs.GameOptions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using UnityEngine;
 
 namespace StellarRoles
 {
-    [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
     public static class MedicAbilities
     {
-        public static void Postfix(HudManager __instance)
+        [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
+        public static class MedicHudManagerPatch
         {
-            if (!Helpers.GameStarted || PlayerControl.LocalPlayer != Medic.Player) return;
-            medicBattery();
-            medicUpdate();
-            medicSetCurrentTarget();
+            public static void Postfix(HudManager __instance)
+            {
+                if (!Helpers.GameStarted || PlayerControl.LocalPlayer != Medic.Player) return;
+                medicBattery();
+                medicUpdate();
+                medicSetCurrentTarget();
+            }
+        }
+
+        [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.Start))]
+        public static class ResetMedicAbilitiesMeeting
+        {
+            public static void Postfix()
+            {
+                ResetMedic();
+            }
         }
 
         private static void medicSetCurrentTarget()
@@ -45,13 +56,18 @@ namespace StellarRoles
             if (Medic.IsActive && Medic.VitalsMinigame != null && (Medic.Battery <= 0f || Medic.VitalsMinigame.amClosing == Minigame.CloseState.Closing))
             {
                 Helpers.SetMovement(true);
-                Medic.IsActive = false;
+                ResetMedic();
+            }
+        }
 
-                if (Medic.Battery <= 0f)
+        public static void ResetMedic()
+        {
+            if (Medic.VitalsMinigame)
+            {
                 Medic.VitalsMinigame.ForceClose();
-
                 Medic.VitalsMinigame = null;
             }
+            Medic.IsActive = false;
         }
 
         private static void medicBattery()
@@ -62,7 +78,7 @@ namespace StellarRoles
             if (Medic.AllTasksCompleted && !Medic.IsActive)
             {
                 Medic.SelfChargingTimer -= Time.deltaTime;
-                if (Medic.SelfChargingTimer == 0f)
+                if (Medic.SelfChargingTimer <= 0f)
                 {
                     Medic.SelfChargingTimer = Medic.SelfChargingBatteryCooldown;
                     if (Ascended.IsAscended(Medic.Player))

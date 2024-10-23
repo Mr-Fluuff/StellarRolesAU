@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using StellarRoles.Objects;
+using UnityEngine;
 
 namespace StellarRoles
 {
@@ -34,7 +35,7 @@ namespace StellarRoles
                 return;
             }
 
-            Helpers.TrackTarget(Follower.Player, arrow, Palette.ImpostorRed);
+            Helpers.TrackTarget(Follower.Player, arrow, Color.gray);
         }
 
         static void FollowerUpdate()
@@ -48,7 +49,7 @@ namespace StellarRoles
                 return;
             }
 
-            Helpers.TrackTarget(Cultist.Player, arrow, Palette.ImpostorRed);
+            Helpers.TrackTarget(Cultist.Player, arrow, Color.gray);
         }
     }
 }

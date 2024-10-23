@@ -1,5 +1,4 @@
-﻿using AmongUs.GameOptions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using StellarRoles.Utilities;
 using System.Collections.Generic;
 
@@ -10,7 +9,7 @@ namespace StellarRoles
     {
         public static void Postfix()
         {
-            if (PlayerControl.LocalPlayer != Arsonist.Player) return;
+            if (!Helpers.GameStarted || PlayerControl.LocalPlayer != Arsonist.Player) return;
             ArsonistSetTarget();
         }
 

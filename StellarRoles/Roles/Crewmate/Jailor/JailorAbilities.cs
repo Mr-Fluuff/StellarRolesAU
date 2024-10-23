@@ -1,5 +1,4 @@
-﻿using AmongUs.GameOptions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using System;
 
 namespace StellarRoles
@@ -20,10 +19,9 @@ namespace StellarRoles
                     jailor.CurrentRechargeTasks += Jailor.TasksToRecharge;
                     jailor.Charges++;
                 }
-                if (tasks.Item1 == tasks.Item2 && tasks.Item2 > 0 && Ascended.IsAscended(jailor.Player) && !jailor.GivenExtraCharges)
+                if (tasks.Item1 == tasks.Item2 && tasks.Item2 > 0 && Ascended.IsAscended(jailor.Player))
                 {
-                    jailor.Charges += 2;
-                    jailor.GivenExtraCharges = true;
+                    jailor.Charges++;
                 }
             }
             catch (Exception ex)

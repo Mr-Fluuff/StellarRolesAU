@@ -7,7 +7,7 @@ namespace StellarRoles
         public static readonly PlayerList Players = new();
         public static readonly PlayerList ToBecomeSpectator = new();
         public static readonly Color Color = Color.gray;
-        public static PlayerControl Target { get; set; }
+        public static PlayerControl Target { get; set; } = null;
 
         private static Sprite _SpectatorOverlaySprite;
 

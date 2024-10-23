@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using StellarRoles.Utilities;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -9,9 +8,8 @@ namespace StellarRoles.Patches
     [Harmony]
     public class AdminPatch
     {
-        private static readonly HashSet<SystemTypes> Players = new();
+        //private static readonly HashSet<SystemTypes> Players = new();
         private static float AdminTimer = 0f;
-        private static TextMeshPro OutOfTime;
         private static TextMeshPro TimeRemaining;
         private static GameObject BatteryIcon;
         //static bool clearedIcons = false;
@@ -23,12 +21,6 @@ namespace StellarRoles.Patches
             {
                 Object.Destroy(TimeRemaining);
                 TimeRemaining = null;
-            }
-
-            if (OutOfTime != null)
-            {
-                Object.Destroy(OutOfTime);
-                OutOfTime = null;
             }
 
             if (BatteryIcon != null)
@@ -100,7 +92,7 @@ namespace StellarRoles.Patches
                 }
                 __instance.timer = 0f;
 
-                Players.Clear();
+                //Players.Clear();
 
                 if (PlayerControl.LocalPlayer == Administrator.Player && Administrator.IsActive)
                 {
@@ -138,7 +130,6 @@ namespace StellarRoles.Patches
                     __instance.isSab = true;
                     __instance.BackgroundColor.SetColor(Palette.DisabledGrey);
                     __instance.SabotageText.gameObject.SetActive(true);
-                    OutOfTime.gameObject.SetActive(false);
                     return false;
                 }
 
@@ -147,14 +138,13 @@ namespace StellarRoles.Patches
                     __instance.isSab = false;
                     __instance.BackgroundColor.SetColor(Color.green);
                     __instance.SabotageText.gameObject.SetActive(false);
-                    OutOfTime.gameObject.SetActive(false);
                 }
 
                 HashSet<int> hashSet = new();
                 for (int i = 0; i < __instance.CountAreas.Length; i++)
                 {
                     CounterArea counterArea = __instance.CountAreas[i];
-                    Players.Add(counterArea.RoomType);
+                    //Players.Add(counterArea.RoomType);
 
                     if (!commsActive && !lockedOut)
                     {
@@ -175,9 +165,12 @@ namespace StellarRoles.Patches
                                 }
                                 else if (!collider2D.isTrigger)
                                 {
-                                    PlayerControl component = collider2D.GetComponent<PlayerControl>();
-                                    if (component?.Data != null && !component.Data.Disconnected && !component.Data.IsDead && (__instance.showLivePlayerPosition || !component.AmOwner) && hashSet.Add(component.PlayerId))
+                                    PlayerControl component2 = collider2D.GetComponent<PlayerControl>();
+                                    if (component2?.Data != null && !component2.Data.Disconnected && !component2.Data.IsDead &&
+                                        (__instance.showLivePlayerPosition || !component2.AmOwner) && hashSet.Add((int)component2.PlayerId))
+                                    {
                                         num2++;
+                                    }
                                 }
                             }
                             counterArea.UpdateCount(num2);
@@ -188,12 +181,14 @@ namespace StellarRoles.Patches
                         }
                     }
                     else
+                    {
                         counterArea.UpdateCount(0);
+                    }
                 }
                 return false;
             }
         }
-        [HarmonyPatch(typeof(CounterArea), nameof(CounterArea.UpdateCount))]
+        /*[HarmonyPatch(typeof(CounterArea), nameof(CounterArea.UpdateCount))]
         class CounterAreaUpdateCountPatch
         {
             private static Material DefaultMat;
@@ -216,6 +211,6 @@ namespace StellarRoles.Patches
                     }
                 }
             }
-        }
+        }*/
     }
 }

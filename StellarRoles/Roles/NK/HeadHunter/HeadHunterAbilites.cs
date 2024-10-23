@@ -1,5 +1,4 @@
-﻿using AmongUs.GameOptions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using StellarRoles.Objects;
 using StellarRoles.Utilities;
 using UnityEngine;

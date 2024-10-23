@@ -1,5 +1,4 @@
 using HarmonyLib;
-using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
 using TMPro;
@@ -18,6 +17,7 @@ namespace StellarRoles.Patches
             new SelectionBehaviour("Show Role Summary", () => MapOptions.ShowRoleSummary = StellarRolesPlugin.ShowRoleSummary.Value = !StellarRolesPlugin.ShowRoleSummary.Value, StellarRolesPlugin.ShowRoleSummary.Value),
             new SelectionBehaviour("Enable Sound Effects", () => MapOptions.EnableSoundEffects = StellarRolesPlugin.EnableSoundEffects.Value = !StellarRolesPlugin.EnableSoundEffects.Value, StellarRolesPlugin.EnableSoundEffects.Value),
             new SelectionBehaviour("Hide Pet From Others", () => MapOptions.HidePetFromOthers = StellarRolesPlugin.HidePetFromOthers.Value = !StellarRolesPlugin.HidePetFromOthers.Value, StellarRolesPlugin.HidePetFromOthers.Value),
+            //new SelectionBehaviour("Debug Mode", () => StellarRolesPlugin.DebugMode.Value = !StellarRolesPlugin.DebugMode.Value, StellarRolesPlugin.DebugMode.Value),
         };
 
         private static GameObject popUp;
@@ -31,7 +31,7 @@ namespace StellarRoles.Patches
         public static void MainMenuManager_StartPostfix(MainMenuManager __instance)
         {
             // Prefab for the title
-            GameObject go = new("TitleTextTOR");
+            GameObject go = new("TitleTextSR");
             TextMeshPro tmp = go.AddComponent<TextMeshPro>();
             tmp.fontSize = 4;
             tmp.alignment = TextAlignmentOptions.Center;
@@ -70,7 +70,7 @@ namespace StellarRoles.Patches
             Object.DontDestroyOnLoad(popUp);
             Transform transform = popUp.transform;
             Vector3 pos = transform.localPosition;
-            pos.z = -810f;
+            pos.z = -920f;
             transform.localPosition = pos;
 
             Object.Destroy(popUp.GetComponent<OptionsMenuBehaviour>());
@@ -108,10 +108,10 @@ namespace StellarRoles.Patches
             {
                 if (!popUp) return;
 
-                if (__instance.transform.parent && __instance.transform.parent == FastDestroyableSingleton<HudManager>.Instance.transform)
+                if (__instance.transform.parent && __instance.transform.parent == HudManager.Instance.transform)
                 {
-                    popUp.transform.SetParent(FastDestroyableSingleton<HudManager>.Instance.transform);
-                    popUp.transform.localPosition = new Vector3(0, 0, -800f);
+                    popUp.transform.SetParent(HudManager.Instance.transform);
+                    popUp.transform.localPosition = new Vector3(0, 0, -920f);
                 }
                 else
                 {

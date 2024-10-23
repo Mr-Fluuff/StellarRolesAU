@@ -4,7 +4,7 @@ namespace StellarRoles
 {
     public static class Medic
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static Minigame VitalsMinigame { get; set; } = null;
         public static PlayerControl Target { get; set; } = null;
         public static PlayerControl CurrentTarget { get; set; } = null;
@@ -21,7 +21,7 @@ namespace StellarRoles
         public static bool DisableRoundOneAccess => CustomOptionHolder.MedicDisableRoundOneAccess.GetBool();
         public static bool NonCrewFlash => CustomOptionHolder.MedicNonCrewFlash.GetBool();
         public static float NonCrewFlashDelay => NonCrewFlash ? (CustomOptionHolder.MedicNonCrewFlash.GetSelection() - 1) * 2.5f : 0;
-        public static bool RoleBlock => CustomOptionHolder.MedicRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.MedicRoleBlock.GetBool();
 
         public static bool IsActive { get; set; }
         public static int RechargedTasks { get; set; } = 1;
@@ -44,7 +44,7 @@ namespace StellarRoles
 
             float flashDelay = NonCrewFlashDelay;
             if (NonCrewFlash)
-                description += $"The player who kills your monitor target will be notificed {(flashDelay == 0 ? "immediately" : $"after {Helpers.ColorString(Color.yellow, flashDelay.ToString())} seconds")}";
+                description += $"The player who kills your monitor target will be notified {(flashDelay == 0 ? "immediately" : $"after {Helpers.ColorString(Color.yellow, flashDelay.ToString())} seconds")}";
 
             RoleInfo.Medic.SettingsDescription = Helpers.WrapText(description);
         }
@@ -73,6 +73,10 @@ namespace StellarRoles
             Player = null;
             Target = null;
             CurrentTarget = null;
+            if (VitalsMinigame)
+            {
+                VitalsMinigame.ForceClose();
+            }
             VitalsMinigame = null;
             Battery = CustomOptionHolder.MedicInitialBatteryTime.GetFloat();
             UsedHeartMonitor = false;

@@ -4,8 +4,8 @@ namespace StellarRoles
 {
     public static class Guardian
     {
-        public static PlayerControl Player { get; set; }
-        public static PlayerControl Shielded { get; set; }
+        public static PlayerControl Player { get; set; } = null;
+        public static PlayerControl Shielded { get; set; } = null;
 
         public static readonly Color Color = new Color32(119, 221, 119, byte.MaxValue);
         public static bool UsedShield { get; set; }
@@ -15,10 +15,12 @@ namespace StellarRoles
         public static float ShieldVisibilityTimer { get; set; } = 0f;
         public static float ShieldVisionRadius => CustomOptionHolder.GuardianVisionRangeOfShield.GetFloat() * 4.25f;
         public static bool LimitedVisionShield => CustomOptionHolder.GuardianShieldVisibilityDelay.GetBool();
-        public static bool RoleBlock => CustomOptionHolder.CrewRoleBlock.GetBool() && CustomOptionHolder.GuardianRoleBlock.GetBool();
+        public static int SelfShieldCharges = 0;
+
+        public static bool RoleBlock => CustomOptionHolder.GuardianRoleBlock.GetBool();
         public static readonly Color ShieldedColor = new Color32(188, 245, 28, byte.MaxValue);
 
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl CurrentTarget { get; set; } = null;
 
         private static Sprite _ButtonSprite;
 
@@ -36,6 +38,9 @@ namespace StellarRoles
 
             if (RoleBlock)
                 description += "The comms sabotage will temporarily disable the shield.\n\n";
+
+            if (CustomOptionHolder.GuardianSelfShield.GetBool())
+                description += $"The {nameof(Guardian)} may use their shield on themselves once per game";
 
             RoleInfo.Guardian.SettingsDescription = Helpers.WrapText($"{description}{CustomOptionHolder.GuardianShieldIsVisibleTo.GetSelection() switch
             {
@@ -73,6 +78,7 @@ namespace StellarRoles
             CurrentTarget = null;
             UsedShield = false;
             ShieldVisibilityTimer = ShieldVisibilityDelay;
+            SelfShieldCharges = CustomOptionHolder.GuardianSelfShield.GetBool() ? 1 : 0;
         }
     }
 }

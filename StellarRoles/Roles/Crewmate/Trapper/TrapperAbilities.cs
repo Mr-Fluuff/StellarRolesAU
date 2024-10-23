@@ -25,9 +25,9 @@ namespace StellarRoles
             Vent target = null;
             Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
             float closestDistance = float.MaxValue;
-            for (int i = 0; i < MapUtilities.CachedShipStatus.AllVents.Length; i++)
+            for (int i = 0; i < ShipStatus.Instance.AllVents.Length; i++)
             {
-                Vent vent = MapUtilities.CachedShipStatus.AllVents[i];
+                Vent vent = ShipStatus.Instance.AllVents[i];
                 if (vent.gameObject.name.StartsWith("SealedVent_") || VentTrap.VentTrapMap.ContainsKey(vent.Id) || vent.gameObject.name.StartsWith("FutureSealedVent_") || (vent.gameObject.name.StartsWith("MinerVent_") && !vent.gameObject.active)) continue;
                 if (SubmergedCompatibility.IsSubmerged && vent.Id == 9) continue; // cannot seal submergeds exit only vent!
                 float distance = Vector2.Distance(vent.transform.position, truePosition);

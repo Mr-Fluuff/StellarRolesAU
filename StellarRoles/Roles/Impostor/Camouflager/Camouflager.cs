@@ -5,8 +5,8 @@ namespace StellarRoles
 {
     public static class Camouflager
     {
-        public static PlayerControl Player { get; set; }
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl Player { get; set; } = null;
+        public static PlayerControl CurrentTarget { get; set; } = null;
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
 
         public static int ChargesRemaining { get; set; } = 0;

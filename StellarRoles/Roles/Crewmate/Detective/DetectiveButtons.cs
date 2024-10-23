@@ -85,7 +85,7 @@ namespace StellarRoles
                         Detective.InspectsPerRound--;
                     }
 
-                    FastDestroyableSingleton<HudManager>.Instance.Chat.AddChat(PlayerControl.LocalPlayer, Detective.DetectiveQuestion());
+                    HudManager.Instance.Chat.AddChat(PlayerControl.LocalPlayer, Detective.DetectiveQuestion());
 
                     // Remove soul
                     if (Detective.IsCrimeSceneEnabled && Detective.CrimeSceneToInspect.ContainsKey(targetPlayer.PlayerId) && Detective.CrimeSceneToInspect[targetPlayer.PlayerId] == 0f)
@@ -93,7 +93,7 @@ namespace StellarRoles
                         float closestDistance = float.MaxValue;
                         SpriteRenderer target = null;
 
-                        Detective.DeadBodies.RemoveAll((tuple) => tuple.Item1 == Detective.Target);
+                        Detective.OldDeadBodies.RemoveAll((tuple) => tuple.Item1 == Detective.Target);
 
                         foreach (SpriteRenderer rend in Detective.CrimeScenes)
                         {
@@ -105,7 +105,7 @@ namespace StellarRoles
                             }
                         }
 
-                        FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(5f, new Action<float>((p) =>
+                        HudManager.Instance.StartCoroutine(Effects.Lerp(5f, new Action<float>((p) =>
                         {
                             if (target != null)
                             {

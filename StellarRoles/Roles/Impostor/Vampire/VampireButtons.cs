@@ -1,7 +1,10 @@
-﻿using HarmonyLib;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using HarmonyLib;
 using StellarRoles.Objects;
 using StellarRoles.Utilities;
 using System;
+using System.Collections;
+using UnityEngine;
 
 namespace StellarRoles
 {
@@ -16,26 +19,16 @@ namespace StellarRoles
             VampireBiteButton = new CustomButton(
                 () =>
                 {
-                    MurderAttemptResult murder = Helpers.CheckMuderAttempt(Vampire.Player, Vampire.AbilityCurrentTarget);
+                    MurderAttemptResult murder = Helpers.CheckMurderAttempt(Vampire.Player, Vampire.AbilityCurrentTarget);
                     if (murder == MurderAttemptResult.PerformKill)
                     {
                         Vampire.Bitten = Vampire.AbilityCurrentTarget;
-                        RPCProcedure.Send(CustomRPC.VampireSetBitten, Vampire.Bitten.PlayerId);
+                        RPCProcedure.Send(CustomRPC.VampireSetBitten, Vampire.Bitten);
                         RPCProcedure.VampireSetBitten(Vampire.Bitten.PlayerId);
-                        Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddAbilityKill, InfoType.AddKill);
+                        PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddAbilityKill, InfoType.AddKill);
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
-                        FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Vampire.CalculateBiteDelay(), new Action<float>((p) =>
-                        { // Delayed action
-                            if (p == 1f)
-                            {
-                                // Perform kill if possible and reset bitten (regardless whether the kill was successful or not)
-                                Helpers.CheckMurderAttemptAndKill(Vampire.Player, Vampire.Bitten, showAnimation: false, true);
-                                RPCProcedure.Send(CustomRPC.VampireResetBitten);
-                                Vampire.Bitten = null;
-                                RPCProcedure.Send(CustomRPC.PsychicAddCount);
-                            }
-                        })));
+                        HudManager.Instance.StartCoroutine(DelayVampire());
                         SoundEffectsManager.Play(Sounds.Bite);
 
                         VampireBiteButton.EffectDuration = Vampire.CalculateBiteDelay();
@@ -48,7 +41,10 @@ namespace StellarRoles
                         VampireBiteButton.HasEffect = false;
                     }
                 },
-                () => Vampire.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !PlayerControl.LocalPlayer.IsBombedAndActive(),
+                () =>
+                {
+                    return Vampire.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !PlayerControl.LocalPlayer.IsBombedAndActive();
+                },
                 () =>
                 {
                     VampireBiteButton.ActionButton.graphic.sprite = Vampire.GetButtonSprite();
@@ -92,6 +88,26 @@ namespace StellarRoles
         {
             Initialized = false;
             VampireButton();
+        }
+
+        private static readonly WaitForSeconds delay = new WaitForSeconds(0.25f);
+
+        public static IEnumerator DelayVampire()
+        {
+            yield return new WaitForSeconds(Vampire.CalculateBiteDelay());
+            while (Vampire.Bitten.inMovingPlat || Vampire.Bitten.onLadder)
+            {
+                yield return delay;
+            }
+            RPCKillBitten();
+        }
+
+        public static void RPCKillBitten()
+        {
+            Helpers.CheckMurderAttemptAndKill(Vampire.Player, Vampire.Bitten, showAnimation: false, true);
+            RPCProcedure.Send(CustomRPC.VampireResetBitten);
+            Vampire.Bitten = null;
+            RPCProcedure.Send(CustomRPC.PsychicAddCount);
         }
     }
 }

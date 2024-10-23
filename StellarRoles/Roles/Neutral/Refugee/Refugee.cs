@@ -11,7 +11,7 @@ namespace StellarRoles
         public static readonly Dictionary<byte, Refugee> PlayerToRefugee = new();
         public static float VestDuration => CustomOptionHolder.VestDuration.GetFloat();
         public static float VestCooldown => CustomOptionHolder.VestCooldown.GetFloat();
-        public static bool CanBeGuessed => CustomOptionHolder.CanBeGuessed.GetBool();
+        public static bool CanBeGuessed = true;
 
         public readonly PlayerControl Player;
         public bool NotAckedExiled = false;

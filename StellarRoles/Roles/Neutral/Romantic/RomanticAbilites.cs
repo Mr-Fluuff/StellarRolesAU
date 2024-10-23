@@ -63,9 +63,7 @@ namespace StellarRoles
 
             if (PlayerControl.LocalPlayer != Romantic.Player) return false;
 
-            PlayerStatistics statistics = new();
-
-            if (statistics.TotalAlive <= 7 && !Romantic.HasLover && !Romantic.TurnOffRomanticToRefugee)
+            if (MapOptions.PlayersAlive <= 7 && !Romantic.HasLover && !Romantic.TurnOffRomanticToRefugee)
             {
                 RPCProcedure.Send(CustomRPC.RomanticTurnToRefugee);
                 RPCProcedure.RomanticToRefugee();

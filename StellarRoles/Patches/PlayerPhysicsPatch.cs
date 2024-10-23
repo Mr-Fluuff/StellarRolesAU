@@ -86,25 +86,25 @@ namespace StellarRoles.Patches
 
         static void giantSpeed(CustomNetworkTransform __instance)
         {
-            if (Giant.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.interpolateMovement != 0.0f && !Giant.Player.IsMorphed())
+            if (Giant.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.HasMoved() && !Giant.Player.IsMorphed())
                 __instance.body.velocity *= Giant.SpeedMultiplier;
         }
 
         static void miniSpeed(CustomNetworkTransform __instance)
         {
-            if (Mini.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.interpolateMovement != 0.0f && !Mini.Player.IsMorphed())
+            if (Mini.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.HasMoved() && !Mini.Player.IsMorphed())
                 __instance.body.velocity *= Mini.SpeedMultiplier;
         }
 
         static void wraithSpeed(CustomNetworkTransform __instance)
         {
-            if (Wraith.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.interpolateMovement != 0.0f)
+            if (Wraith.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.HasMoved())
                 __instance.body.velocity *= Wraith.PhaseOn ? Wraith.SpeedMultiplier : 1;
         }
 
         static void morphlingSpeed(CustomNetworkTransform __instance)
         {
-            if (Morphling.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.interpolateMovement != 0.0f)
+            if (Morphling.Player == __instance.gameObject.GetComponent<PlayerControl>() && !__instance.AmOwner && __instance.HasMoved())
             {
                 if (Morphling.MorphTimer > 0)
                 {
@@ -133,12 +133,12 @@ namespace StellarRoles.Patches
             if (
                 (__instance.myPlayer == Mini.Player || MorphedAs(Mini.Player)) && !Mini.Player.IsMorphed()
             )
-                __instance.myPlayer.Collider.offset = Mini.DefaultColliderOffset * Vector2.down;
+                __instance.myPlayer.Collider.offset = PlayerSizeUpdatePatch.DefaultColliderOffset * Vector2.down;
 
             if (
                 (__instance.myPlayer == Giant.Player || MorphedAs(Giant.Player)) && !Giant.Player.IsMorphed()
             )
-                __instance.myPlayer.Collider.offset = Giant.DefaultColliderOffset * Vector2.down;
+                __instance.myPlayer.Collider.offset = PlayerSizeUpdatePatch.DefaultColliderOffset * Vector2.down;
         }
     }
 }

@@ -138,13 +138,15 @@ namespace StellarRoles.Modules
         private static HatData CreateHatBehaviour(CustomHat ch, bool fromDisk = false, bool testOnly = false)
         {
             // TODO: remove this variable
-            HatShader ??= HatManager.Instance.PlayerMaterial;
+            if (HatShader == null)
+            {
+                Material hatShader = HatManager.Instance.PlayerMaterial;
+                HatShader = hatShader;
+            }
 
             HatViewData viewData = ScriptableObject.CreateInstance<HatViewData>();
-            HatData hat = ScriptableObject.CreateInstance<HatData>();
             viewData.MainImage = CreateHatSprite(ch.Resource, fromDisk);
             viewData.FloorImage = viewData.MainImage;
-
             if (ch.BackResource != null)
             {
                 viewData.BackImage = CreateHatSprite(ch.BackResource, fromDisk);
@@ -155,6 +157,8 @@ namespace StellarRoles.Modules
                 viewData.ClimbImage = CreateHatSprite(ch.ClimbResource, fromDisk);
                 viewData.LeftClimbImage = viewData.ClimbImage;
             }
+
+            HatData hat = ScriptableObject.CreateInstance<HatData>();
             hat.name = ch.Name;
             hat.displayOrder = 99;
             hat.ProductId = "hat_" + ch.Name.Replace(' ', '_');
@@ -163,8 +167,8 @@ namespace StellarRoles.Modules
             hat.ChipOffset = new Vector2(0f, 0.2f);
             hat.Free = true;
 
-            if (ch.Adaptive && HatShader != null)
-                viewData.AltShader = HatShader;
+            if (ch.Adaptive)
+                viewData.MatchPlayerColor = true;
 
 
             HatExtension extend = new()
@@ -262,6 +266,7 @@ namespace StellarRoles.Modules
                 else
                 {
                     AllHatsList = VanillaHatsList;
+                    Helpers.Log("ResetHats");
                 }
 
                 try
@@ -271,6 +276,7 @@ namespace StellarRoles.Modules
                         AllHatsList.Add(CreateHatBehaviour(CustomHatLoader.HatDetails[0]));
                         CustomHatLoader.HatDetails.RemoveAt(0);
                     }
+                    Helpers.Log("LoadedNewHats");
                     __instance.allHats = AllHatsList.ToArray();
                     Loaded = true;
                 }
@@ -294,29 +300,33 @@ namespace StellarRoles.Modules
             public static float CurrentTime => Time.deltaTime * 150;
             private static void Postfix(PlayerPhysics __instance)
             {
-                AnimationClip currentAnimation = __instance.Animations.Animator.GetCurrentAnimation();
-                PlayerControl player = __instance.myPlayer;
-                if (currentAnimation == __instance.Animations.group.ClimbUpAnim || currentAnimation == __instance.Animations.group.ClimbDownAnim) return;
-
-                if (player.cosmetics.hat.Hat != null)
+                try
                 {
-                    string hatId = player.cosmetics.hat.Hat.name;
-                    HatViewData viewData = GetHatViewData(hatId);
-                    SetHat(__instance, viewData);
-                }
+                    AnimationClip currentAnimation = __instance.Animations.Animator.GetCurrentAnimation();
+                    PlayerControl player = __instance.myPlayer;
+                    if (currentAnimation == __instance.Animations.group.ClimbUpAnim || currentAnimation == __instance.Animations.group.ClimbDownAnim) return;
 
-                if (player.AmOwner)
-                {
-                    CustomHatRegistry.Values.ToList().ForEach(extend =>
+                    if (player.cosmetics.hat.Hat != null)
                     {
-                        extend.Time += CurrentTime;
-                        if (extend.Time >= Delay)
+                        string hatId = player.cosmetics.hat.Hat.name;
+                        HatViewData viewData = GetHatViewData(hatId);
+                        SetHat(__instance, viewData);
+                    }
+
+                    if (player.AmOwner)
+                    {
+                        CustomHatRegistry.Values.ToList().ForEach(extend =>
                         {
-                            UpdateHatFrames(extend);
-                            extend.Time = 0;
-                        }
-                    });
+                            extend.Time += CurrentTime;
+                            if (extend.Time >= Delay)
+                            {
+                                UpdateHatFrames(extend);
+                                extend.Time = 0;
+                            }
+                        });
+                    }
                 }
+                catch { }
             }
 
             public static void SetHat(PlayerPhysics __instance, HatViewData viewData)
@@ -395,7 +405,7 @@ namespace StellarRoles.Modules
                     try
                     {
                         __instance.Hat = hat;
-                        __instance.hatDataAsset = __instance.Hat.CreateAddressableAsset();
+                        __instance.viewAsset = __instance.Hat.CreateAddressableAsset();
 
                         string filePath = Path.GetDirectoryName(Application.dataPath) + @"\StellarHats\Test";
                         if (!Directory.Exists(filePath)) return true;
@@ -415,7 +425,7 @@ namespace StellarRoles.Modules
                     }
 
 
-                    __instance.PopulateFromHatViewData();
+                    __instance.PopulateFromViewData();
                     __instance.SetMaterialColor(color);
                     return false;
                 }
@@ -428,8 +438,8 @@ namespace StellarRoles.Modules
             public static bool Prefix(HatParent __instance, int color)
             {
                 if (!CustomHatViewDatas.ContainsKey(__instance.Hat.name)) return true;
-                __instance.hatDataAsset = null;
-                __instance.PopulateFromHatViewData();
+                __instance.viewAsset = null;
+                __instance.PopulateFromViewData();
                 __instance.SetMaterialColor(color);
                 return false;
             }
@@ -443,7 +453,7 @@ namespace StellarRoles.Modules
                 HatViewData asset;
                 try
                 {
-                    asset = __instance.hatDataAsset.GetAsset();
+                    HatViewData vanillaAsset = __instance.viewAsset.GetAsset();
                     return true;
                 }
                 catch
@@ -457,11 +467,11 @@ namespace StellarRoles.Modules
                         return false;
                     }
                 }
-                if (asset.AltShader)
+                if (asset.MatchPlayerColor)
                 {
-                    __instance.FrontLayer.sharedMaterial = asset.AltShader;
+                    __instance.FrontLayer.sharedMaterial = HatShader;
                     if (__instance.BackLayer)
-                        __instance.BackLayer.sharedMaterial = asset.AltShader;
+                        __instance.BackLayer.sharedMaterial = HatShader;
                 }
                 else
                 {
@@ -472,7 +482,9 @@ namespace StellarRoles.Modules
                 int colorId = __instance.matProperties.ColorId;
                 PlayerMaterial.SetColors(colorId, __instance.FrontLayer);
                 if (__instance.BackLayer)
+                {
                     PlayerMaterial.SetColors(colorId, __instance.BackLayer);
+                }
                 __instance.FrontLayer.material.SetInt(PlayerMaterial.MaskLayer, __instance.matProperties.MaskLayer);
                 if (__instance.BackLayer)
                     __instance.BackLayer.material.SetInt(PlayerMaterial.MaskLayer, __instance.matProperties.MaskLayer);
@@ -498,6 +510,14 @@ namespace StellarRoles.Modules
                     if (__instance.BackLayer)
                         __instance.BackLayer.maskInteraction = SpriteMaskInteraction.None;
                 }
+                if (__instance.matProperties.MaskLayer <= 0)
+                {
+                    PlayerMaterial.SetMaskLayerBasedOnLocalPlayer(__instance.FrontLayer, __instance.matProperties.IsLocalPlayer);
+                    if (__instance.BackLayer)
+                    {
+                        PlayerMaterial.SetMaskLayerBasedOnLocalPlayer(__instance.BackLayer, __instance.matProperties.IsLocalPlayer);
+                    }
+                }
                 return false;
             }
         }
@@ -509,7 +529,7 @@ namespace StellarRoles.Modules
             {
                 try
                 {
-                    __instance.hatDataAsset.GetAsset();
+                    HatViewData vanillaAsset = __instance.viewAsset.GetAsset();
                     return true;
                 }
                 catch { }
@@ -527,10 +547,9 @@ namespace StellarRoles.Modules
             public static bool Prefix(HatParent __instance, int colorId)
             {
                 if (!__instance.Hat) return false;
-                if (!CustomHatViewDatas.ContainsKey(__instance.Hat.name))
-                    return true;
-                __instance.hatDataAsset = null;
-                __instance.PopulateFromHatViewData();
+                if (!CustomHatViewDatas.ContainsKey(__instance.Hat.name)) return true;
+                __instance.viewAsset = null;
+                __instance.PopulateFromViewData();
                 __instance.SetMaterialColor(colorId);
                 return false;
             }
@@ -541,33 +560,24 @@ namespace StellarRoles.Modules
         {
             public static bool Prefix(HatParent __instance)
             {
-                try
-                {
-                    __instance.hatDataAsset.GetAsset();
-                    return true;
-                }
-                catch { }
-
-                HatViewData hatViewData = CustomHatViewDatas[__instance.Hat.name];
-                if (__instance.options.ShowForClimb)
-                {
-                    __instance.BackLayer.enabled = false;
-                    __instance.FrontLayer.enabled = true;
-                    __instance.FrontLayer.sprite = hatViewData.ClimbImage;
-                }
+                if (!CustomHatViewDatas.TryGetValue(__instance.Hat.name, out HatViewData data)) return true;
+                if (!__instance.options.ShowForClimb) return false;
+                __instance.BackLayer.enabled = false;
+                __instance.FrontLayer.enabled = true;
+                __instance.FrontLayer.sprite = data.ClimbImage;
                 return false;
             }
         }
 
 
-        [HarmonyPatch(typeof(HatParent), nameof(HatParent.PopulateFromHatViewData))]
+        [HarmonyPatch(typeof(HatParent), nameof(HatParent.PopulateFromViewData))]
         public class PopulateFromHatViewDataPatch
         {
             public static bool Prefix(HatParent __instance)
             {
                 try
                 {
-                    __instance.hatDataAsset.GetAsset();
+                    HatViewData vanillaAsset = __instance.viewAsset.GetAsset();
                     return true;
                 }
                 catch
@@ -664,7 +674,7 @@ namespace StellarRoles.Modules
                     if (ActiveInputManager.currentControlType == ActiveInputManager.InputType.Keyboard)
                     {
                         colorChip.Button.OnMouseOver.AddListener((Action)(() => __instance.SelectHat(hat)));
-                        colorChip.Button.OnMouseOut.AddListener((Action)(() => __instance.SelectHat(FastDestroyableSingleton<HatManager>.Instance.GetHatById(DataManager.Player.Customization.Hat))));
+                        colorChip.Button.OnMouseOut.AddListener((Action)(() => __instance.SelectHat(HatManager.Instance.GetHatById(DataManager.Player.Customization.Hat))));
                         colorChip.Button.OnClick.AddListener((Action)(() => __instance.ClickEquip()));
                     }
                     else
@@ -694,8 +704,9 @@ namespace StellarRoles.Modules
                     }
 
                     colorChip.transform.localPosition = new Vector3(xPos, yPos, -1f);
+                    colorChip.Inner.SetMaskType(PlayerMaterial.MaskType.SimpleUI);
                     colorChip.Inner.SetHat(hat, __instance.HasLocalPlayer() ? PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId : DataManager.Player.Customization.Color);
-                    colorChip.Inner.transform.localPosition = hat.ChipOffset;
+                    colorChip.Inner.transform.localPosition = new Vector3(hat.ChipOffset.x, hat.ChipOffset.y, -10);
                     colorChip.Tag = hat;
                     colorChip.SelectionHighlight.gameObject.SetActive(false);
                     __instance.ColorChips.Add(colorChip);
@@ -703,13 +714,13 @@ namespace StellarRoles.Modules
                 return offset - (hats.Count - 1) / __instance.NumPerRow * (isDefaultPackage ? 1f : 1.5f) * __instance.YOffset - 1.75f;
             }
 
-            public static void Postfix(HatsTab __instance)
+            public static bool Prefix(HatsTab __instance)
             {
                 for (int i = 0; i < __instance.scroller.Inner.childCount; i++)
                     UnityEngine.Object.Destroy(__instance.scroller.Inner.GetChild(i).gameObject);
                 __instance.ColorChips = new Il2CppSystem.Collections.Generic.List<ColorChip>();
 
-                HatData[] unlockedHats = FastDestroyableSingleton<HatManager>.Instance.GetUnlockedHats();
+                HatData[] unlockedHats = HatManager.Instance.GetUnlockedHats();
                 Dictionary<string, List<(HatData, HatExtension)>> packages = new();
 
                 foreach (HatData hatBehaviour in unlockedHats)
@@ -739,6 +750,7 @@ namespace StellarRoles.Modules
                     YOffset = CreateHatPackage(packages[key], key, YOffset, __instance);
 
                 __instance.scroller.ContentYBounds.max = -(YOffset + 4.1f);
+                return false;
             }
         }
 
@@ -746,8 +758,10 @@ namespace StellarRoles.Modules
 
     public class CustomHatLoader
     {
-        private static bool IsRunning = false;
+        public static bool IsRunning = false;
         private const string REPO_SH = "https://raw.githubusercontent.com/Mr-Fluuff/StellarHats/main";
+        public static int TotalHatsDownloaded = 0;
+        public static int TotalHatsToDownload = 0;
 
         public static List<CustomHatOnline> HatDetails = new();
         public static void LaunchHatFetcher()
@@ -755,6 +769,8 @@ namespace StellarRoles.Modules
             if (IsRunning)
                 return;
             IsRunning = true;
+            Helpers.Log("LauchHatFetcher");
+            TotalHatsDownloaded = 0;
             _ = LaunchHatFetcherAsync();
         }
 
@@ -882,45 +898,43 @@ namespace StellarRoles.Modules
                         markedForDownload.Add(data.FlipResource);
                     if (data.BackflipResource != null && DoesResourceRequireDownload(filePath + data.BackflipResource, data.ResHashBF, md5))
                         markedForDownload.Add(data.BackflipResource);
-                    if (data.Animation.Count > 0)
-                    {
-                        string newpath = animatedFilePath + data.Name + @"\";
-                        if (!Directory.Exists(newpath)) Directory.CreateDirectory(newpath);
-                        int files = Directory.GetFiles(newpath).Count(x => x.StartsWith($"{newpath}{data.AnimationPrefix}"));
-                        if (files > data.Animation.Count)
-                        {
-                            foreach (var item in Directory.GetFiles(newpath))
-                            {
-                                File.Delete(item);
-                            }
-                        }
-                        if (DoesResourceRequireDownload(filePath + data.Resource, data.ResHashA, md5) || files != data.Animation.Count)
-                            foreach (string frame in data.Animation)
-                                markedForDownload2.Add((data.Name, frame));
-                    }
-
-                    if (data.BackAnimation.Count > 0)
+                    if (data.Animation.Count > 0 || data.BackAnimation.Count > 0)
                     {
                         string newPath = animatedFilePath + data.Name + @"\";
                         if (!Directory.Exists(newPath)) Directory.CreateDirectory(newPath);
-                        int files = Directory.GetFiles(newPath).Count(x => x.StartsWith($"{newPath}{data.BackAnimationPrefix}"));
-                        if (files > data.BackAnimation.Count)
+
+                        if (Directory.GetFiles(newPath).Length > (data.Animation.Count + data.BackAnimation.Count))
                         {
                             foreach (var item in Directory.GetFiles(newPath))
                             {
                                 File.Delete(item);
                             }
                         }
-                        if (DoesResourceRequireDownload(filePath + data.BackResource, data.ResHashB, md5) || files != data.BackAnimation.Count)
-                            foreach (string frame in data.BackAnimation)
-                                markedForDownload2.Add((data.Name, frame));
+                        if (data.Animation.Count > 0)
+                        {
+                            var newFileCount = Directory.GetFiles(newPath).Count(x => x.StartsWith($"{newPath}{data.AnimationPrefix}"));
+                            if (DoesResourceRequireDownload(filePath + data.Resource, data.ResHashA, md5) || newFileCount != data.Animation.Count)
+                                foreach (string frame in data.Animation)
+                                    markedForDownload2.Add((data.Name, frame));
+                        }
+
+                        if (data.BackAnimation.Count > 0)
+                        {
+                            var newFileCount = Directory.GetFiles(newPath).Count(x => x.StartsWith($"{newPath}{data.BackAnimationPrefix}"));
+                            if (DoesResourceRequireDownload(filePath + data.BackResource, data.ResHashB, md5) || newFileCount != data.BackAnimation.Count)
+                                foreach (string frame in data.BackAnimation)
+                                    markedForDownload2.Add((data.Name, frame));
+                        }
                     }
                 }
+
+                TotalHatsToDownload = markedForDownload.Count + markedForDownload2.Count;
 
                 for (int i = 0; i < markedForDownload.Count; i++)
                 {
                     var file = markedForDownload[i];
                     Helpers.Log(file + " Downloaded");
+                    TotalHatsDownloaded++;
                     HttpResponseMessage hatFileResponse = await http.GetAsync($"{REPO_SH}/hats/{file}", HttpCompletionOption.ResponseContentRead);
                     if (hatFileResponse.StatusCode != HttpStatusCode.OK) continue;
                     using Stream responseStream = await hatFileResponse.Content.ReadAsStreamAsync();
@@ -932,6 +946,7 @@ namespace StellarRoles.Modules
                 {
                     var file = markedForDownload2[i];
                     Helpers.Log(file + " Downloaded");
+                    TotalHatsDownloaded++;
                     string name = file.Item1;
                     string frame = file.Item2;
 

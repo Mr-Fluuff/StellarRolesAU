@@ -25,7 +25,7 @@ namespace StellarRoles.Patches
                 BottomLeft = new Vector3((1.75f - safeOrthographicSize * Camera.main.aspect * 1.70f) / 2, (0.15f - safeOrthographicSize * 1.7f) / 2, -61f);
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                 {
-                    GameData.PlayerInfo data = player.Data;
+                    NetworkedPlayerInfo data = player.Data;
                     PoolablePlayer poolablePlayer = UnityEngine.Object.Instantiate(__instance.PlayerPrefab, HudManager.Instance.transform);
                     playerPrefab = __instance.PlayerPrefab;
                     poolablePlayer.SetFlipX(false);
@@ -68,7 +68,7 @@ namespace StellarRoles.Patches
                     PlayerControl target = PlayerControl.AllPlayerControls.GetFastEnumerator().FirstOrDefault(x => x.Data.PlayerName.Equals(MapOptions.FirstKillName));
                     if (target != null)
                     {
-                        RPCProcedure.Send(CustomRPC.SetFirstKill, target.PlayerId);
+                        RPCProcedure.Send(CustomRPC.SetFirstKill, target);
                         MapOptions.FirstKillPlayer = target;
                     }
                 }
@@ -77,7 +77,7 @@ namespace StellarRoles.Patches
                     {
                         if (MapOptions.FirstKillPlayersNames.Contains(player.Data.PlayerName))
                         {
-                            RPCProcedure.Send(CustomRPC.SetFirstKillPlayers, player.PlayerId);
+                            RPCProcedure.Send(CustomRPC.SetFirstKillPlayers, player);
                             MapOptions.FirstKillPlayers.Add(player);
                         }
                     }
@@ -85,25 +85,14 @@ namespace StellarRoles.Patches
                 MapOptions.FirstKillPlayersNames.Clear();
             }
 
-            // Force Bounty Hunter to load a new Bounty when the Intro is over
-            if (BountyHunter.Bounty != null && PlayerControl.LocalPlayer == BountyHunter.Player)
-            {
-                BountyHunter.BountyUpdateTimer = 0f;
-                if (FastDestroyableSingleton<HudManager>.Instance != null)
-                {
-                    BountyHunter.CooldownText = UnityEngine.Object.Instantiate(FastDestroyableSingleton<HudManager>.Instance.KillButton.cooldownTimerText, FastDestroyableSingleton<HudManager>.Instance.transform);
-                    BountyHunter.CooldownText.alignment = TMPro.TextAlignmentOptions.Center;
-                    BountyHunter.CooldownText.transform.localPosition = BottomLeft + new Vector3(0f, -0.35f, -62f);
-                    BountyHunter.CooldownText.transform.localScale = Vector3.one * 0.4f;
-                    BountyHunter.CooldownText.gameObject.SetActive(true);
-                }
-            }
-
             MapOptions.ReloadPluginOptions();
             Helpers.CheckImpsAlive();
             Helpers.CheckPlayersAlive();
             Helpers.MoveTrash();
+            Helpers.AdjustFungalLadder();
             ZoomHudUpdate.HasAlerted = false;
+            ExtraStats.UpdateSurvivability();
+
 
             if (Ascended.IsAscended(PlayerControl.LocalPlayer))
             {
@@ -119,7 +108,7 @@ namespace StellarRoles.Patches
 
             if (MapOptions.HidePetFromOthers)
             {
-                RPCProcedure.Send(CustomRPC.AddPet, PlayerControl.LocalPlayer.PlayerId);
+                RPCProcedure.Send(CustomRPC.AddPet, PlayerControl.LocalPlayer);
                 MapOptions.PlayerPetsToHide.Add(PlayerControl.LocalPlayer);
             }
 
@@ -141,7 +130,6 @@ namespace StellarRoles.Patches
 
             Helpers.SetStartOfRoundCooldowns();
             Helpers.GameStartKillCD();
-
         }
     }
 
@@ -202,10 +190,10 @@ namespace StellarRoles.Patches
         public static IEnumerator<WaitForSeconds> EndShowRole(IntroCutscene __instance)
         {
             yield return new WaitForSeconds(5f);
-            __instance.YouAreText.gameObject.SetActive(false);
-            __instance.RoleText.gameObject.SetActive(false);
-            __instance.RoleBlurbText.gameObject.SetActive(false);
-            __instance.ourCrewmate.gameObject.SetActive(false);
+            __instance.YouAreText?.gameObject.SetActive(false);
+            __instance.RoleText?.gameObject.SetActive(false);
+            __instance.RoleBlurbText?.gameObject.SetActive(false);
+            __instance.ourCrewmate?.gameObject.SetActive(false);
 
         }
 
@@ -245,9 +233,9 @@ namespace StellarRoles.Patches
             {
                 RandomSeed.GenerateSeed();
                 if (HelpMenu.RolesUI != null) UnityEngine.Object.Destroy(HelpMenu.RolesUI);
+                if (PreviousGameHistory.HistoryUI != null) PreviousGameHistory.HistoryUI.SetActive(false);
 
-                if (!CustomOptionHolder.ActivateRoles.GetBool()) return true;
-                FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(1f, new Action<float>((p) =>
+                HudManager.Instance.StartCoroutine(Effects.Lerp(1f, new Action<float>((p) =>
                 {
                     SetRoleTexts(__instance);
                 })));

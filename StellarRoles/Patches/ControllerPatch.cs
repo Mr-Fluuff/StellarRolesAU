@@ -12,6 +12,11 @@ static class ControllerPatch
         __instance.userData.RegisterBind("SecondAbility", "Second Ability", KeyboardKeyCode.G);
         __instance.userData.RegisterBind("Zoom", "Zoom In/Out", KeyboardKeyCode.KeypadPlus);
         __instance.userData.RegisterBind("Help", "Help Button", KeyboardKeyCode.KeypadMinus);
+        __instance.userData.RegisterBind("ParasiteUp", "Parasite Up", KeyboardKeyCode.I);
+        __instance.userData.RegisterBind("ParasiteDown", "Parasite Down", KeyboardKeyCode.K);
+        __instance.userData.RegisterBind("ParasiteLeft", "Parasite Left", KeyboardKeyCode.J);
+        __instance.userData.RegisterBind("ParasiteRight", "Parasite Right", KeyboardKeyCode.L);
+
     }
 
     private static int RegisterBind(this UserData self, string name, string description, KeyboardKeyCode keycode, int elementIdentifierId = -1, int category = 0, InputActionType type = InputActionType.Button)

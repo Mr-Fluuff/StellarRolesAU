@@ -1,4 +1,3 @@
-using AmongUs.GameOptions;
 using HarmonyLib;
 using StellarRoles.Objects;
 using StellarRoles.Utilities;
@@ -17,163 +16,26 @@ namespace StellarRoles.Patches
                 NeutralKiller.CurrentTarget = Helpers.SetTarget(false, true, canIncrease: true);
         }
 
-        public static void UpdatePlayerInfo()
-        {
-            Vector3 colorBlindTextMeetingInitialLocalPos = new(0.3384f, -0.16666f, -0.01f);
-            Vector3 colorBlindTextMeetingInitialLocalScale = new(0.9f, 1f, 1f);
-            PlayerControl localPlayer = PlayerControl.LocalPlayer;
-            foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
-            {
-                var playerVoteArea = MeetingHud.Instance != null ? MeetingHud.Instance.playerStates.FirstOrDefault(x => x.TargetPlayerId == data.PlayerId) : null;
-                var meetingInfoTransform = playerVoteArea != null ? playerVoteArea.NameText.transform.parent.FindChild("Info") : null;
-                var meetingInfo = meetingInfoTransform != null ? meetingInfoTransform.GetComponent<TMPro.TextMeshPro>() : null;
-
-                if (playerVoteArea != null)
-                {
-                    if (playerVoteArea.ColorBlindName.gameObject.active)
-                    {
-                        // Colorblind Text in Meeting
-                        playerVoteArea.ColorBlindName.alignment = TMPro.TextAlignmentOptions.Left;
-                        playerVoteArea.ColorBlindName.transform.localPosition = colorBlindTextMeetingInitialLocalPos + new Vector3(-.41f, -.1f, 0f);
-                        playerVoteArea.ColorBlindName.transform.localScale = colorBlindTextMeetingInitialLocalScale * 1.2f;
-                    }
-                    if (meetingInfo == null)
-                    {
-                        meetingInfo = Object.Instantiate(playerVoteArea.NameText, playerVoteArea.NameText.transform.parent);
-                        meetingInfo.transform.localPosition += Vector3.down * 0.2f;
-                        meetingInfo.fontSize *= 0.8f;
-                        meetingInfo.gameObject.name = "Info";
-                    }
-                    else
-                    {
-                        meetingInfo.text = "";
-                    }
-                }
-
-                if (data.Object == null || data.Disconnected) continue;
-
-                PlayerControl player = data.Object;
-
-                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(player.Data);
-                string roleText = RoleInfo.GetRolesString(player, true, false);
-                string deadRoleText = RoleInfo.GetRolesString(player, true, MapOptions.GhostsSeeModifier);
-                string taskInfo = tasksTotal > 0 ? $"<color=#FAD934FF>({tasksCompleted}/{tasksTotal})</color>" : "";
-
-                var playerInfoTransform = player != null ? player.cosmetics.nameText.transform.parent.FindChild("Info") : null;
-                var playerInfo = playerInfoTransform != null ? playerInfoTransform.GetComponent<TMPro.TextMeshPro>() : null;
-
-                // Colorblind Text During the round
-                if (player.cosmetics.colorBlindText != null && player.cosmetics.showColorBlindText && player.cosmetics.colorBlindText.gameObject.active)
-                {
-                    player.cosmetics.colorBlindText.transform.localPosition = new Vector3(0, -1.2f, 0f);
-                }
-
-                player?.cosmetics.nameText.transform.parent.SetLocalZ(-0.0001f);  // This moves both the name AND the colorblindtext behind objects (if the player is behind the object), like the rock on polus
-
-                if (playerInfo == null)
-                {
-                    playerInfo = Object.Instantiate(player.cosmetics.nameText, player.cosmetics.nameText.transform.parent);
-                    playerInfo.transform.localPosition += Vector3.up * 0.225f;
-                    playerInfo.fontSize *= 0.85f;
-                    playerInfo.gameObject.name = "Info";
-                }
-
-                bool qualifiedRomantic = localPlayer == Romantic.Player && player == Romantic.Lover && (Romantic.KnowsRoleInfoImmediately || !Romantic.Lover.Data.IsDead) && !Romantic.Player.Data.IsDead;
-                bool qualifiedVengefulRomantic = localPlayer == VengefulRomantic.Player && player == VengefulRomantic.Lover && !VengefulRomantic.Player.Data.IsDead;
-                bool qualifiedExecutioner = localPlayer == Executioner.Player && player == Executioner.Target && Ascended.IsAscended(localPlayer);
-                bool qualifiedCultist = localPlayer == Cultist.Player && player == Follower.Player && Cultist.FollowerSpecialRoleAssigned;
-
-                string meetingInfoText = "";
-                string playerInfoText = "";
-                if ((MapOptions.ShowRoles && MapOptions.ToggleRoles) || !MapOptions.ToggleRoles)
-                {
-                    if (player.AmOwner)
-                    {
-                        roleText = data.IsDead ? deadRoleText : roleText;
-                        if (player == Scavenger.Player)
-                            playerInfoText = roleText + Helpers.ColorString(Scavenger.Color, $" ({Scavenger.BodiesRemainingToWin()})");
-                        else if (player.IsJailor(out Jailor jailor))
-                            playerInfoText = roleText + Helpers.ColorString(Jailor.Color, $" ({jailor.Charges})");
-                        else
-                            playerInfoText = roleText;
-                        if (HudManager.Instance.TaskPanel != null)
-                        {
-                            TMPro.TextMeshPro tabText = HudManager.Instance.TaskPanel.tab.transform.FindChild("TabText_TMP").GetComponent<TMPro.TextMeshPro>();
-                            tabText.SetText($"Tasks {taskInfo}");
-                        }
-                        meetingInfoText = $"{roleText} {taskInfo}".Trim();
-                    }
-                    else if (qualifiedRomantic || qualifiedVengefulRomantic)
-                    {
-                        if (Romantic.RomanticKnowsRole)
-                            playerInfoText = meetingInfoText = roleText;
-                        else if (Helpers.IsNeutral(player))
-                            playerInfoText = meetingInfoText = "<color=#333333>Neutral</color>";
-                        else if (player.Data.Role.IsImpostor)
-                            playerInfoText = meetingInfoText = "<color=#d5000b>Imposter</color>";
-                        else
-                            playerInfoText = meetingInfoText = "<color=#3b98c7>Crewmate</color>";
-                    }
-                    else if (qualifiedExecutioner || qualifiedCultist)
-                    {
-                        playerInfoText = meetingInfoText = roleText;
-
-                    }
-                    else if (localPlayer.Data.IsDead)
-                    {
-                        if (MapOptions.GhostsSeeRoles && MapOptions.GhostsSeeTasks)
-                        {
-                            if (player == Scavenger.Player)
-                                meetingInfoText = playerInfoText = roleText + Helpers.ColorString(Scavenger.Color, $" ({Scavenger.BodiesRemainingToWin()})");
-                            else
-                                meetingInfoText = playerInfoText = $"{deadRoleText} {taskInfo}".Trim();
-                        }
-                        else if (MapOptions.GhostsSeeTasks)
-                            meetingInfoText = playerInfoText = taskInfo.Trim();
-                        else if (MapOptions.GhostsSeeRoles)
-                        {
-                            if (player == Scavenger.Player)
-                                meetingInfoText = playerInfoText = roleText + Helpers.ColorString(Scavenger.Color, $" ({Scavenger.BodiesRemainingToWin()})");
-                            else
-                                meetingInfoText = playerInfoText = deadRoleText;
-                        }
-                    }
-
-                    if (player != null && playerInfo != null)
-                    {
-                        playerInfo.text = playerInfoText;
-                        playerInfo.gameObject.SetActive(player != null && !Helpers.ShouldHidePlayerName(player));
-                    }
-                }
-
-                if (meetingInfo != null)
-                {
-                    meetingInfo.text = MeetingHud.Instance.state == MeetingHud.VoteStates.Results ? "" : meetingInfoText;
-                    // Set player name higher to align in middle
-                    if (playerVoteArea != null && meetingInfoText != "")
-                    {
-                        TMPro.TextMeshPro playerName = playerVoteArea.NameText;
-                        playerName.transform.localPosition = new Vector3(0.3384f, 0.08f, -0.1f);
-                    }
-                }
-            }
-        }
-
         static void MorphlingAndCamouflagerUpdate()
         {
             float oldCamouflageTimer = Camouflager.CamouflageTimer;
             float oldMorphTimer = Morphling.MorphTimer;
+            float oldParasiteTimer = Parasite.ControlTimer;
+
             Camouflager.CamouflageTimer -= Time.deltaTime;
             Morphling.MorphTimer -= Time.deltaTime;
 
             // Camouflage reset and set Morphling look if necessary
-            if (oldCamouflageTimer > 0f && Camouflager.CamouflageTimer <= 0f)
+            if (oldCamouflageTimer > 0f && Camouflager.CamouflageTimer <= 0f && !PlayerControl.LocalPlayer.IsMushroomMixupActive())
             {
                 Camouflager.ResetCamouflage();
                 if (Morphling.MorphTimer > 0f && Morphling.Player != null && Morphling.MorphTarget != null)
                 {
-                    PlayerControl target = Morphling.MorphTarget;
-                    Morphling.Player.SetLook(target.Data.PlayerName, target.Data.DefaultOutfit.ColorId, target.Data.DefaultOutfit.HatId, target.Data.DefaultOutfit.VisorId, target.Data.DefaultOutfit.SkinId, target.Data.DefaultOutfit.PetId);
+                    RPCProcedure.SetLook(Morphling.Player, Morphling.MorphTarget);
+                }
+                if (Parasite.Player != null && Parasite.Controlled != null)
+                {
+                    RPCProcedure.SetLook(Parasite.Controlled, Parasite.Player);
                 }
             }
 
@@ -185,10 +47,9 @@ namespace StellarRoles.Patches
         public static void RefreshRoleDescription()
         {
             var player = PlayerControl.LocalPlayer;
-            PlayerStatistics statistics = new();
             List<string> taskTexts = new();
 
-            if (MapOptions.DeadCrewPreventTaskWin && player.IsCrew() && player.Data.Role.IsDead && statistics.TotalCrewAlive <= 0)
+            if (MapOptions.DeadCrewPreventTaskWin && player.IsCrew() && player.Data.Role.IsDead && MapOptions.CrewAlive <= 0)
                 taskTexts.Add(Helpers.ColorString(Palette.ImpostorRed, "Tasks will no longer save your kind!"));
 
             foreach (RoleInfo roleInfo in RoleInfo.GetRoleInfoForPlayer(player))
@@ -226,44 +87,63 @@ namespace StellarRoles.Patches
                 player.myTasks.Insert(0, task);
             }
         }
+
+        public static Dictionary<byte, (string name, Color color)> TagColorDict = new();
         static void ResetNameTagsAndColors()
         {
             PlayerControl localPlayer = PlayerControl.LocalPlayer;
-            Dictionary<byte, (string name, Color color)> TagColorDict = new();
+            var myData = localPlayer.Data;
+            var amImpostor = myData.Role.IsImpostor;
 
-            foreach (GameData.PlayerInfo data in GameData.Instance.AllPlayers.GetFastEnumerator())
+            TagColorDict.Clear();
+
+            try
             {
-                PlayerControl player = data.Object;
-                bool playerIsImpostor = data.Role.IsImpostor;
-                string text = data.PlayerName;
-                string playerName = text;
-                string colorName = data.ColorName;
-
-                Color color = localPlayer.Data.Role.IsImpostor && playerIsImpostor ? Palette.ImpostorRed : Color.white;
-                TagColorDict.Add(data.PlayerId, (text, color));
-
-
-                if (player != null && !player.Data.Disconnected)
+                foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
                 {
-                    if (player.IsMorphed())
+                    PlayerControl player = null;
+                    if (data != null && data.Object != null)
                     {
-                        playerName = Morphling.MorphTarget.Data.PlayerName;
-                        colorName = Morphling.MorphTarget.Data.ColorName;
+                        player = data.Object;
+                    }
+                    bool playerIsImpostor = data.Role.IsImpostor;
+                    string text = data.PlayerName;
+                    Color color;
+
+                    if (player != null)
+                    {
+                        color = amImpostor && playerIsImpostor ? Palette.ImpostorRed : Color.white;
+                        string playerName = text;
+                        string colorName = data.ColorName;
+
+                        if (player.IsMorphed())
+                        {
+                            playerName = Morphling.MorphTarget.Data.PlayerName;
+                            colorName = Morphling.MorphTarget.Data.ColorName;
+                        }
+                        if (player == Parasite.Controlled)
+                        {
+                            playerName = Parasite.Player.Data.PlayerName;
+                            colorName = Parasite.Player.Data.ColorName;
+                        }
+
+                        TMPro.TextMeshPro nameText = player.cosmetics.nameText;
+                        TMPro.TextMeshPro colorBlindText = player.cosmetics.colorBlindText;
+
+                        nameText.text = Helpers.ShouldHidePlayerName(player) ? "" : playerName;
+                        nameText.color = color;
+
+                        colorBlindText.text = Helpers.ShouldHidePlayerName(player) || localPlayer == player ? "" : colorName.Replace(")", "").Replace("(", "");
+                    }
+                    else
+                    {
+                        color = Color.white;
                     }
 
-                    TMPro.TextMeshPro nameText = player.cosmetics.nameText;
-                    TMPro.TextMeshPro colorBlindText = player.cosmetics.colorBlindText;
-
-                    nameText.text = Helpers.ShouldHidePlayerName(player) ? "" : playerName;
-                    nameText.color = color;
-
-                    colorBlindText.text = Helpers.ShouldHidePlayerName(player) || localPlayer == player ? "" : colorName.Replace(")", "").Replace("(", "");
+                    TagColorDict.Add(data.PlayerId, (text, color));
                 }
-            }
 
-            if (MeetingHud.Instance)
-            {
-                MeetingHud.Instance.playerStates.ToList().ForEach(playerVoteArea =>
+                MeetingHud.Instance?.playerStates?.ToList().ForEach(playerVoteArea =>
                 {
                     (string name, Color color) = TagColorDict[playerVoteArea.TargetPlayerId];
                     TMPro.TextMeshPro platetext = playerVoteArea.NameText;
@@ -271,6 +151,7 @@ namespace StellarRoles.Patches
                     platetext.color = color;
                 });
             }
+            catch { }
         }
 
         static void SetPlayerNameColor(PlayerControl player, Color color)
@@ -292,8 +173,14 @@ namespace StellarRoles.Patches
             else if (!localPlayer.Data.Role.IsImpostor)
                 SetPlayerNameColor(localPlayer, Color.white);
 
-            if (Spy.Player != null && localPlayer.Data.Role.IsImpostor)
-                SetPlayerNameColor(Spy.Player, Spy.Color);
+            if (localPlayer.Data.Role.IsImpostor)
+            {
+                if (Morphling.Player != null && Morphling.Player.IsMorphed() && Morphling.MorphTarget.Data.Role.IsImpostor)
+                    SetPlayerNameColor(Morphling.Player, Palette.ImpostorRed);
+
+                if (Spy.Player != null)
+                    SetPlayerNameColor(Spy.Player, Spy.Color);
+            }
 
             if (localPlayer.Data.IsDead && MapOptions.GhostsSeeRoles)
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
@@ -305,13 +192,21 @@ namespace StellarRoles.Patches
         {
             if (MeetingHud.Instance) return;
 
-            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
-                if (player.AmOwner || player.petting) continue;
+                if (data == null || data.Disconnected) continue;
+                var player = data.Object;
+                if (player.AmOwner || player == null) continue;
                 PetBehaviour pet = player.GetPet();
 
-                bool isMorphed = player.IsMorphed() && MapOptions.PlayerPetsToHide.Any(p => p.PlayerId == Morphling.MorphTarget.PlayerId);
-                bool cantsee = isMorphed || MapOptions.PlayerPetsToHide.Any(p => p.PlayerId == player.PlayerId) || player.Data.IsDead || player.inVent;
+                bool isMorphed = player.IsMorphed() && MapOptions.PlayerPetsToHide.Contains(Morphling.MorphTarget.PlayerId);
+                bool optedOut = MapOptions.PlayerPetsToHide.Contains(player.PlayerId);
+                bool cantsee = !PlayerControl.LocalPlayer.Data.IsDead
+                    && !player.petting
+                    && (isMorphed
+                    || optedOut
+                    || player.Data.IsDead
+                    || player.inVent);
 
                 if (pet != null)
                     pet.Visible = !cantsee;
@@ -332,9 +227,10 @@ namespace StellarRoles.Patches
 
             if (MapBehaviour.Instance != null && MapBehaviour.Instance.IsOpen)
             {
-                switch (GameOptionsManager.Instance.currentGameOptions.MapId)
+                switch (Helpers.CurrentMap())
                 {
-                    case 0:
+                    case Map.Skeld:
+                    case Map.Dleks:
                         // Map sabotage
                         GameObject minimapSabotage = GameObject.Find("Main Camera/Hud/ShipMap(Clone)/InfectedOverlay"); // Skeld
                         if (loseCritical)
@@ -353,7 +249,7 @@ namespace StellarRoles.Patches
                             minimapSabotage.transform.GetChild(9).gameObject.SetActive(false); // Security Doors
                         }
                         break;
-                    case 1:
+                    case Map.Mira:
                         GameObject minimapSabotageMira = GameObject.Find("Main Camera/Hud/HqMap(Clone)/InfectedOverlay"); // Mira
                         if (loseCritical)
                         {
@@ -361,7 +257,7 @@ namespace StellarRoles.Patches
                             minimapSabotageMira.transform.GetChild(3).gameObject.SetActive(false);
                         }
                         break;
-                    case 2:
+                    case Map.Polus:
                         GameObject minimapSabotagePolus = GameObject.Find("Main Camera/Hud/PbMap(Clone)/InfectedOverlay"); // Polus
                         if (loseCritical)
                         {
@@ -378,25 +274,7 @@ namespace StellarRoles.Patches
                             minimapSabotagePolus.transform.GetChild(6).GetChild(1).gameObject.SetActive(false); // Sabotage reactor
                         }
                         break;
-                    case 3:
-                        GameObject minimapSabotageDleks = GameObject.Find("Main Camera/Hud/ShipMap(Clone)/InfectedOverlay"); // dlekS
-                        if (loseCritical)
-                        {
-                            minimapSabotageDleks.transform.GetChild(4).gameObject.SetActive(false);
-                            minimapSabotageDleks.transform.GetChild(8).gameObject.SetActive(false);
-                        }
-                        if (impsLoseDoors)
-                        {
-                            minimapSabotageDleks.transform.GetChild(0).gameObject.SetActive(false); // Cafeteria Doors
-                            minimapSabotageDleks.transform.GetChild(2).gameObject.SetActive(false); // Medbay Doors
-                            minimapSabotageDleks.transform.GetChild(3).GetChild(0).gameObject.SetActive(false); // Electrical Doors
-                            minimapSabotageDleks.transform.GetChild(5).gameObject.SetActive(false); // Left Engine Doors
-                            minimapSabotageDleks.transform.GetChild(6).gameObject.SetActive(false); // Right Engine Doors
-                            minimapSabotageDleks.transform.GetChild(7).gameObject.SetActive(false); // Storage Doors
-                            minimapSabotageDleks.transform.GetChild(9).gameObject.SetActive(false); // Security Doors
-                        }
-                        break;
-                    case 4:
+                    case Map.Airship:
                         GameObject minimapSabotageAirship = GameObject.Find("Main Camera/Hud/AirshipMap(Clone)/InfectedOverlay"); // Airship
                         if (loseCritical)
                         {
@@ -410,6 +288,24 @@ namespace StellarRoles.Patches
                             minimapSabotageAirship.transform.GetChild(5).gameObject.SetActive(false); // Brig Doors
                             minimapSabotageAirship.transform.GetChild(6).gameObject.SetActive(false); // Kitchen Doors
                             minimapSabotageAirship.transform.GetChild(7).gameObject.SetActive(false); // Medbay Doors
+                        }
+                        break;
+                    case Map.Fungal:
+                        GameObject minimapSabotageFungal = GameObject.Find("Main Camera/Hud/FungleMap(Clone)/InfectedOverlay"); // Airship
+                        if (loseCritical)
+                        {
+                            minimapSabotageFungal.transform.GetChild(3).GetChild(0).gameObject.SetActive(false);
+                        }
+                        if (impsLoseDoors)
+                        {
+                            minimapSabotageFungal.transform.GetChild(0).GetChild(1).gameObject.SetActive(false); // Comms Doors
+                            minimapSabotageFungal.transform.GetChild(1).GetChild(0).gameObject.SetActive(false); // Lab Doors
+                            minimapSabotageFungal.transform.GetChild(2).GetChild(0).gameObject.SetActive(false); // Storage Doors
+                            minimapSabotageFungal.transform.GetChild(3).GetChild(1).gameObject.SetActive(false); // Reactor Doors
+                            minimapSabotageFungal.transform.GetChild(4).GetChild(0).gameObject.SetActive(false); // Lookout Doors
+                            minimapSabotageFungal.transform.GetChild(5).GetChild(0).gameObject.SetActive(false); // Kitchen Doors
+                            minimapSabotageFungal.transform.GetChild(7).GetChild(0).gameObject.SetActive(false); // MiningPit Doors
+
                         }
                         break;
                 }
@@ -446,7 +342,7 @@ namespace StellarRoles.Patches
             if (Executioner.Target != null && (Executioner.Player == localplayer || localplayer.Data.IsDead))
             {
                 string suffix = Helpers.ColorString(Executioner.Color, " ⁂");
-                if (!PhysicsHelpers.AnythingBetween(localplayer.GetTruePosition(), Executioner.Target.GetTruePosition(), Constants.ShadowMask, false))
+                if (!Helpers.ShouldHidePlayerName(Executioner.Target) && !PhysicsHelpers.AnythingBetween(localplayer.GetTruePosition(), Executioner.Target.GetTruePosition(), Constants.ShadowMask, false))
                     Executioner.Target.cosmetics.nameText.text += suffix;
 
                 if (MeetingHud.Instance != null)
@@ -459,6 +355,7 @@ namespace StellarRoles.Patches
             if (Romantic.Player == null || Romantic.Lover == null) return;
             PlayerControl localplayer = PlayerControl.LocalPlayer;
             string suffix = Helpers.ColorString(Romantic.Color, " ♥");
+
             if (Romantic.Player == localplayer || (MapOptions.GhostsSeeRomanticTarget && localplayer.Data.IsDead))
             {
                 if (!Helpers.ShouldHidePlayerName(Romantic.Lover) && !Romantic.Lover.Data.Disconnected)
@@ -469,11 +366,11 @@ namespace StellarRoles.Patches
             }
             else if (Romantic.Lover == localplayer && (Romantic.PartnerSeesLoveInstantly || (Romantic.PartnerSeesLoveAfterMeeting && Romantic.SetNameFirstMeeting)))
             {
-                if (!Helpers.IsInvisible(Romantic.Lover))
-                    Romantic.Lover.cosmetics.nameText.text += suffix;
+                if (!Helpers.IsInvisible(localplayer))
+                    localplayer.cosmetics.nameText.text += suffix;
 
                 if (MeetingHud.Instance != null)
-                    MeetingHud.Instance.playerStates.First(voteArea => voteArea.TargetPlayerId == Romantic.Lover.PlayerId).NameText.text += suffix;
+                    MeetingHud.Instance.playerStates.First(voteArea => voteArea.TargetPlayerId == localplayer.PlayerId).NameText.text += suffix;
             }
         }
 
@@ -514,7 +411,7 @@ namespace StellarRoles.Patches
                     {
                         if (player == null) continue;
 
-                        if (!Helpers.ShouldHidePlayerName(player) && player.IsAlive())
+                        if (!Helpers.ShouldHidePlayerName(player) && player.IsAlive() && !player.IsMorphed())
                             player.cosmetics.nameText.text += suffix;
 
                         if (Helpers.IsMorphlingTargetAndMorphed(player) && !Helpers.ShouldHidePlayerName(Morphling.Player))
@@ -534,15 +431,32 @@ namespace StellarRoles.Patches
             {
                 if (bombed.Player == null) continue;
                 // Bomber
-                if (Bomber.SeeBombTarget && ((localplayer.Data.Role.IsImpostor && !Bomber.IsNeutralKiller) || bombed.Bomber == localplayer))
+                if (Bomber.SeeBombTarget && ((localplayer.Data.Role.IsImpostor && !Bomber.IsNeutralKiller) || bombed.Bomber == localplayer || localplayer.Data.IsDead))
                 {
-
-                    if (!Helpers.ShouldHidePlayerName(bombed.Player) && bombed.Player.IsAlive())
+                    if (!Helpers.ShouldHidePlayerName(bombed.Player) && bombed.Player.IsAlive() && !bombed.Player.IsMorphed())
                         bombed.Player.cosmetics.nameText.text += suffix;
 
-                    if (Helpers.IsMorphlingTargetAndMorphed(bombed.Player))
+                    if (Helpers.IsMorphlingTargetAndMorphed(bombed.Player) && !Helpers.ShouldHidePlayerName(Morphling.Player))
                         Morphling.Player.cosmetics.nameText.text += suffix;
                 }
+            }
+        }
+
+        static void SetParasiteTags()
+        {
+            PlayerControl localplayer = PlayerControl.LocalPlayer;
+            
+            string suffix = Helpers.ColorString(Parasite.Color, " <size=100%>■</size>");
+
+            if (Parasite.Controlled == null) return;
+
+            if ((localplayer.Data.Role.IsImpostor && !Parasite.IsNeutralKiller) || Parasite.Player == localplayer || localplayer.Data.IsDead)
+            {
+                if (!Helpers.ShouldHidePlayerName(Parasite.Controlled) && Parasite.Controlled.IsAlive() && !Parasite.Controlled.IsMorphed())
+                    Parasite.Controlled.cosmetics.nameText.text += suffix;
+
+                if (Helpers.IsMorphlingTargetAndMorphed(Parasite.Controlled) && !Helpers.ShouldHidePlayerName(Morphling.Player))
+                    Morphling.Player.cosmetics.nameText.text += suffix;
             }
         }
 
@@ -560,11 +474,13 @@ namespace StellarRoles.Patches
                     {
                         if (player == null) continue;
 
-                        if (!Helpers.ShouldHidePlayerName(player) && (player.IsAlive() || Helpers.IsMorphlingTargetAndMorphed(player)))
+                        if (!Helpers.ShouldHidePlayerName(player) && !player.IsMorphed() && player.IsAlive())
                         {
                             player.cosmetics.nameText.text += suffix;
-                            player.cosmetics.nameText.color = HeadHunter.TargetColor;
                         }
+
+                        if (Helpers.IsMorphlingTargetAndMorphed(player) && !Helpers.ShouldHidePlayerName(Morphling.Player))
+                            Morphling.Player.cosmetics.nameText.text += suffix;
                     }
                 }
             }
@@ -573,27 +489,24 @@ namespace StellarRoles.Patches
         static void SetShadeTags()
         {
             PlayerControl localplayer = PlayerControl.LocalPlayer;
-            if (Shade.Player == null
-                || Shade.BlindedPlayers.Count <= 0
-                || !(Shade.Player.AmOwner
-                || localplayer.Data.IsDead
-                || (Shade.Player.Data.Role.IsImpostor && localplayer.Data.Role.IsImpostor))) return;
+            if (Shade.Player == null || Shade.BlindedPlayers.Count <= 0) return;
+            if (!Shade.Player.AmOwner && !localplayer.Data.IsDead) return;
+
             string suffix = Helpers.ColorString(HeadHunter.TargetColor, " <size=120%>※ </size>");
 
             foreach (PlayerControl player in Shade.BlindedPlayers.GetPlayerEnumerator())
             {
                 if (player == null) continue;
+                if (Shade.Player.Data.Role.IsImpostor && (player.Data.Role.IsImpostor || player == Spy.Player)) continue;
 
-                if (!Helpers.ShouldHidePlayerName(player) && player.IsAlive())
+                if (!Helpers.ShouldHidePlayerName(player) && player.IsAlive() && !player.IsMorphed())
                 {
                     player.cosmetics.nameText.text += suffix;
-                    player.cosmetics.nameText.color = HeadHunter.TargetColor;
                 }
 
                 if (Helpers.IsMorphlingTargetAndMorphed(player) && !Helpers.ShouldHidePlayerName(Morphling.Player))
                 {
                     Morphling.Player.cosmetics.nameText.text += suffix;
-                    player.cosmetics.nameText.color = HeadHunter.TargetColor;
                 }
             }
         }
@@ -606,9 +519,9 @@ namespace StellarRoles.Patches
             foreach (Nightmare nightmare in Nightmare.PlayerToNightmare.Values)
             {
                 PlayerControl paralyzedPlayer = nightmare.ParalyzedPlayer;
-                if (paralyzedPlayer != null && paralyzedPlayer.IsAlive() && (nightmare.Player.AmOwner || nightmare.Player.Data.IsDead))
+                if (paralyzedPlayer != null && paralyzedPlayer.IsAlive() && (nightmare.Player.AmOwner || PlayerControl.LocalPlayer.Data.IsDead))
                 {
-                    if (!Helpers.ShouldHidePlayerName(paralyzedPlayer))
+                    if (!Helpers.ShouldHidePlayerName(paralyzedPlayer) && paralyzedPlayer.IsAlive() && !paralyzedPlayer.IsMorphed())
                         paralyzedPlayer.cosmetics.nameText.text += suffix;
 
                     if (Helpers.IsMorphlingTargetAndMorphed(paralyzedPlayer) && !Helpers.ShouldHidePlayerName(Morphling.Player))
@@ -627,7 +540,7 @@ namespace StellarRoles.Patches
                 foreach (PlayerControl player in Arsonist.DousedPlayers.GetPlayerEnumerator())
                 {
                     if (player == null || player.Data.Disconnected) continue;
-                    if (!Helpers.ShouldHidePlayerName(player) && player.IsAlive())
+                    if (!Helpers.ShouldHidePlayerName(player) && player.IsAlive() && !player.IsMorphed())
                         player.cosmetics.nameText.text += suffix;
 
                     if (Helpers.IsMorphlingTargetAndMorphed(player) && !Helpers.ShouldHidePlayerName(Morphling.Player))
@@ -655,7 +568,7 @@ namespace StellarRoles.Patches
                     foreach (PlayerControl dousedPlayer in pyro.DousedPlayers.GetPlayerEnumerator())
                     {
                         if (dousedPlayer == null) continue;
-                        if (!Helpers.ShouldHidePlayerName(dousedPlayer) && dousedPlayer.IsAlive())
+                        if (!Helpers.ShouldHidePlayerName(dousedPlayer) && dousedPlayer.IsAlive() && !dousedPlayer.IsMorphed())
                             dousedPlayer.cosmetics.nameText.text += suffix;
 
                         if (Helpers.IsMorphlingTargetAndMorphed(dousedPlayer) && !Helpers.ShouldHidePlayerName(Morphling.Player))
@@ -676,7 +589,7 @@ namespace StellarRoles.Patches
             {
                 if (localplayer.Data.IsDead || localplayer == Medic.Player)
                 {
-                    if (Medic.Target.IsAlive() && !Helpers.ShouldHidePlayerName(Medic.Target))
+                    if (Medic.Target.IsAlive() && !Helpers.ShouldHidePlayerName(Medic.Target) && !Medic.Target.IsMorphed())
                     {
                         Medic.Target.cosmetics.nameText.text += suffix;
                     }
@@ -693,14 +606,14 @@ namespace StellarRoles.Patches
         {
             PlayerControl localplayer = PlayerControl.LocalPlayer;
 
-            if (HeadHunter.Player != null && localplayer == HeadHunter.Player && !HeadHunter.Player.Data.IsDead)
+            if (HeadHunter.Player != null && (localplayer == HeadHunter.Player || localplayer.Data.IsDead) && !HeadHunter.Player.Data.IsDead)
             {
                 string suffix = Helpers.ColorString(HeadHunter.Color, " <size=120%>⊗</size>");
 
                 foreach (PlayerControl player in HeadHunter.Bounties.GetPlayerEnumerator())
                 {
                     if (player == null) continue;
-                    if (player.IsAlive() && !Helpers.ShouldHidePlayerName(player))
+                    if (player.IsAlive() && !Helpers.ShouldHidePlayerName(player) && !player.IsMorphed())
                         player.cosmetics.nameText.text += suffix;
 
                     if (Helpers.IsMorphlingTargetAndMorphed(player) && !Helpers.ShouldHidePlayerName(Morphling.Player))
@@ -730,6 +643,7 @@ namespace StellarRoles.Patches
             SetMedicTag();
             SetHeadHunterTag();
             SetPyromaniacDouseTag();
+            SetParasiteTags();
         }
 
         static void UpdateShielded()
@@ -807,14 +721,16 @@ namespace StellarRoles.Patches
 
         static void Postfix(HudManager __instance)
         {
+            if (LobbyBehaviour.Instance)
+                __instance.ImpostorVentButton.gameObject.SetActive(false);
+
             if (!Helpers.GameStarted || Helpers.IsHideAndSeek) return;
+            __instance.MapButton.gameObject.SetActive(true);
 
             CustomButton.HudUpdate();
             ResetNameTagsAndColors();
             SetNameColors();
             UpdateShielded();
-            SetNameTags();
-            PetsUpdate();
             UpdateImpostorKillButton(__instance);
             UpdateImpostorVentButton(__instance);
             UpdateReportButton(__instance);
@@ -830,9 +746,6 @@ namespace StellarRoles.Patches
             // Update Role Description
             RefreshRoleDescription();
 
-            // Update Player Info
-            UpdatePlayerInfo();
-
             //NK
             NeutralKillerSetTarget();
 
@@ -845,6 +758,12 @@ namespace StellarRoles.Patches
 
             // Shade Traces
             ShadeTrace.UpdateAll();
+
+            // Hide Pets Update
+            PetsUpdate();
+
+            SetNameTags();
+
         }
     }
 }

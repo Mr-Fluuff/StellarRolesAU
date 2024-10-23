@@ -1,54 +1,25 @@
 using AmongUs.GameOptions;
 using HarmonyLib;
-using StellarRoles.Utilities;
 using UnityEngine;
+using static StellarRoles.MapOptions;
 
 namespace StellarRoles.Patches
 {
-    [HarmonyPatch(typeof(DoorBreakerGame))]
-    public static class DoorBreakerPatch
-    {
-        [HarmonyPostfix]
-        [HarmonyPatch(nameof(DoorBreakerGame.FlipSwitch))]
-        public static void FlipAllSwitches(DoorBreakerGame __instance)
-        {
-            if (
-                Engineer.Player == null ||
-                !Engineer.Player.AmOwner ||
-                !Engineer.AdvancedSabotageRepair ||
-                EngineerAbilities.IsRoleBlocked() ||
-                !Engineer.IsAlone(2.5f)
-            )
-                return;
-
-            foreach (SpriteRenderer button in __instance.Buttons)
-            {
-                if (!button.flipX)
-                    continue;
-
-                button.color = Color.gray;
-                button.flipX = false;
-                button.GetComponent<PassiveButton>().enabled = false;
-            }
-
-            ShipStatus.Instance.RpcRepairSystem(SystemTypes.Doors, __instance.MyDoor.Id | 64);
-            __instance.MyDoor.SetDoorway(true);
-            CoroutineHelper.Instance.StartCoroutine(__instance.CoStartClose(0.4f));
-        }
-    }
-
     [HarmonyPatch(typeof(ShipStatus))]
     public static class ShipStatusPatch
     {
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.CalculateLightRadius))]
-        public static bool Prefix(ref float __result, ShipStatus __instance)
+        public static bool ShipStatusPrefix(ref float __result, ShipStatus __instance)
         {
-            if (!__instance.Systems.ContainsKey(SystemTypes.Electrical) || GameOptionsManager.Instance.currentGameOptions.GameMode == GameModes.HideNSeek)
+            if (GameOptionsManager.Instance.currentGameOptions.GameMode == GameModes.HideNSeek)
                 return true;
 
-            SwitchSystem switchSystem = MapUtilities.Systems[SystemTypes.Electrical].CastFast<SwitchSystem>();
-            float lerpValue = switchSystem.Value / 255f;
+            float lerpValue = 1;
+            if (__instance.Systems.TryGetValue(SystemTypes.Electrical, out ISystemType elec))
+            {
+                lerpValue = elec.TryCast<SwitchSystem>().Value / 255f;
+            }
             bool lightsout = Helpers.IsLightsActive();
             PlayerControl localPlayer = PlayerControl.LocalPlayer;
             foreach (Nightmare nightmare in Nightmare.PlayerToNightmare.Values)
@@ -64,7 +35,7 @@ namespace StellarRoles.Patches
                     else if (timeLeft < 1.5f)
                         nightmareLerpValue = Mathf.Clamp01(timeLeft * 0.5f);
 
-                    __result = Mathf.Lerp(__instance.MinLightRadius * .75f, __instance.MaxLightRadius * .75f, lightsout ? lerpValue : 1 - nightmareLerpValue) * GameOptionsManager.Instance.currentNormalGameOptions.CrewLightMod;
+                    __result = Mathf.Lerp(__instance.MinLightRadius * .75f, __instance.MaxLightRadius * .75f, lightsout ? lerpValue : 1 - nightmareLerpValue) * StellarRoles.NormalOptions.CrewLightMod;
                     return false;
                 }
             }
@@ -79,7 +50,7 @@ namespace StellarRoles.Patches
                 else if (Shade.LightsOutTimer < 1.5)
                     shadeLerpValue = Mathf.Clamp01(Shade.LightsOutTimer * 0.5f);
 
-                __result = Mathf.Lerp(__instance.MinLightRadius * .75f, __instance.MaxLightRadius * .75f, lightsout ? lerpValue : 1 - shadeLerpValue) * GameOptionsManager.Instance.currentNormalGameOptions.CrewLightMod;
+                __result = Mathf.Lerp(__instance.MinLightRadius * .75f, __instance.MaxLightRadius * .75f, lightsout ? lerpValue : 1 - shadeLerpValue) * StellarRoles.NormalOptions.CrewLightMod;
                 return false;
             }
 
@@ -109,12 +80,15 @@ namespace StellarRoles.Patches
                 return SubmergedCompatibility.GetSubmergedNeutralLightRadius(isImpostor);
 
             if (isImpostor)
-                return shipStatus.MaxLightRadius * GameOptionsManager.Instance.currentNormalGameOptions.ImpostorLightMod;
+                return shipStatus.MaxLightRadius * StellarRoles.NormalOptions.ImpostorLightMod;
 
-            SwitchSystem switchSystem = MapUtilities.Systems[SystemTypes.Electrical].CastFast<SwitchSystem>();
-            float lerpValue = switchSystem.Value / 255f;
+            float lerpValue = 1;
+            if (shipStatus.Systems.TryGetValue(SystemTypes.Electrical, out ISystemType elec))
+            {
+                lerpValue = elec.TryCast<SwitchSystem>().Value / 255f;
+            }
 
-            return Mathf.Lerp(shipStatus.MinLightRadius, shipStatus.MaxLightRadius, lerpValue) * GameOptionsManager.Instance.currentNormalGameOptions.CrewLightMod;
+            return Mathf.Lerp(shipStatus.MinLightRadius, shipStatus.MaxLightRadius, lerpValue) * StellarRoles.NormalOptions.CrewLightMod;
         }
 
         [HarmonyPostfix]
@@ -127,127 +101,124 @@ namespace StellarRoles.Patches
         private static int OriginalNumCommonTasksOption = 0;
         private static int OriginalNumShortTasksOption = 0;
         private static int OriginalNumLongTasksOption = 0;
+        public static float OriginalKillCD = 0;
+        public static int OriginalButtonCD = 0;
+
+
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Begin))]
         public static bool BeginPrefix(ShipStatus __instance)
         {
             int commonTaskCount = __instance.CommonTasks.Count;
-            int normalTaskCount = __instance.NormalTasks.Count;
+            int shortTaskCount = __instance.ShortTasks.Count;
             int longTaskCount = __instance.LongTasks.Count;
-            OriginalNumCommonTasksOption = GameOptionsManager.Instance.currentNormalGameOptions.NumCommonTasks;
-            OriginalNumShortTasksOption = GameOptionsManager.Instance.currentNormalGameOptions.NumShortTasks;
-            OriginalNumLongTasksOption = GameOptionsManager.Instance.currentNormalGameOptions.NumLongTasks;
-            if (GameOptionsManager.Instance.currentNormalGameOptions.NumCommonTasks > commonTaskCount)
-                GameOptionsManager.Instance.currentNormalGameOptions.NumCommonTasks = commonTaskCount;
-            if (GameOptionsManager.Instance.currentNormalGameOptions.NumShortTasks > normalTaskCount)
-                GameOptionsManager.Instance.currentNormalGameOptions.NumShortTasks = normalTaskCount;
-            if (GameOptionsManager.Instance.currentNormalGameOptions.NumLongTasks > longTaskCount)
-                GameOptionsManager.Instance.currentNormalGameOptions.NumLongTasks = longTaskCount;
+            OriginalNumCommonTasksOption = StellarRoles.NormalOptions.NumCommonTasks;
+            OriginalNumShortTasksOption = StellarRoles.NormalOptions.NumShortTasks;
+            OriginalNumLongTasksOption = StellarRoles.NormalOptions.NumLongTasks;
+            OriginalKillCD = StellarRoles.NormalOptions.GetFloat(FloatOptionNames.KillCooldown);
+            OriginalButtonCD = StellarRoles.NormalOptions.GetInt(Int32OptionNames.EmergencyCooldown);
+
+            switch (Helpers.CurrentMap())
+            {
+                case Map.Skeld:
+                case Map.Dleks:
+                    if (ModifySkeld)
+                    {
+                        StellarRoles.NormalOptions.NumCommonTasks = CustomOptionHolder.SkeldCommonTasks.GetInt();
+                        StellarRoles.NormalOptions.NumShortTasks = CustomOptionHolder.SkeldShortTasks.GetInt();
+                        StellarRoles.NormalOptions.NumLongTasks = CustomOptionHolder.SkeldLongTasks.GetInt();
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, CustomOptionHolder.SkeldKillCD.GetFloat());
+                        StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, CustomOptionHolder.SkeldButtonCD.GetInt());
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.CrewLightMod, CustomOptionHolder.SkeldCrewVision.GetFloat());
+                    }
+                    break;
+
+                case Map.Mira:
+                    if (ModifyMira)
+                    {
+                        StellarRoles.NormalOptions.NumCommonTasks = CustomOptionHolder.MiraCommonTasks.GetInt();
+                        StellarRoles.NormalOptions.NumShortTasks = CustomOptionHolder.MiraShortTasks.GetInt();
+                        StellarRoles.NormalOptions.NumLongTasks = CustomOptionHolder.MiraLongTasks.GetInt();
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, CustomOptionHolder.MiraKillCD.GetFloat());
+                        StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, CustomOptionHolder.MiraButtonCD.GetInt());
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.CrewLightMod, CustomOptionHolder.MiraCrewVision.GetFloat());
+                    }
+                    break;
+
+                case Map.Polus:
+                    if (ModifyPolus)
+                    {
+                        StellarRoles.NormalOptions.NumCommonTasks = CustomOptionHolder.PolusCommonTasks.GetInt();
+                        StellarRoles.NormalOptions.NumShortTasks = CustomOptionHolder.PolusShortTasks.GetInt();
+                        StellarRoles.NormalOptions.NumLongTasks = CustomOptionHolder.PolusLongTasks.GetInt();
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, CustomOptionHolder.PolusKillCD.GetFloat());
+                        StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, CustomOptionHolder.PolusButtonCD.GetInt());
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.CrewLightMod, CustomOptionHolder.PolusCrewVision.GetFloat());
+                    }
+                    break;
+
+                case Map.Airship:
+                    if (ModifyAirship)
+                    {
+                        StellarRoles.NormalOptions.NumCommonTasks = CustomOptionHolder.AirShipCommonTasks.GetInt();
+                        StellarRoles.NormalOptions.NumShortTasks = CustomOptionHolder.AirShipShortTasks.GetInt();
+                        StellarRoles.NormalOptions.NumLongTasks = CustomOptionHolder.AirShipLongTasks.GetInt();
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, CustomOptionHolder.AirShipKillCD.GetFloat());
+                        StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, CustomOptionHolder.AirShipButtonCD.GetInt());
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.CrewLightMod, CustomOptionHolder.AirShipCrewVision.GetFloat());
+                    }
+                    break;
+
+                case Map.Fungal:
+                    if (ModifyFungle)
+                    {
+                        StellarRoles.NormalOptions.NumCommonTasks = CustomOptionHolder.FungalCommonTasks.GetInt();
+                        StellarRoles.NormalOptions.NumShortTasks = CustomOptionHolder.FungalShortTasks.GetInt();
+                        StellarRoles.NormalOptions.NumLongTasks = CustomOptionHolder.FungalLongTasks.GetInt();
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, CustomOptionHolder.FungalKillCD.GetFloat());
+                        StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, CustomOptionHolder.FungalButtonCD.GetInt());
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.CrewLightMod, CustomOptionHolder.FungalCrewVision.GetFloat());
+                    }
+                    break;
+
+                case Map.Submerged:
+                    if (ModifySubmerged)
+                    {
+                        StellarRoles.NormalOptions.NumCommonTasks = CustomOptionHolder.SubmergedCommonTasks.GetInt();
+                        StellarRoles.NormalOptions.NumShortTasks = CustomOptionHolder.SubmergedShortTasks.GetInt();
+                        StellarRoles.NormalOptions.NumLongTasks = CustomOptionHolder.SubmergedLongTasks.GetInt();
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, CustomOptionHolder.SubmergedKillCD.GetFloat());
+                        StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, CustomOptionHolder.SubmergedButtonCD.GetInt());
+                        StellarRoles.NormalOptions.SetFloat(FloatOptionNames.CrewLightMod, CustomOptionHolder.SubmergedCrewVision.GetFloat());
+                    }
+                    break;
+            }
+            if (StellarRoles.NormalOptions.NumCommonTasks > commonTaskCount)
+                StellarRoles.NormalOptions.NumCommonTasks = commonTaskCount;
+            if (StellarRoles.NormalOptions.NumShortTasks > shortTaskCount)
+                StellarRoles.NormalOptions.NumShortTasks = shortTaskCount;
+            if (StellarRoles.NormalOptions.NumLongTasks > longTaskCount)
+                StellarRoles.NormalOptions.NumLongTasks = longTaskCount;
+
+            GameManager.Instance.LogicOptions.SyncOptions();
+
             return true;
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.Begin))]
-        public static void BeginPostfix()
+        [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnGameEnd))]
+        public static void ResetOptionsPostfix()
         {
+            if (!AmongUsClient.Instance.AmHost) return;
             // Restore original settings after the tasks have been selected
-            GameOptionsManager.Instance.currentNormalGameOptions.NumCommonTasks = OriginalNumCommonTasksOption;
-            GameOptionsManager.Instance.currentNormalGameOptions.NumShortTasks = OriginalNumShortTasksOption;
-            GameOptionsManager.Instance.currentNormalGameOptions.NumLongTasks = OriginalNumLongTasksOption;
-        }
-    }
+            StellarRoles.NormalOptions.NumCommonTasks = OriginalNumCommonTasksOption;
+            StellarRoles.NormalOptions.NumShortTasks = OriginalNumShortTasksOption;
+            StellarRoles.NormalOptions.NumLongTasks = OriginalNumLongTasksOption;
+            StellarRoles.NormalOptions.SetFloat(FloatOptionNames.KillCooldown, OriginalKillCD);
+            StellarRoles.NormalOptions.SetInt(Int32OptionNames.EmergencyCooldown, OriginalButtonCD);
+            GameManager.Instance.LogicOptions.SyncOptions();
 
-    [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.RepairSystem))]
-    class RepairSystemPatch
-    {
-        //public static bool IsSubmergedOxygen;
-        public static bool Prefix(
-            [HarmonyArgument(0)] SystemTypes systemType,
-            [HarmonyArgument(1)] PlayerControl player,
-            [HarmonyArgument(2)] byte amount)
-        {
-
-            if (!AmongUsClient.Instance.AmHost)
-                return true;
-
-            if (Engineer.Player != null && player == Engineer.Player && Engineer.AdvancedSabotageRepair)
-                switch (systemType)
-                {
-                    case SystemTypes.Reactor:
-                        if (Engineer.IsAlone(2.5f))
-                        {
-                            if (amount is 64 or 65)
-                            {
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Reactor, 67);
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Reactor, 66);
-                            }
-
-                            if (amount is 16 or 17)
-                            {
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Reactor, 19);
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Reactor, 18);
-                            }
-                        }
-                        break;
-                    case SystemTypes.Laboratory:
-                        if (Engineer.IsAlone(2.5f))
-                        {
-                            if (amount is 64 or 65)
-                            {
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Laboratory, 67);
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Laboratory, 66);
-                            }
-                        }
-                        break;
-                    case SystemTypes.LifeSupp:
-                        if (amount is 64 or 65)
-                        {
-                            ShipStatus.Instance.RpcRepairSystem(SystemTypes.LifeSupp, 67);
-                            ShipStatus.Instance.RpcRepairSystem(SystemTypes.LifeSupp, 66);
-                        }
-                        break;
-                    case SystemTypes.Comms:
-                        if (!EngineerAbilities.IsRoleBlocked())
-                        {
-                            if (amount is 16 or 17)
-                            {
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Comms, 19);
-                                ShipStatus.Instance.RpcRepairSystem(SystemTypes.Comms, 18);
-                            }
-
-                        }
-                        break;
-                }
-
-            /*
-                IsSubmergedOxygen = false;
-                foreach (PlayerTask task in PlayerControl.LocalPlayer.myTasks)
-                    if (task.TaskType == SubmergedCompatibility.RetrieveOxygenMask) IsSubmergedOxygen = true;
-
-                if (SubmergedCompatibility.IsSubmerged && IsSubmergedOxygen)
-                {
-                    MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(player.NetId, (byte)CustomRPC.EngineerFixSubmergedOxygen, Hazel.SendOption.Reliable, -1);
-                    AmongUsClient.Instance.FinishRpcImmediately(writer);
-                    RPCProcedure.engineerFixSubmergedOxygen();
-                }*/
-
-            return true;
-        }
-
-    }
-
-    [HarmonyPatch(typeof(SwitchSystem), nameof(SwitchSystem.RepairDamage))]
-    class SwitchSystemRepairPatch
-    {
-        public static void Postfix(SwitchSystem __instance, [HarmonyArgument(0)] PlayerControl player, [HarmonyArgument(1)] byte amount)
-        {
-            if (Engineer.Player != null && player == Engineer.Player && Engineer.AdvancedSabotageRepair && Engineer.IsAlone(2.5f))
-                if (amount is >= 0 and <= 4)
-                {
-                    __instance.ActualSwitches = 0;
-                    __instance.ExpectedSwitches = 0;
-                }
         }
     }
 }

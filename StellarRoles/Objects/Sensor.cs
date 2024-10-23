@@ -94,7 +94,7 @@ namespace StellarRoles.Objects
 
                     if (Vector2.Distance(sensor.SensorGameObject.transform.position, player.GetTruePosition()) < 1.6 + .01f && !PhysicsHelpers.AnythingBetween(sensor.SensorGameObject.transform.position, player.GetTruePosition(), Constants.ShadowMask, false))
                     {
-                        RPCProcedure.Send(CustomRPC.TripSensor, player.PlayerId);
+                        RPCProcedure.Send(CustomRPC.TripSensor, player);
                         RPCProcedure.TripSensor(player);
 
                         sensor.Tripped = true;

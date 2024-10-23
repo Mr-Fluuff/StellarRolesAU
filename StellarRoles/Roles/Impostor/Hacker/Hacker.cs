@@ -14,8 +14,8 @@ namespace StellarRoles
     {
         public const float DownloadMultiplier = 2f;
 
-        public static PlayerControl Player { get; set; }
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl Player { get; set; } = null;
+        public static PlayerControl CurrentTarget { get; set; } = null;
         public static readonly Color Color = Palette.ImpostorRed;
 
         public static float JamDuration => CustomOptionHolder.HackerJamDuration.GetFloat();
@@ -87,6 +87,9 @@ namespace StellarRoles
                     break;
                 case 5:
                     _AdminSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Hacker.eviladminsubmerged.png", 115f);
+                    break;
+                default:
+                    _AdminSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Hacker.eviladminskeld.png", 115f);
                     break;
             }
         }

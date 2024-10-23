@@ -16,7 +16,6 @@ namespace StellarRoles.Patches
             cameraTimer = 0f;
             SurveillanceMinigamePatch.ResetData();
             PlanetSurveillanceMinigamePatch.ResetData();
-            DoorLogPatch.ResetData();
         }
 
         static void UseCameraTime()
@@ -82,11 +81,12 @@ namespace StellarRoles.Patches
             {
                 public static bool Prefix(SurveillanceMinigame __instance)
                 {
+                    if (Helpers.TutorialActive) {return true;};
                     cameraTimer += Time.deltaTime;
                     if (cameraTimer > 0.1f)
                         UseCameraTime();
 
-                    if (!MapOptions.CanUseSkeldCameras())
+                    if (!MapOptions.CanUseCameras())
                     {
                         __instance.Close();
                         return false;
@@ -211,6 +211,8 @@ namespace StellarRoles.Patches
             [HarmonyPatch(nameof(PlanetSurveillanceMinigame.Update))]
             public static bool UpdatePrefix(PlanetSurveillanceMinigame __instance)
             {
+                if (Helpers.TutorialActive) { return true; };
+
                 cameraTimer += Time.deltaTime;
                 if (cameraTimer > 0.1f)
                     UseCameraTime();
@@ -268,7 +270,6 @@ namespace StellarRoles.Patches
                 return true;
             }
 
-
             [HarmonyPrefix()]
             [HarmonyPatch(nameof(PlanetSurveillanceMinigame.Close))]
             public static void ClosePrefix()
@@ -297,87 +298,6 @@ namespace StellarRoles.Patches
                 }
 
                 return true;
-            }
-        }
-
-        [HarmonyPatch]
-        class DoorLogPatch
-        {
-            static TMPro.TextMeshPro TimeRemaining;
-            static GameObject BatteryIcon;
-
-            public static void ResetData()
-            {
-                if (TimeRemaining != null)
-                {
-                    UnityEngine.Object.Destroy(TimeRemaining);
-                    TimeRemaining = null;
-                }
-                if (BatteryIcon != null)
-                {
-                    UnityEngine.Object.Destroy(BatteryIcon);
-                    BatteryIcon = null;
-                }
-            }
-
-            [HarmonyPatch(typeof(Minigame), nameof(Minigame.Begin))]
-            class SecurityLogGameBeginPatch
-            {
-                public static void Prefix(Minigame __instance)
-                {
-                    if (__instance is SecurityLogGame)
-                        cameraTimer = 0f;
-                }
-            }
-
-            [HarmonyPatch(typeof(SecurityLogGame), nameof(SecurityLogGame.Update))]
-            class SecurityLogGameUpdatePatch
-            {
-                public static bool Prefix(SecurityLogGame __instance)
-                {
-                    cameraTimer += Time.deltaTime;
-                    if (cameraTimer > 0.1f)
-                        UseCameraTime();
-
-                    if (PlayerControl.LocalPlayer == Watcher.Player && Watcher.IsActive)
-                    {
-                        if (TimeRemaining == null)
-                        {
-                            TimeRemaining = UnityEngine.Object.Instantiate(HudManager.Instance.TaskPanel.taskText, __instance.transform);
-                            TimeRemaining.alignment = TMPro.TextAlignmentOptions.Center;
-                            TimeRemaining.transform.position = Vector3.zero;
-                            TimeRemaining.transform.localPosition = new Vector3(4f, 2f);
-                            TimeRemaining.transform.localScale *= 1.6f;
-                            TimeRemaining.color = Palette.White;
-                        }
-
-                        TimeRemaining.text = $"{(int)Watcher.BatteryTime}";
-                        TimeRemaining.gameObject.SetActive(true);
-                        TimeRemaining.color = Watcher.BatteryTime > 3f ? Palette.AcceptedGreen : Palette.ImpostorRed;
-
-                        if (BatteryIcon == null)
-                        {
-                            BatteryIcon = UnityEngine.Object.Instantiate(new GameObject("BatteryIcon"), TimeRemaining.transform);
-                            SpriteRenderer SpriteRenderer = BatteryIcon.AddComponent<SpriteRenderer>();
-                            SpriteRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.BatteryIcon.png", 200f);
-                            BatteryIcon.transform.localPosition = new Vector3(-.25f, 0f);
-                            BatteryIcon.transform.SetLocalZ(-80f);
-                            BatteryIcon.transform.localScale *= .5f;
-                            BatteryIcon.layer = __instance.gameObject.layer;
-                        }
-
-                        BatteryIcon.GetComponent<SpriteRenderer>().color = Watcher.BatteryTime > 3f ? Palette.AcceptedGreen : Palette.ImpostorRed;
-                    }
-
-                    if (Hacker.LockedOut)
-                    {
-                        __instance.SabText.gameObject.SetActive(true);
-                        return false;
-                    }
-
-
-                    return true;
-                }
             }
         }
     }

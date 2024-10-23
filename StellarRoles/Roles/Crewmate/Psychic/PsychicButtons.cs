@@ -19,7 +19,7 @@ namespace StellarRoles
                 () =>
                 {
                 },
-                () => Psychic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Psychic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Color faceColor = Color.white;
@@ -58,7 +58,7 @@ namespace StellarRoles
                 () =>
                 {
                 },
-                () => Psychic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Psychic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
 

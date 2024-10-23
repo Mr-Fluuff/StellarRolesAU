@@ -19,7 +19,7 @@ namespace StellarRoles
                 {
                     if (Morphling.SampledTarget != null)
                     {
-                        RPCProcedure.Send(CustomRPC.MorphlingMorph, Morphling.SampledTarget.PlayerId);
+                        RPCProcedure.Send(CustomRPC.MorphlingMorph, Morphling.SampledTarget);
                         RPCProcedure.MorphlingMorph(Morphling.SampledTarget);
                         Morphling.SampledTarget = null;
                         MorphlingButton.EffectDuration = Morphling.Duration;
@@ -35,7 +35,7 @@ namespace StellarRoles
                         // Add poolable player to the button so that the target outfit is shown
                         MorphlingButton.ActionButton.cooldownTimerText.transform.localPosition = new Vector3(0, 0, -1f);  // Before the poolable player
                         MorphTargetDisplay = Object.Instantiate(Patches.IntroCutsceneOnDestroyPatch.playerPrefab, MorphlingButton.ActionButton.transform);
-                        GameData.PlayerInfo data = Morphling.SampledTarget.Data;
+                        NetworkedPlayerInfo data = Morphling.SampledTarget.Data;
                         Morphling.SampledTarget.SetPlayerMaterialColors(MorphTargetDisplay.cosmetics.currentBodySprite.BodySprite);
                         MorphTargetDisplay.SetSkin(data.DefaultOutfit.SkinId, data.DefaultOutfit.ColorId);
                         MorphTargetDisplay.SetHat(data.DefaultOutfit.HatId, data.DefaultOutfit.ColorId);
@@ -47,7 +47,7 @@ namespace StellarRoles
                     }
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Morphling.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Morphling.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     string text = "Morph";
@@ -58,7 +58,7 @@ namespace StellarRoles
 
                     MorphlingButton.ActionButton.buttonLabelText.text = text;
 
-                    return (Morphling.AbilityCurrentTarget || Morphling.SampledTarget) && PlayerControl.LocalPlayer.CanMove && !Impostor.IsRoleAblilityBlocked();
+                    return (Morphling.AbilityCurrentTarget || Morphling.SampledTarget) && PlayerControl.LocalPlayer.CanMove && !Impostor.IsRoleAblilityBlocked() && !PlayerControl.LocalPlayer.IsMushroomMixupActive();
                 },
                 () =>
                 {

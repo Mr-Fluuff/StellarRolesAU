@@ -20,11 +20,11 @@ namespace StellarRoles
                     Camouflager.ChargesRemaining--;
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Camouflager.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Camouflager.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, CamouflagerButton, $"CAMO - {Camouflager.ChargesRemaining}");
-                    return PlayerControl.LocalPlayer.CanMove && !Impostor.IsRoleAblilityBlocked() && Camouflager.ChargesRemaining > 0;
+                    return PlayerControl.LocalPlayer.CanMove && !Impostor.IsRoleAblilityBlocked() && Camouflager.ChargesRemaining > 0 && !PlayerControl.LocalPlayer.IsMushroomMixupActive();
                 },
                 () =>
                 {

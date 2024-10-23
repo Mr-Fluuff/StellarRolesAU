@@ -22,7 +22,7 @@ namespace StellarRoles
             if (Administrator.AllTasksCompleted && !Administrator.IsActive)
             {
                 Administrator.SelfChargingTimer -= Time.deltaTime;
-                if (Administrator.SelfChargingTimer == 0f)
+                if (Administrator.SelfChargingTimer <= 0f)
                 {
                     Administrator.SelfChargingTimer = Administrator.SelfChargingBatteryCooldown;
                     if (Ascended.IsAscended(Administrator.Player))

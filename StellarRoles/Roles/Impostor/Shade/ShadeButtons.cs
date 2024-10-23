@@ -37,19 +37,19 @@ namespace StellarRoles
                     else
                     {
                         bool isImp = PlayerControl.LocalPlayer.Data.Role.IsImpostor;
-                        foreach (PlayerControl player in Helpers.FindClosestPlayers(PlayerControl.LocalPlayer, Shade.GetShadeRadius()))
+                        foreach (PlayerControl player in PlayerControl.LocalPlayer.FindClosestPlayers(Shade.GetShadeRadius()))
                         {
                             if (isImp && player.Data.Role.IsImpostor)
                                 continue;
 
-                            RPCProcedure.Send(CustomRPC.ShadeNearBlind, player.PlayerId);
+                            RPCProcedure.Send(CustomRPC.ShadeNearBlind, player);
                             RPCProcedure.ShadeNearBlind(player);
                         }
                     }
                     SoundEffectsManager.Play(Sounds.Click);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Shade.Player == PlayerControl.LocalPlayer && Shade.Killed >= Shade.KillsToGainBlind && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Shade.Player == PlayerControl.LocalPlayer && Shade.Killed >= Shade.KillsToGainBlind && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, BlindButton, "Blind");
@@ -81,7 +81,7 @@ namespace StellarRoles
                 {
                     if (!Shade.IsInvisble)
                     {
-                        RPCProcedure.Send(CustomRPC.SetInvisible, PlayerControl.LocalPlayer.PlayerId, false);
+                        RPCProcedure.Send(CustomRPC.SetInvisible, PlayerControl.LocalPlayer, false);
                         RPCProcedure.SetInvisible(PlayerControl.LocalPlayer, false);
                         SoundEffectsManager.Play(Sounds.Morph);
 
@@ -92,7 +92,8 @@ namespace StellarRoles
                             Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
                             Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
 
-                            MessageWriter writer = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.PlaceShadeTrace, SendOption.Reliable);
+                            MessageWriter writer = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable);
+                            writer.Write((byte)CustomRPC.PlaceShadeTrace);
                             writer.WriteBytesAndSize(buff);
                             writer.EndMessage();
                             RPCProcedure.PlaceShadeTrace(buff);
@@ -104,7 +105,7 @@ namespace StellarRoles
 
                     }
                 },
-                () => !Shade.IsInvisble && Shade.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return !Shade.IsInvisble && Shade.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, VanishButton, "VANISH");
@@ -136,7 +137,7 @@ namespace StellarRoles
                         VanishButton.Timer = VanishButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
                     }
                 },
-                () => Shade.IsInvisble && Shade.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Shade.IsInvisble && Shade.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, EmergeButton, $"EMERGE - {(int)Shade.InvisibleTimer}");

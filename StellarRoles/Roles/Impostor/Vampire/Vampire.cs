@@ -4,21 +4,21 @@ namespace StellarRoles
 {
     public static class Vampire
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
         public static float Delay => CustomOptionHolder.VampireKillDelay.GetFloat();
         public static float BiteCooldown => CustomOptionHolder.VampireCooldown.GetFloat();
         public static bool HasKillButton => CustomOptionHolder.VampireKillButton.GetBool();
         public static bool IsNeutralKiller => CustomOptionHolder.VampireIsNeutral.GetBool();
-        public static PlayerControl Bitten { get; set; }
-        public static PlayerControl AbilityCurrentTarget { get; set; }
+        public static PlayerControl Bitten { get; set; } = null;
+        public static PlayerControl AbilityCurrentTarget { get; set; } = null;
 
         private static Sprite _ButtonSprite;
 
         public static float CalculateBiteDelay()
         {
             float result = Delay;
-            if(Ascended.IsAscended(Vampire.Player))
+            if (Ascended.IsAscended(Vampire.Player))
             {
                 result *= 1.25f;
             }

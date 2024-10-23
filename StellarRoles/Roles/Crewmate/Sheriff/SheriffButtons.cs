@@ -15,7 +15,7 @@ namespace StellarRoles
             SheriffKillButton = new CustomButton(
                 () =>
                 {
-                    MurderAttemptResult murderAttemptResult = Helpers.CheckMuderAttempt(Sheriff.Player, Sheriff.CurrentTarget);
+                    MurderAttemptResult murderAttemptResult = Helpers.CheckMurderAttempt(Sheriff.Player, Sheriff.CurrentTarget);
                     if (murderAttemptResult == MurderAttemptResult.SuppressKill)
                         return;
                     if (murderAttemptResult == MurderAttemptResult.PerformKill)
@@ -24,13 +24,13 @@ namespace StellarRoles
                         if (Sheriff.CanBeKilledBySheriff(Sheriff.CurrentTarget))
                         {
                             target = Sheriff.CurrentTarget;
-                            Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddCorrectShot);
+                            PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddCorrectShot);
                         }
                         else if (Sheriff.MisfireKills == Misfire.Self)
                         {
                             target = PlayerControl.LocalPlayer;
                             Helpers.PlayerKilledByAbility(target);
-                            Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddMisfire);
+                            PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddMisfire);
                             RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                         }
@@ -38,7 +38,7 @@ namespace StellarRoles
                         {
                             target = Sheriff.CurrentTarget;
                             Sheriff.Haskilled = true;
-                            Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddMisfire);
+                            PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddMisfire);
                             RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                         }
@@ -47,7 +47,7 @@ namespace StellarRoles
                             target = Sheriff.CurrentTarget;
                             Helpers.UncheckedMurderPlayer(Sheriff.Player, PlayerControl.LocalPlayer, true);
                             Helpers.PlayerKilledByAbility(Sheriff.Player);
-                            Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddMisfire);
+                            PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddMisfire);
                             RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                         }

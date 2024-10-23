@@ -14,7 +14,7 @@ namespace StellarRoles
             RefugeeButton = new CustomButton(
                 () =>
                 {
-                    RPCProcedure.Send(CustomRPC.RefugeeShield, PlayerControl.LocalPlayer.PlayerId);
+                    RPCProcedure.Send(CustomRPC.RefugeeShield, PlayerControl.LocalPlayer);
                     PlayerControl.LocalPlayer.IsRefugee(out Refugee refugee);
                     RPCProcedure.RefugeeShield(refugee);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);

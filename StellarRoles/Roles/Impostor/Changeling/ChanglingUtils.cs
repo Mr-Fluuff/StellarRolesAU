@@ -1,4 +1,5 @@
 using HarmonyLib;
+using Reactor.Utilities.Extensions;
 using StellarRoles.Patches;
 using StellarRoles.Utilities;
 using System;
@@ -75,20 +76,26 @@ namespace StellarRoles
                        || Changeling.Player.ImpostorPartnersRoles().Any(x => x == roleId)) continue;
 
 
-                Transform buttonTransform = Object.Instantiate(buttonTemplate, container.transform);
-                buttonTransform.name = Helpers.ColorString(roleInfo.Color, roleInfo.Name) + " Button";
-                buttonTransform.GetComponent<BoxCollider2D>().size = new Vector2(2.5f, 0.55f);
-                TextMeshPro label = Object.Instantiate(textTemplate, buttonTransform);
-                buttonTransform.GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.BlankPlate.png", 215f);
-                buttons.Add(buttonTransform);
+                Transform RoleButton = Object.Instantiate(buttonTemplate, container.transform);
+                RoleButton.GetComponent<AspectPosition>().Destroy();
+                RoleButton.name = Helpers.ColorString(roleInfo.Color, roleInfo.Name) + " Button";
+                RoleButton.GetComponent<BoxCollider2D>().size = new Vector2(2.5f, 0.55f);
+                TextMeshPro ButtonLabel = Object.Instantiate(textTemplate, RoleButton);
+                var ActiveSprite = RoleButton.FindChild("Active").GetComponent<SpriteRenderer>();
+                var InactiveSprite = RoleButton.FindChild("Inactive").GetComponent<SpriteRenderer>();
+                RoleButton.FindChild("Background").gameObject.active = false;
+                ActiveSprite.sprite = HelpMenu.GetPlateSprite();
+                InactiveSprite.sprite = HelpMenu.GetPlateSprite();
+                ActiveSprite.color = Color.green;
+                buttons.Add(RoleButton);
                 int row = count / 3, col = count % 3;
-                buttonTransform.localPosition = new Vector3(-3.205f + col * 3.2f, 2.4f - row * 0.75f, -5);
-                buttonTransform.localScale = new Vector3(1.125f, 1.125f, 1f);
-                label.text = Helpers.ColorString(roleInfo.Color, roleInfo.Name);
-                label.alignment = TextAlignmentOptions.Center;
-                label.transform.localPosition = new Vector3(0, 0, label.transform.localPosition.z);
-                label.transform.localScale *= 1.55f;
-                PassiveButton button = buttonTransform.GetComponent<PassiveButton>();
+                RoleButton.localPosition = new Vector3(-3.205f + col * 3.2f, 2.4f - row * 0.75f, -5);
+                RoleButton.localScale = new Vector3(1.125f, 1.125f, 1f);
+                ButtonLabel.text = Helpers.ColorString(roleInfo.Color, roleInfo.Name);
+                ButtonLabel.alignment = TextAlignmentOptions.Center;
+                ButtonLabel.transform.localPosition = new Vector3(0, 0, ButtonLabel.transform.localPosition.z);
+                ButtonLabel.transform.localScale *= 1.55f;
+                PassiveButton button = RoleButton.GetComponent<PassiveButton>();
                 button.OnClick.RemoveAllListeners();
                 Button.ButtonClickedEvent onClick = button.OnClick = new Button.ButtonClickedEvent();
                 onClick.AddListener((Action)(() =>
@@ -96,16 +103,6 @@ namespace StellarRoles
                     Object.Destroy(container.gameObject);
                     RPCProcedure.Send(CustomRPC.ChangelingChange, (byte)roleId);
                     RPCProcedure.ChangelingChange(roleId);
-                }));
-                button.OnMouseOut.RemoveAllListeners();
-                button.OnMouseOver.AddListener((Action)(() =>
-                {
-                    buttonTransform.GetComponent<SpriteRenderer>().color = Color.yellow;
-                }));
-                button.OnMouseOut.RemoveAllListeners();
-                button.OnMouseOut.AddListener((Action)(() =>
-                {
-                    buttonTransform.GetComponent<SpriteRenderer>().color = Color.white;
                 }));
                 count++;
             }

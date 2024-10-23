@@ -5,7 +5,7 @@ namespace StellarRoles
 {
     public static class Vigilante
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(255, 255, 0, byte.MaxValue);
 
         public static int RemainingShotsVigilante { get; set; } = 2;

@@ -4,11 +4,11 @@ namespace StellarRoles
 {
     public static class Warlock
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
-        public static PlayerControl CurrentCurseTarget { get; set; }
-        public static PlayerControl CurseVictim { get; set; }
-        public static PlayerControl CurseVictimTarget { get; set; }
+        public static PlayerControl CurrentCurseTarget { get; set; } = null;
+        public static PlayerControl CurseVictim { get; set; } = null;
+        public static PlayerControl CurseVictimTarget { get; set; } = null;
         public static float Cooldown => CustomOptionHolder.WarlockCooldown.GetFloat();
         public static float RootTime => CustomOptionHolder.WarlockRootTime.GetFloat();
         public static bool IsNeutralKiller => CustomOptionHolder.WarlockIsNeutral.GetBool();

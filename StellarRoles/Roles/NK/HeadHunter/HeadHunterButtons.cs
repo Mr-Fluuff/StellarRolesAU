@@ -81,7 +81,7 @@ namespace StellarRoles
 
                     HeadHunterKillButton.Timer = HeadHunter.HeadHunterCurrentCooldown;
                     HeadHunter.CurrentTarget = null;
-                    Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddKill);
+                    PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddKill);
                 },
                 () => { return HeadHunter.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !PlayerControl.LocalPlayer.IsBombedAndActive(); },
                 () => { return HeadHunter.CurrentTarget && PlayerControl.LocalPlayer.CanMove; },

@@ -6,13 +6,13 @@ namespace StellarRoles
 {
     public static class Tracker
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(100, 58, 220, byte.MaxValue);
 
         public static readonly List<Arrow> localArrows = new();
         public static readonly Dictionary<byte, Arrow> TrackedPlayerLocalArrows = new();
 
-        public static bool RoleBlock => CustomOptionHolder.CrewRoleBlock.GetBool() && CustomOptionHolder.TrackerRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.TrackerRoleBlock.GetBool();
 
         public static bool AnonymousArrows => CustomOptionHolder.TrackerAnonymousArrows.GetBool();
 
@@ -20,7 +20,7 @@ namespace StellarRoles
         public static float TrackTargetCooldown => CustomOptionHolder.TrackerTrackCooldown.GetFloat();
         public static float DelayDuration => CustomOptionHolder.TrackerDelayDuration.GetFloat();
 
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl CurrentTarget { get; set; } = null;
         public static readonly PlayerList TrackedPlayers = new();
         public static float NumberOfTracks { get; set; }
 

@@ -23,6 +23,10 @@ namespace StellarRoles
         public static readonly Vector3 AirshipVitals = new(25.5f, -8.5f, 1f);
         public static readonly Vector3 AirshipCameras = new(8.5f, -10.5f, 1f);
         public static readonly Vector3 AirshipCameras2 = new(7.6f, -10.5f, 1f);
+        public static readonly Vector3 FungleVitals = new(-2.79f, -9.95f, 1f);
+        public static readonly Vector3 FungleCams = new(7.06f, 1.16f, 1f);
+        public static readonly Vector3 FungleAdmin = new(9.59f, -13.43f, 1f);
+
         public static readonly Vector3 BetterPolusVitals = new(31.3f, -7.3f, 1f);
 
 
@@ -66,7 +70,10 @@ namespace StellarRoles
                 new InformationSourceDetails(InformationSource.Admin, Map.Airship, ArishipAdmin2, 1f),
                 new InformationSourceDetails(InformationSource.Cameras, Map.Airship, AirshipCameras, .75f),
                 new InformationSourceDetails(InformationSource.Cameras, Map.Airship, AirshipCameras2, .75f),
-                new InformationSourceDetails(InformationSource.Vitals, Map.Airship, AirshipVitals)
+                new InformationSourceDetails(InformationSource.Vitals, Map.Airship, AirshipVitals),
+                new InformationSourceDetails(InformationSource.Vitals, Map.Fungal, FungleVitals),
+                new InformationSourceDetails(InformationSource.Admin, Map.Fungal, FungleAdmin),
+                new InformationSourceDetails(InformationSource.Cameras, Map.Fungal, FungleCams)
             };
         }
     }

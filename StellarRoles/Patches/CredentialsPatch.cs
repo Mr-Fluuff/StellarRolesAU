@@ -8,68 +8,45 @@ namespace StellarRoles.Patches
     [HarmonyPatch]
     public static class CredentialsPatch
     {
+        public readonly static string StellarTitle = "<size=130%><color=#B2FEFE>StellarRoles</color></size>";
+        public readonly static string Fluff = "<color=#C50000>Fluff</color>";
+        public readonly static string Ilyssa = "<color=#C46AD8>Ilyssa</color>";
+        public readonly static string Stell = "<color=#9bd3ff>Stell</color>";
 
-        public static string fullCredentials =
-$@"<size=130%><color=#B2FEFE>StellarRoles</color></size> v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}
-<size=80%>Created by <color=#C50000>Fluff</color>, <color=#C46AD8>Ilyssa</color>, and <color=#9bd3ff>Stell</color> ";
+        public readonly static string fullCredentials =
+$@"{StellarTitle} v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}
+<size=80%>Created by {Fluff}, {Ilyssa}, and {Stell} </size>";
 
-        public static string mainMenuCredentials =
-    $@"Created by <color=#C50000>Fluff</color>, <color=#C46AD8>Ilyssa</color>, and <color=#9bd3ff>Stell</color>";
+        public readonly static string mainMenuCredentials = $@"Created by {Fluff}, {Ilyssa}, and {Stell}";
 
-        public static string contributorsCredentials =
-$@"<size=80%> <color=#B2FEFE>Special thanks to Om3ga & Sugden</color></size>";
+        public readonly static string contributorsCredentials = $@"<size=80%> <color=#B2FEFE>Special thanks to Om3ga</color></size>";
 
-        public static string artCredentials =
-$@"<size=80f%>Art by Crayonvex, Stell, and Phylo</size>";
+        public readonly static string artCredentials = $@"<size=80f%>Art by Crayonvex, Stell, Phylo, and SeaGirl13</size>";
 
 
         [HarmonyPatch(typeof(PingTracker), nameof(PingTracker.Update))]
         internal static class PingTrackerPatch
         {
-            public static GameObject modStamp;
-
-            static void Prefix(PingTracker __instance)
-            {
-                if (modStamp == null)
-                {
-                    modStamp = new GameObject("ModStamp");
-                    SpriteRenderer rend = modStamp.AddComponent<SpriteRenderer>();
-                    rend.sprite = ModManager.Instance.ModStamp.sprite;
-                    rend.color = new Color(1, 1, 1, 0.5f);
-                    modStamp.transform.parent = HudManager.Instance.transform;
-                    modStamp.transform.localScale *= 0.5f;
-                }
-            }
-
             static void Postfix(PingTracker __instance)
             {
-                __instance.text.alignment = TextAlignmentOptions.TopRight;
+                __instance.text.alignment = TextAlignmentOptions.Top;
+                __instance.transform.localScale = Vector3.one * 0.4f;
+                var position = __instance.GetComponent<AspectPosition>();
+                position.Alignment = AspectPosition.EdgeAlignments.Top;
+
                 if (AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Started)
                 {
                     __instance.text.text = Camera.main.orthographicSize == 3f
-                        ? $"<size=130%><color=#B2FEFE>StellarRoles</color></size> v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}\n{__instance.text.text}" : "";
-                    __instance.transform.localPosition = HudManager.Instance.SettingsButton.transform.localPosition + (Vector3.left * 3f) + (Vector3.up * .25f);
+                        ? $"{StellarTitle} v{StellarRolesPlugin.UpdateString} {StellarRolesPlugin.BetaVersion}\n{__instance.text.text}" : "";
+                    position.DistanceFromEdge = new Vector3(0.25f, 0.11f, 0);
                 }
                 else
                 {
                     __instance.text.text = $"{fullCredentials}\n{__instance.text.text}";
-                    __instance.transform.localPosition = new Vector3(3.5f, __instance.transform.localPosition.y, __instance.transform.localPosition.z);
+                    position.DistanceFromEdge = new Vector3(0f, 0.1f, 0);
                 }
-                if (HudManager.Instance)
-                    modStamp.transform.localPosition = HudManager.Instance.MapButton.transform.localPosition + (Vector3.left * .5f) + (Vector3.up * .25f);
             }
         }
-
-        [HarmonyPatch(typeof(ModManager), nameof(ModManager.LateUpdate))]
-        internal static class ModStampUpdate
-        {
-            static void Postfix(ModManager __instance)
-            {
-                if (__instance == null) return;
-                __instance.ModStamp.gameObject.SetActive(!Helpers.GameStarted && !LobbyBehaviour.Instance);
-            }
-        }
-
 
         [HarmonyPatch(typeof(MainMenuManager), nameof(MainMenuManager.Start))]
         public static class LogoPatch
@@ -78,15 +55,12 @@ $@"<size=80f%>Art by Crayonvex, Stell, and Phylo</size>";
             public static Sprite bannerSprite;
             public static Sprite playerSprite;
             public static Sprite[] Sprites;
-            private static PingTracker instance;
-            static void Postfix(PingTracker __instance)
+            static void Postfix()
             {
                 GameObject StellarLogo = new("bannerLogo_SR");
                 StellarLogo.transform.SetParent(GameObject.Find("RightPanel").transform, false);
                 StellarLogo.transform.localPosition = new Vector3(-0.2f, .4f, 5f);
                 renderer = StellarLogo.AddComponent<SpriteRenderer>();
-
-                instance = __instance;
 
                 loadSprites();
                 renderer.sprite = bannerSprite;
@@ -111,33 +85,15 @@ $@"<size=80f%>Art by Crayonvex, Stell, and Phylo</size>";
                 {
                     playerParticles.transform.GetChild(i).gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
                 }
+
+                ModManager.Instance.ShowModStamp();
+                ModManager.Instance.enabled = true;
             }
 
             public static void loadSprites()
             {
                 if (bannerSprite == null) bannerSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banner.png", 175f);
                 if (playerSprite == null) playerSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Gooper.png", 175f);
-            }
-
-            public static void updateSprite()
-            {
-                loadSprites();
-                if (renderer != null)
-                {
-                    float fadeDuration = 1f;
-                    instance.StartCoroutine(Effects.Lerp(fadeDuration, new Action<float>((p) =>
-                    {
-                        renderer.color = new Color(1, 1, 1, 1 - p);
-                        if (p == 1)
-                        {
-                            renderer.sprite = bannerSprite;
-                            instance.StartCoroutine(Effects.Lerp(fadeDuration, new Action<float>((p) =>
-                            {
-                                renderer.color = new Color(1, 1, 1, p);
-                            })));
-                        }
-                    })));
-                }
             }
         }
     }

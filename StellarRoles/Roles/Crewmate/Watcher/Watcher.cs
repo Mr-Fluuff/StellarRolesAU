@@ -10,7 +10,7 @@ namespace StellarRoles
         public static readonly Dictionary<byte, Arrow> TrippedTrapWires = new();
         public static readonly PlayerList TrackedPlayers = new();
 
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(10, 235, 235, byte.MaxValue);
 
         public static float BatteryTime { get; set; }
@@ -25,7 +25,7 @@ namespace StellarRoles
         public static float SelfChargingTimer { get; set; }
         public static bool AllTasksCompleted { get; set; }
         public static bool DisableRoundOneAccess => CustomOptionHolder.WatcherRoundOneAccess.GetBool();
-        public static bool RoleBlock => CustomOptionHolder.WatcherRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.WatcherRoleBlock.GetBool();
         public static bool NonCrewFlash => CustomOptionHolder.WatcherNonCrewFlash.GetBool();
         public static float NonCrewFlashDelay => NonCrewFlash ? (CustomOptionHolder.WatcherNonCrewFlash.GetSelection() - 1) * 2.5f : 0;
 

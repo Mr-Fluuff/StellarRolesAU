@@ -2,6 +2,7 @@
 using Assets.InnerNet;
 using HarmonyLib;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using static UnityEngine.UI.Button;
 using Object = UnityEngine.Object;
@@ -11,37 +12,46 @@ namespace StellarRoles.Modules
     [HarmonyPatch(typeof(MainMenuManager), nameof(MainMenuManager.Start))]
     public class MainMenuPatch
     {
-        //private static GameObject regionResetTemplate;
-        //private static GameObject regionResetConfirmTemplate;
+        private static GameObject regionResetConfirmTemplate;
         private static AnnouncementPopUp popUp;
 
         private static void Prefix(MainMenuManager __instance)
         {
-            CustomVisorLoader.LaunchVisorFetcher();
-            CustomHatLoader.LaunchHatFetcher();
+            GameObject NewsB = GameObject.Find("NewsButton");
+            GameObject AccountB = GameObject.Find("AcountButton");
+            GameObject SettingsB = GameObject.Find("SettingsButton");
+            List<GameObject> objects = new() { NewsB, AccountB, SettingsB };
+            foreach (GameObject obj in objects)
+            {
+                obj.transform.localScale = new Vector3(0.41f, 0.84f, 1);
+                var pos = obj.transform.localPosition;
+                pos.x = -0.87f;
+                obj.transform.localPosition = pos;
+
+                var FontPlacer = obj.transform.FindChild("FontPlacer").gameObject;
+                FontPlacer.transform.localScale = new Vector3(2, 1, 1);
+                FontPlacer.transform.localPosition = new Vector3(-1.6159f, -0.0818f, 0);
+
+                var Icon = obj.transform.FindChild("Inactive").FindChild("Icon").gameObject;
+                Icon.transform.localScale += new Vector3(0.4f, 0, 0);
+
+                var Icon2 = obj.transform.FindChild("Highlight").FindChild("Icon").gameObject;
+                Icon2.transform.localScale += new Vector3(0.4f, 0, 0);
+            }
+
+
 
             #region DiscordButton
-            GameObject template = GameObject.Find("ExitGameButton");
-            GameObject template2 = GameObject.Find("CreditsButton");
-            if (template == null || template2 == null) return;
-            template.transform.localScale = new Vector3(0.42f, 0.84f, 0.84f);
-            template.GetComponent<AspectPosition>().anchorPoint = new Vector2(0.625f, 0.5f);
-            template.transform.FindChild("FontPlacer").transform.localScale = new Vector3(1.8f, 0.9f, 0.9f);
-            template.transform.FindChild("FontPlacer").transform.localPosition = new Vector3(-1.1f, 0f, 0f);
-
-            template2.transform.localScale = new Vector3(0.42f, 0.84f, 0.84f);
-            template2.GetComponent<AspectPosition>().anchorPoint = new Vector2(0.378f, 0.5f);
-            template2.transform.FindChild("FontPlacer").transform.localScale = new Vector3(1.8f, 0.9f, 0.9f);
-            template2.transform.FindChild("FontPlacer").transform.localPosition = new Vector3(-1.1f, 0f, 0f);
-
-            GameObject buttonDiscord = Object.Instantiate(template, template.transform.parent);
-            buttonDiscord.transform.localScale = new Vector3(0.42f, 0.84f, 0.84f);
-            buttonDiscord.GetComponent<AspectPosition>().anchorPoint = new Vector2(0.543f, 0.5f);
+            GameObject buttonDiscord = Object.Instantiate(AccountB, AccountB.transform.parent);
+            buttonDiscord.name = "DiscordButton";
+            buttonDiscord.transform.localPosition = new Vector3(0.87f, -0.387f, 0);
+            buttonDiscord.transform.FindChild("Inactive").FindChild("Icon").GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.discord.png", 240f);
+            buttonDiscord.transform.FindChild("Highlight").FindChild("Icon").GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.discord.png", 240f);
 
             TMPro.TMP_Text textDiscord = buttonDiscord.transform.GetComponentInChildren<TMPro.TMP_Text>();
             __instance.StartCoroutine(Effects.Lerp(0.5f, new Action<float>((p) =>
             {
-                textDiscord.SetText(" SR Discord");
+                textDiscord.SetText("SR Discord");
             })));
             PassiveButton passiveButtonDiscord = buttonDiscord.GetComponent<PassiveButton>();
             passiveButtonDiscord.OnClick = new ButtonClickedEvent();
@@ -50,17 +60,18 @@ namespace StellarRoles.Modules
             #endregion DiscordButton
 
             #region SR Credits
-            // TOR credits button
-            if (template == null) return;
+            GameObject creditsButton = Object.Instantiate(AccountB, AccountB.transform.parent);
+            creditsButton.name = "SRCreditsButton";
+            creditsButton.transform.localPosition = new Vector3(0.87f, -0.912f, 0);
+            creditsButton.transform.FindChild("Inactive").FindChild("Icon").GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Gooper.png", 200f);
+            creditsButton.transform.FindChild("Highlight").FindChild("Icon").GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Gooper.png", 200f);
 
-            GameObject creditsButton = Object.Instantiate(template, template.transform.parent);
-            creditsButton.transform.localScale = new Vector3(0.42f, 0.84f, 0.84f);
-            creditsButton.GetComponent<AspectPosition>().anchorPoint = new Vector2(0.461f, 0.5f);
 
             TMPro.TMP_Text textCreditsButton = creditsButton.transform.GetComponentInChildren<TMPro.TMP_Text>();
             __instance.StartCoroutine(Effects.Lerp(0.5f, new Action<float>((p) =>
             {
                 textCreditsButton.SetText("SR Credits");
+                //creditsButton.transform.GetChild(2).localPosition = new Vector3(-1, 0);
             })));
 
             PassiveButton passiveCreditsButton = creditsButton.GetComponent<PassiveButton>();
@@ -106,7 +117,7 @@ Goose-Goose-Duck - Idea for the Scavenger role came from Slushiegoose</size>";
                     ShortTitle = "StellarRoles Credits",
                     SubTitle = "",
                     PinState = false,
-                    Date = "03.07.2023",
+                    Date = "03.07.2025",
                     Text = creditsString,
                 };
 
@@ -128,112 +139,130 @@ Goose-Goose-Duck - Idea for the Scavenger role came from Slushiegoose</size>";
             #endregion SR Credits
 
             #region RegionReset
-            /* //Reset Region Json
-             regionResetTemplate = GameObject.Find("InventoryButton");
-             regionResetConfirmTemplate = GameObject.Find("ExitGameButton");
-             if (regionResetTemplate == null) return;
-             GameObject regionResetButton = Object.Instantiate(regionResetTemplate, regionResetTemplate.transform.parent);
+            regionResetConfirmTemplate = SettingsB;
+            GameObject buttonRegion = Object.Instantiate(AccountB, AccountB.transform.parent);
+            buttonRegion.name = "DiscordButton";
+            buttonRegion.transform.localPosition = new Vector3(0.87f, -1.444f, 0);
+            buttonRegion.transform.FindChild("Inactive").FindChild("Icon").GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.region.png", 240f);
+            buttonRegion.transform.FindChild("Highlight").FindChild("Icon").GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.region.png", 240f);
+
+            TMPro.TMP_Text textRegion = buttonRegion.transform.GetComponentInChildren<TMPro.TMP_Text>();
+            __instance.StartCoroutine(Effects.Lerp(0.5f, new Action<float>((p) =>
+            {
+                textRegion.SetText("Reset Region");
+            })));
+            PassiveButton passiveButtonRegionReset = buttonRegion.GetComponent<PassiveButton>();
+            passiveButtonRegionReset.OnClick = new ButtonClickedEvent();
+            passiveButtonRegionReset.OnClick.AddListener((Action)delegate
+            {
+                // do stuff
+                if (popUp != null) Object.Destroy(popUp);
+                AnnouncementPopUp popUpTemplate = Object.FindObjectOfType<AnnouncementPopUp>(true);
+                if (popUpTemplate == null)
+                {
+                    Helpers.Log(LogLevel.Error, "Unable to show credits as `popUpTemplate` is unexpectedly null");
+                    return;
+                }
+                popUp = Object.Instantiate(popUpTemplate);
+                popUp.gameObject.SetActive(true);
+                string PopupInitString = @$"<align=""center"">Are you sure you want to reset your Among Us regions to default? This tool should only be used if your regions are not displaying correctly. Press Confirm to reset your Among Us regions. This will also restart your Among Us client.";
+                PopupInitString += $@"<size=60%> </size>";
+                PopupInitString += "</align>";
+                Announcement creditsAnnouncement = new()
+                {
+                    Id = "StellarCredits",
+                    Language = 0,
+                    Number = 502,
+                    Title = "StellarRoles Region Reset",
+                    ShortTitle = "StellarRoles Regions",
+                    SubTitle = "",
+                    PinState = false,
+                    Date = "03.07.2025",
+                    Text = PopupInitString,
+                };
+
+                __instance.StartCoroutine(Effects.Lerp(0.01f, new Action<float>((p) =>
+                {
+                    if (p == 1)
+                    {
+                        Il2CppSystem.Collections.Generic.List<Announcement> backup = DataManager.Player.Announcements.allAnnouncements;
+                        DataManager.Player.Announcements.allAnnouncements = new();
+                        popUp.Init(false);
+                        DataManager.Player.Announcements.SetAnnouncements(new Announcement[] { creditsAnnouncement });
+                        popUp.CreateAnnouncementList();
+                        popUp.UpdateAnnouncementText(creditsAnnouncement.Number);
+                        popUp.visibleAnnouncements[0].PassiveButton.OnClick.RemoveAllListeners();
+                        DataManager.Player.Announcements.allAnnouncements = backup;
+                    }
+                })));
+
+                string ActionCompleteString = @$"<align=""center"">Region info reset, game will close when pop is dismissed...";
+                ActionCompleteString += $@"<size=60%> </size>";
+                ActionCompleteString += "</align>";
 
 
-             PassiveButton passiveRegionResetButton = regionResetButton.GetComponent<PassiveButton>();
+                GameObject regionResetConfirmationButton = Object.Instantiate(regionResetConfirmTemplate, popUp.transform);
+                regionResetConfirmationButton.transform.localPosition = new Vector3(0.75f, -1.25f, -5);
+                TMPro.TMP_Text textRegionResetConfirmationButton = regionResetConfirmationButton.transform.GetComponentInChildren<TMPro.TMP_Text>();
+                __instance.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) =>
+                {
+                    textRegionResetConfirmationButton.SetText("Confirm");
+                })));
+                PassiveButton passiveRegionResetConfirmationButtom = regionResetConfirmationButton.GetComponent<PassiveButton>();
+                passiveRegionResetConfirmationButtom.gameObject.SetActive(true);
+                passiveRegionResetConfirmationButtom.OnClick.RemoveAllListeners();
+                passiveRegionResetConfirmationButtom.OnClick = new ButtonClickedEvent();
+                passiveRegionResetConfirmationButtom.OnClick.AddListener((Action)(() =>
+                {
+                    string regionJsonPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).Replace("Local", "LocalLow"), "InnerSloth\\Among Us\\regionInfo.json");
+                    if (System.IO.File.Exists(regionJsonPath)) System.IO.File.Delete(regionJsonPath);
+                    popUp.AnnouncementBodyText.SetText(ActionCompleteString);
+                    passiveRegionResetConfirmationButtom.gameObject.SetActive(false);
+                    __instance.StartCoroutine(Effects.Lerp(0.5f, new Action<float>((p) =>
+                    {
+                        if (p == 1)
+                        Application.Quit();
+                    })));
+                }));
+                popUp.OnDismissed = new Action(() => passiveRegionResetConfirmationButtom.gameObject.SetActive(false));
 
-             SpriteRenderer spriteRegionResetButton = regionResetButton.GetComponent<SpriteRenderer>();
-
-             spriteRegionResetButton.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.RegionReset.png", 75f);
-
-             passiveRegionResetButton.OnClick = new ButtonClickedEvent();
-
-             passiveRegionResetButton.OnClick.AddListener((Action)delegate
-             {
-                 // do stuff
-                 if (popUp != null) Object.Destroy(popUp);
-                 popUp = Object.Instantiate(Object.FindObjectOfType<AnnouncementPopUp>(true));
-                 popUp.gameObject.SetActive(true);
-                 string PopupInitString = @$"<align=""center"">Are you sure you want to reset your Among Us regions to default? This tool should only be used if your regions are not displaying correctly. Press Confirm to reset your Among Us regions. This will also restart your Among Us client.";
-                 PopupInitString += $@"<size=60%> </size>";
-                 PopupInitString += "</align>";
-                 Assets.InnerNet.Announcement resetRegionsAnnoucement = new()
-                 {
-                     Id = "ResetRegionsConfirm",
-                     Language = 0,
-                     Number = 500,
-                     Title = "Reset Region File",
-                     ShortTitle = "Regions",
-                     SubTitle = "",
-                     PinState = false,
-                     Date = DateTime.Now.ToString(),
-                     Text = PopupInitString
-                 };
-                 string ActionCompleteString = @$"<align=""center"">Region info reset, game will close when pop is dismissed...";
-                 ActionCompleteString += $@"<size=60%> </size>";
-                 ActionCompleteString += "</align>";
-
-                 __instance.StartCoroutine(Effects.Lerp(0.01f, new Action<float>((p) =>
-                 {
-                     if (p == 1)
-                     {
-                         Il2CppSystem.Collections.Generic.List<Assets.InnerNet.Announcement> backup = DataManager.Player.Announcements.allAnnouncements;
-                         popUp.Init(false);
-                         DataManager.Player.Announcements.allAnnouncements = new();
-                         DataManager.Player.Announcements.allAnnouncements.Insert(0, resetRegionsAnnoucement);
-                         foreach (AnnouncementPanel item in popUp.visibleAnnouncements) Object.Destroy(item);
-                         foreach (AnnouncementPanel item in Object.FindObjectsOfType<AnnouncementPanel>())
-                         {
-                             if (item != popUp.ErrorPanel) Object.Destroy(item.gameObject);
-                         }
-                         popUp.CreateAnnouncementList();
-                         popUp.visibleAnnouncements[0].PassiveButton.OnClick.RemoveAllListeners();
-                         DataManager.Player.Announcements.allAnnouncements = backup;
-                         TMPro.TextMeshPro titleText = GameObject.Find("Title_Text").GetComponent<TMPro.TextMeshPro>();
-                         if (titleText != null) titleText.text = "";
-                     }
-                 })));
-                 GameObject regionResetConfirmationButton = Object.Instantiate(regionResetConfirmTemplate, null);
-                 regionResetConfirmationButton.transform.localPosition = new Vector3(popUp.transform.localPosition.x + .75f, popUp.transform.localPosition.y + -1.25f, popUp.transform.localPosition.z - 1);
-                 TMPro.TMP_Text textRegionResetConfirmationButton = regionResetConfirmationButton.transform.GetChild(0).GetComponent<TMPro.TMP_Text>();
-                 __instance.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) =>
-                 {
-                     textRegionResetConfirmationButton.SetText("Confirm");
-                 })));
-                 SpriteRenderer spriteRegionResetConfirmationButton = regionResetConfirmationButton.GetComponent<SpriteRenderer>();
-                 PassiveButton passiveRegionResetConfirmationButtom = regionResetConfirmationButton.GetComponent<PassiveButton>();
-                 passiveRegionResetConfirmationButtom.gameObject.SetActive(true);
-                 passiveRegionResetConfirmationButtom.OnClick.RemoveAllListeners();
-                 passiveRegionResetConfirmationButtom.OnClick = new ButtonClickedEvent();
-                 passiveRegionResetConfirmationButtom.OnClick.AddListener((Action)(() =>
-                 {
-                     string regionJsonPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).Replace("Local", "LocalLow"), "InnerSloth\\Among Us\\regionInfo.json");
-                     if (System.IO.File.Exists(regionJsonPath)) System.IO.File.Delete(regionJsonPath);
-                     popUp.AnnouncementBodyText.SetText(ActionCompleteString);
-                     passiveRegionResetConfirmationButtom.gameObject.SetActive(false);
-                     __instance.StartCoroutine(Effects.Lerp(0.5f, new Action<float>((p) =>
-                     {
-                         Application.Quit();
-                     })));
-                 }));
-                 popUp.OnDismissed = new Action(() => passiveRegionResetConfirmationButtom.gameObject.SetActive(false));
-
-             });*/
+            });
             #endregion RegionReset
 
             #region FriendsList Color
-            GameObject FriendsListManager = GameObject.Find("FriendsListManager");
+/*            GameObject FriendsListManager = GameObject.Find("FriendsListManager");
+            if (FriendsListManager != null)
+            {
+                Helpers.Log("Found FriendsListManager");
+            }
+
             if (FriendsListManager != null)
             {
                 Transform friendsListButton = FriendsListManager.transform.FindChild("Friends List Button").FindChild("Friends List Button");
                 friendsListButton.FindChild("Highlight").gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
                 friendsListButton.FindChild("Tab").gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
-            }
+            }*/
             #endregion FriendsList Color
 
             #region Account Color
-            GameObject account = GameObject.Find("AccountManager");
+/*            GameObject account = GameObject.Find("AccountManager");
+
             if (account != null)
             {
+                Helpers.Log("Found AccountManager");
+
                 SpriteRenderer accountoutline = account.transform.FindChild("AccountTab").FindChild("AccountWindow").FindChild("Tab").FindChild("AccountTab").gameObject.GetComponent<SpriteRenderer>();
                 accountoutline.color = Color.blue;
-            }
+            }*/
             #endregion Account Color
+        }
+
+        private static void Postfix()
+        {
+            CustomVisorLoader.LaunchVisorFetcher();
+            CustomHatLoader.LaunchHatFetcher();
+            CustomNameplateLoader.LaunchNameplateFetcher();
+            CustomOptionDefaultSettings.CreatePresets();
         }
     }
 }

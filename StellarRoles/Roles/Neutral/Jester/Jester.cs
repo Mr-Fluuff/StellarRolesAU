@@ -12,7 +12,7 @@ namespace StellarRoles
         public static float LightsOffVision => CustomOptionHolder.JesterLightsOffVision.GetFloat();
         public static bool CanCallEmergency => CustomOptionHolder.JesterCanCallEmergency.GetBool();
         public static bool CanEnterVents => CustomOptionHolder.JesterCanEnterVents.GetBool();
-        public static PlayerControl WinningJesterPlayer { get; set; }
+        public static PlayerControl WinningJesterPlayer { get; set; } = null;
         public static bool TriggerJesterWin { get; set; } = false;
 
         private static Sprite _VentButtonSprite;
@@ -78,5 +78,7 @@ namespace StellarRoles
     public static class JesterExtenstions
     {
         public static bool IsJester(this PlayerControl player, out Jester jester) => Jester.IsJester(player.PlayerId, out jester);
+        public static bool IsJester(this PlayerControl player) => Jester.IsJester(player.PlayerId, out _);
+
     }
 }

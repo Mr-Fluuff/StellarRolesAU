@@ -1,5 +1,6 @@
 using Cpp2IL.Core.Extensions;
 using HarmonyLib;
+using Steamworks;
 using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
@@ -64,7 +65,7 @@ namespace StellarRoles.Patches
                 {
                     Dictionary<byte, int> self = CalculateVotes(__instance);
                     KeyValuePair<byte, int> max = self.MaxPair(out bool tie);
-                    GameData.PlayerInfo exiled = GameData.Instance.AllPlayers.ToArray().FirstOrDefault(v => !tie && v.PlayerId == max.Key && !v.IsDead);
+                    NetworkedPlayerInfo exiled = GameData.Instance.AllPlayers.ToArray().FirstOrDefault(v => !tie && v.PlayerId == max.Key && !v.IsDead);
 
                     MeetingHud.VoterState[] array = new MeetingHud.VoterState[__instance.playerStates.Length];
                     for (int i = 0; i < __instance.playerStates.Length; i++)
@@ -87,7 +88,7 @@ namespace StellarRoles.Patches
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.BloopAVoteIcon))]
         class MeetingHudBloopAVoteIconPatch
         {
-            public static bool Prefix(MeetingHud __instance, [HarmonyArgument(0)] GameData.PlayerInfo voterPlayer, [HarmonyArgument(1)] int index, [HarmonyArgument(2)] Transform parent)
+            public static bool Prefix(MeetingHud __instance, [HarmonyArgument(0)] NetworkedPlayerInfo voterPlayer, [HarmonyArgument(1)] int index, [HarmonyArgument(2)] Transform parent)
             {
                 SpriteRenderer spriteRenderer = Object.Instantiate(__instance.PlayerVotePrefab);
                 int cId = voterPlayer.DefaultOutfit.ColorId;
@@ -107,6 +108,12 @@ namespace StellarRoles.Patches
                 spriteRenderer.transform.SetParent(parent);
                 spriteRenderer.transform.localScale = Vector3.zero;
 
+                PlayerVoteArea component = parent.GetComponent<PlayerVoteArea>();
+                if (component != null)
+                {
+                    spriteRenderer.material.SetInt(PlayerMaterial.MaskLayer, component.MaskLayer);
+                }
+
                 __instance.StartCoroutine(Effects.Bloop(index * 0.3f, spriteRenderer.transform, 1f, 0.5f));
                 parent.GetComponent<VoteSpreader>().AddVote(spriteRenderer);
                 voterPlayer.Object.SetColor(cId);
@@ -120,20 +127,23 @@ namespace StellarRoles.Patches
             static bool Prefix(MeetingHud __instance, Il2CppStructArray<MeetingHud.VoterState> states)
             {
 
-                __instance.TitleText.text = FastDestroyableSingleton<TranslationController>.Instance.GetString(StringNames.MeetingVotingResults, new Il2CppReferenceArray<Il2CppSystem.Object>(0));
+                __instance.TitleText.text = TranslationController.Instance.GetString(StringNames.MeetingVotingResults, new Il2CppReferenceArray<Il2CppSystem.Object>(0));
                 int num = 0;
+                var localPlayer = PlayerControl.LocalPlayer;
 
                 for (int i = 0; i < __instance.playerStates.Length; i++)
                 {
                     PlayerVoteArea playerVoteArea = __instance.playerStates[i];
                     byte targetPlayerId = playerVoteArea.TargetPlayerId;
+                    PlayerControl targetPlayer = Helpers.PlayerById(targetPlayerId);
                     playerVoteArea.ClearForResults();
                     int num2 = 0;
                     bool mayorFirstVoteDisplayed = false;
                     for (int j = 0; j < states.Length; j++)
                     {
                         MeetingHud.VoterState voterState = states[j];
-                        GameData.PlayerInfo playerById = GameData.Instance.GetPlayerById(voterState.VoterId);
+                        NetworkedPlayerInfo playerById = GameData.Instance.GetPlayerById(voterState.VoterId);
+
                         if (playerById == null)
                         {
                             Debug.LogError(string.Format("Couldn't find player info for voter: {0}", voterState.VoterId));
@@ -149,13 +159,16 @@ namespace StellarRoles.Patches
                             {
                                 RPCProcedure.Send(CustomRPC.SpitefulVote, targetPlayerId, voterState.VoterId);
                                 // Is voterState.VoterId just the player whos vote area it is? need to investigate
-                                spiteful.VotedBy.Add(Helpers.PlayerById(voterState.VoterId));
+                                spiteful.VotedBy.Add(voterState.VoterId);
                             }
                             __instance.BloopAVoteIcon(playerById, num2, playerVoteArea.transform);
                             num2++;
                         }
-
-                        PlayerControl targetPlayer = Helpers.PlayerById(targetPlayerId);
+                        if (playerById?.Object == localPlayer && !localPlayer.IsImpostor() && !localPlayer.Data.IsDead
+                            && !voterState.SkippedVote)
+                        {
+                            ExtraStats.playerVoted = Helpers.PlayerById(voterState.VotedForId);
+                        }
 
                         // Major vote, redo this iteration to place a second vote
                         bool isMayor = Mayor.Player != null && voterState.VoterId == Mayor.Player.PlayerId && !Mayor.Retired;
@@ -169,6 +182,19 @@ namespace StellarRoles.Patches
                         }
                     }
                 }
+
+                if (ExtraStats.playerVoted != null)
+                {
+                    if (ExtraStats.playerVoted.Data.Role.IsImpostor)
+                    {
+                        localPlayer.RPCAddGameInfo(InfoType.AddCorrectVote);
+                    }
+                    else
+                    {
+                        localPlayer.RPCAddGameInfo(InfoType.AddIncorrectVote);
+                    }
+                }
+
                 return false;
             }
         }
@@ -176,7 +202,7 @@ namespace StellarRoles.Patches
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.VotingComplete))]
         class MeetingHudVotingCompletedPatch
         {
-            static void Postfix([HarmonyArgument(1)] GameData.PlayerInfo exiled)
+            static void Postfix([HarmonyArgument(1)] NetworkedPlayerInfo exiled)
             {
                 //Refugee save next to be exiled, because RPC of ending game comes before RPC of exiled
                 foreach (Refugee refugee in Refugee.PlayerToRefugee.Values)
@@ -185,6 +211,16 @@ namespace StellarRoles.Patches
                     if (exiled != null)
                         refugee.NotAckedExiled = refugee.Player != null && refugee.Player.PlayerId == exiled.PlayerId;
                 }
+                PlayerControl exiledPlayer = null;
+                if (exiled != null)
+                {
+                    exiledPlayer = exiled.Object;
+                }
+                try
+                {
+                    ExtraStats.ExileStats(exiledPlayer);
+                }
+                catch { }
             }
         }
 
@@ -226,6 +262,7 @@ namespace StellarRoles.Patches
 
         static void JailorConfirm(Jailor jailor)
         {
+            if (PlayerControl.LocalPlayer.Data.IsDead) return;
             MeetingHud meetingHud = MeetingHud.Instance;
             if (
                 meetingHud.state == MeetingHud.VoteStates.Results ||
@@ -263,7 +300,7 @@ namespace StellarRoles.Patches
             if (firstPlayer != null)
             {
                 jailor.Charges--;
-                RPCProcedure.Send(CustomRPC.JailorJail, jailor.Player.PlayerId, firstPlayer.TargetPlayerId);
+                RPCProcedure.Send(CustomRPC.JailorJail, jailor.Player, firstPlayer.TargetPlayerId);
                 RPCProcedure.JailorJail(jailor, Helpers.PlayerById(firstPlayer.TargetPlayerId));
 
                 JailorConfirmButtonLabel.text = Helpers.ColorString(Jailor.Color, "Jailed!");
@@ -301,11 +338,10 @@ namespace StellarRoles.Patches
             MeetingHud meetingHud = MeetingHud.Instance;
             if (GuesserUI != null || !(meetingHud.state == MeetingHud.VoteStates.Voted || meetingHud.state == MeetingHud.VoteStates.NotVoted))
                 return;
-            if (Jailor.IsJailorTarget(target) || PlayerControl.LocalPlayer.Data.IsDead)
+            if ((Jailor.IsJailorTarget(target) && !Jailor.JailedTargetsGuessedAsJailor) || PlayerControl.LocalPlayer.Data.IsDead)
                 return;
 
-            foreach (PlayerVoteArea playerVoteArea in meetingHud.playerStates)
-                playerVoteArea.gameObject.SetActive(false);
+            Helpers.TogglePlayerVoteAreas(meetingHud, false);
 
             Transform phoneUI = Object.FindObjectsOfType<Transform>().FirstOrDefault(x => x.name == "PhoneUI");
             Transform container = Object.Instantiate(phoneUI, meetingHud.transform);
@@ -333,11 +369,9 @@ namespace StellarRoles.Patches
             GuesserUIExitButton.OnClick.AddListener((Action)(() =>
             {
                 Object.Destroy(container.gameObject);
+                Helpers.TogglePlayerVoteAreas(meetingHud, true);
                 foreach (PlayerVoteArea playerVoteArea in meetingHud.playerStates)
                 {
-                    if (Spectator.IsSpectator(playerVoteArea.TargetPlayerId)) continue;
-
-                    playerVoteArea.gameObject.SetActive(true);
                     Transform shootButton = playerVoteArea.transform.FindChild("ShootButton");
                     if (shootButton != null && PlayerControl.LocalPlayer.Data.IsDead)
                         Object.Destroy(shootButton.gameObject);
@@ -389,7 +423,7 @@ namespace StellarRoles.Patches
                     }
                     else
                     {
-                        if (!(meetingHud.state == MeetingHud.VoteStates.Voted || meetingHud.state == MeetingHud.VoteStates.NotVoted) || target == null || Helpers.RemainingShots(PlayerControl.LocalPlayer) <= 0)
+                        if (!(meetingHud.state == MeetingHud.VoteStates.Voted || meetingHud.state == MeetingHud.VoteStates.NotVoted) || target == null || PlayerControl.LocalPlayer.RemainingShots() <= 0)
                             return;
 
                         RoleInfo mainRoleInfo = RoleInfo.GetRoleInfoForPlayer(target, false).FirstOrDefault();
@@ -399,15 +433,10 @@ namespace StellarRoles.Patches
                         PlayerControl dyingTarget = mainRoleInfo == roleInfo ? target : PlayerControl.LocalPlayer;
 
                         // Reset the GUI
-                        meetingHud.playerStates.ToList().ForEach(x =>
-                        {
-                            if (!Spectator.IsSpectator(x.TargetPlayerId))
-                                x.gameObject.SetActive(true);
-                        });
+                        Helpers.TogglePlayerVoteAreas(meetingHud, true);
                         Object.Destroy(container.gameObject);
 
-
-                        if (Helpers.RemainingShots(PlayerControl.LocalPlayer) > 1 && dyingTarget != PlayerControl.LocalPlayer && (
+                        if (PlayerControl.LocalPlayer.RemainingShots() > 1 && dyingTarget != PlayerControl.LocalPlayer && (
                             (guesserRole == RoleId.Vigilante && !Vigilante.LimitVigiOneShotPerMeeting) ||
                             (guesserRole == RoleId.Assassin && !Assassin.AssassinLimitOneShotPerMeeting) ||
                             (guesserRole == RoleId.NKAssassin && !Assassin.NeutralKillerAssassinLimitOneShotPerMeeting)
@@ -427,7 +456,7 @@ namespace StellarRoles.Patches
                             }
 
                         // Shoot player and send chat info if activated
-                        RPCProcedure.Send(CustomRPC.GuesserShoot, PlayerControl.LocalPlayer.PlayerId, dyingTarget.PlayerId, target.PlayerId, (byte)roleInfo.RoleId);
+                        RPCProcedure.Send(CustomRPC.GuesserShoot, PlayerControl.LocalPlayer, dyingTarget, target, roleInfo.RoleId);
                         RPCProcedure.GuesserShoot(PlayerControl.LocalPlayer, dyingTarget, target, roleInfo.RoleId);
 
                         if (dyingTarget.IsJailor(out Jailor jailor) && jailor.HasJailed)
@@ -452,7 +481,7 @@ namespace StellarRoles.Patches
             List<RoleInfo> neutralRoles = new();
             List<RoleInfo> neutralKRoles = new();
 
-            if (Jailor.IsJailorTarget(PlayerControl.LocalPlayer))
+            if (Jailor.IsJailorTarget(PlayerControl.LocalPlayer) || Jailor.IsJailorTarget(target))
                 while (i < 45)
                     AddButton(RoleInfo.Jailor, i++);
             else
@@ -463,10 +492,12 @@ namespace StellarRoles.Patches
                 foreach (RoleInfo roleInfo in RoleInfo.AllRoleInfos)
                 {
                     // Remove roles that cannot spawn, the guesser role, and Romantic if assassin
-                    if (Helpers.CantGuess(roleInfo) || roleInfo.RoleId == guesserRole || (
+                    if (roleInfo.CantGuess() || roleInfo.RoleId == guesserRole || (
                         guesserRole == RoleId.Assassin && roleInfo.RoleId == RoleId.Romantic
                      ))
+                    {
                         continue;
+                    }
 
                     switch (roleInfo.FactionId)
                     {
@@ -496,11 +527,9 @@ namespace StellarRoles.Patches
         {
             MeetingHud meetingHud = MeetingHud.Instance;
             if (meetingHud != null && meetingHud.isActiveAndEnabled)
-                foreach (PlayerVoteArea state in meetingHud.playerStates)
-                {
-                    if (Spectator.IsSpectator(state.TargetPlayerId)) continue;
-                    state.gameObject.SetActive(true);
-                }
+            {
+                Helpers.TogglePlayerVoteAreas(meetingHud, true);
+            }
         }
 
         [HarmonyPatch(typeof(PlayerVoteArea), nameof(PlayerVoteArea.Select))]
@@ -823,7 +852,7 @@ namespace StellarRoles.Patches
                 return;
 
             bool isRomanticCrew = PlayerControl.LocalPlayer == Romantic.Player && Romantic.IsCrewmate;
-            bool isevil = Helpers.IsNeutral(PlayerControl.LocalPlayer) || PlayerControl.LocalPlayer.Data.Role.IsImpostor;
+            bool isevil = PlayerControl.LocalPlayer.IsNeutral() || PlayerControl.LocalPlayer.Data.Role.IsImpostor;
 
             if (isevil && !isRomanticCrew)
             {
@@ -866,7 +895,7 @@ namespace StellarRoles.Patches
         public static void AddGuesserButtons()
         {
             MeetingHud meetingHud = MeetingHud.Instance;
-            if (!PlayerControl.LocalPlayer.CanGuess() || PlayerControl.LocalPlayer.Data.IsDead || Helpers.RemainingShots(PlayerControl.LocalPlayer) <= 0)
+            if (!PlayerControl.LocalPlayer.CanGuess() || PlayerControl.LocalPlayer.Data.IsDead || PlayerControl.LocalPlayer.RemainingShots() <= 0)
                 return;
 
             for (int i = 0; i < meetingHud.playerStates.Length; i++)
@@ -962,28 +991,24 @@ namespace StellarRoles.Patches
 
         static void PopulateButtonsPostfix()
         {
-            HudManager.Instance.StartCoroutine(Effects.Lerp(3, new Action<float>((p) =>
-            { // Delayed action
-                if (p == 1f)
-                {
-                    //Romantic Overlay
-                    AddRomanticOverlay();
-                    //Vengful Romantic Overlay
-                    AddBrokenRomanticHeart();
-                    //Add Overlay for Compared Players
-                    AddParityCopOverlay();
-                    //Add Overlay for Watched Players
-                    AddWatcherOverlay();
-                    // Add Guesser Buttons
-                    AddGuesserButtons();
-                    //Add Jailor Button
-                    AddJailorButton();
-                    //Add Pyromanic Cheesit
-                    AddPyromaniacOverlay();
-                    //Add Mayore Retire Button
-                    AddMayorButton();
-                }
-            })));
+            3f.DelayedAction(()=> 
+            {   //Romantic Overlay
+                AddRomanticOverlay();
+                //Vengful Romantic Overlay
+                AddBrokenRomanticHeart();
+                //Add Overlay for Compared Players
+                AddParityCopOverlay();
+                //Add Overlay for Watched Players
+                AddWatcherOverlay();
+                // Add Guesser Buttons
+                AddGuesserButtons();
+                //Add Jailor Button
+                AddJailorButton();
+                //Add Pyromanic Cheesit
+                AddPyromaniacOverlay();
+                //Add Mayore Retire Button
+                AddMayorButton();
+            });
         }
 
         [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.ServerStart))]
@@ -1008,15 +1033,14 @@ namespace StellarRoles.Patches
         [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.StartMeeting))]
         class StartMeetingPatch
         {
-            public static void Prefix([HarmonyArgument(0)] GameData.PlayerInfo meetingTarget)
+            public static void Prefix([HarmonyArgument(0)] NetworkedPlayerInfo meetingTarget)
             {
-                // Save Sleepwalker position, if the player is able to move (i.e. not on a ladder or a gap thingy)
-                if (PlayerControl.LocalPlayer.MyPhysics.enabled && PlayerControl.LocalPlayer.moveable || PlayerControl.LocalPlayer.inVent)
-                    Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                var localPlayer = PlayerControl.LocalPlayer;
 
                 if (Romantic.Lover != null && Romantic.PartnerSeesLoveAfterMeeting)
                     Romantic.SetNameFirstMeeting = true;
 
+                localPlayer.RPCAddGameInfo(InfoType.CritcalMeetingErrorReverse);
 
                 // Medium meeting start time
                 Detective.MeetingStartTime = DateTime.UtcNow;
@@ -1032,6 +1056,11 @@ namespace StellarRoles.Patches
                 RPCProcedure.MeetingStart();
 
                 Scavenger.ScavengerToRefugeeCheck();
+
+                if (!localPlayer.IsAlive())
+                {
+                    localPlayer.RPCAddGameInfo(InfoType.PlayerDiedBeforeLastMeeting);
+                }
 
                 if (!Executioner.ConvertsImmediately)
                     Executioner.ExecutionerCheckPromotion();
@@ -1055,6 +1084,10 @@ namespace StellarRoles.Patches
                     MapOptions.FirstKillPlayer = null;
                     // No Longer First Round
                     MapOptions.IsFirstRound = false;
+                    if (MapOptions.FirstKillPlayersNames.Count > 0)
+                    {
+                        MapOptions.firstRoundWithDead = false;
+                    }
                     if (!Executioner.ConvertsImmediately)
                         Executioner.ExecutionerCheckPromotion();
 
@@ -1090,31 +1123,34 @@ namespace StellarRoles.Patches
         {
             static void Postfix(ChatController __instance, [HarmonyArgument(0)] PlayerControl sourcePlayer, ref string chatText)
             {
-                if (__instance == null || AmongUsClient.Instance.GameState != InnerNet.InnerNetClient.GameStates.Started || !MeetingHud.Instance)
+                if (__instance == null || !Helpers.GameStarted || !MeetingHud.Instance)
                     return;
                 PlayerControl localPlayer = PlayerControl.LocalPlayer;
 
-                if (sourcePlayer.AmOwner && !localPlayer.Data.IsDead && !chatText.ToLower().StartsWith("/cultist "))
+                if (localPlayer == sourcePlayer && !localPlayer.Data.IsDead)
                 {
-                    RPCProcedure.Send(CustomRPC.SetMeetingChatOverlay, localPlayer.PlayerId);
-                    RPCProcedure.SetChatNotificationOverlay(localPlayer.PlayerId);
+                    if (chatText.StartsWith("[ImpChat]") || Impostor.ImpChatOn)
+                    {
+                        RPCProcedure.Send(CustomRPC.SetMeetingChatOverlay, localPlayer, true);
+                        RPCProcedure.SetChatNotificationOverlay(localPlayer.PlayerId, true);
+                    }
+                    else
+                    {
+                        RPCProcedure.Send(CustomRPC.SetMeetingChatOverlay, localPlayer, false);
+                        RPCProcedure.SetChatNotificationOverlay(localPlayer.PlayerId, false);
+                    }
                 }
             }
         }
 
-        [HarmonyPatch(typeof(ChatController), nameof(ChatController.Update))]
+        [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
         class FastChatPatch
         {
             static void Postfix(ChatController __instance)
             {
-                if (__instance == null || AmongUsClient.Instance.GameState != InnerNet.InnerNetClient.GameStates.Started)
+                if (__instance == null)
                     return;
-                int time = (int)__instance.timeSinceLastMessage;
-
-                if (time == 0)
-                {
-                    __instance.timeSinceLastMessage = 3;
-                }
+                __instance.timeSinceLastMessage += 3;
             }
         }
     }

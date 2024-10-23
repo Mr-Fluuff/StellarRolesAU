@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using PowerTools;
 using StellarRoles.Objects;
 using StellarRoles.Utilities;
 using System;
@@ -29,7 +28,7 @@ namespace StellarRoles.Patches
         }
 
         [HarmonyPrefix, HarmonyPatch(nameof(Vent.CanUse))]
-        public static bool CanUsePrefix(Vent __instance, ref float __result, [HarmonyArgument(0)] GameData.PlayerInfo pc, [HarmonyArgument(1)] ref bool canUse, [HarmonyArgument(2)] ref bool couldUse)
+        public static bool CanUsePrefix(Vent __instance, ref float __result, [HarmonyArgument(0)] NetworkedPlayerInfo pc, [HarmonyArgument(1)] ref bool canUse, [HarmonyArgument(2)] ref bool couldUse)
         {
             if (Helpers.IsHideAndSeek) return true;
             float num = float.MaxValue;
@@ -105,28 +104,27 @@ namespace StellarRoles.Patches
                 {
                     if (isExit)
                     {
-                        RPCProcedure.Send(CustomRPC.ExitAllVents, PlayerControl.LocalPlayer.PlayerId);
+                        RPCProcedure.Send(CustomRPC.ExitAllVents, PlayerControl.LocalPlayer);
                         PlayerControl.LocalPlayer.MyPhysics.ExitAllVents();
                     }
 
                     Helpers.SetMovement(false);
-                    FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Trapper.TrapRootDuration, new Action<float>((p) =>
-                    { // Delayed action
-                        if (p == 1f)
-                            Helpers.SetMovement(true);
-                    })));
+
+                    Trapper.TrapRootDuration.DelayedAction(()=> { Helpers.SetMovement(true); });
                     if (Constants.ShouldPlaySfx())
                     {
                         SoundManager.Instance.PlaySound(PlayerControl.LocalPlayer.MyPhysics.ImpostorDiscoveredSound, false, 0.8f, null);
                     }
                 }
 
-                RPCProcedure.Send(CustomRPC.TriggerVentTrap, PlayerControl.LocalPlayer.PlayerId, __instance.Id);
+                RPCProcedure.Send(CustomRPC.TriggerVentTrap, PlayerControl.LocalPlayer, __instance);
                 RPCProcedure.TriggerVentTrap(PlayerControl.LocalPlayer, __instance.Id);
                 return false;
             }
             else if (isExit)
+            {
                 PlayerControl.LocalPlayer.MyPhysics.RpcExitVent(__instance.Id);
+            }
             else
             {
                 PlayerControl.LocalPlayer.MyPhysics.RpcEnterVent(__instance.Id);
@@ -155,12 +153,12 @@ namespace StellarRoles.Patches
 
             if (pc != null && !HideVentInFog || HideVentInFog && magnitude < PlayerControl.LocalPlayer.lightSource.viewDistance &&
                 !PhysicsHelpers.AnyNonTriggersBetween(truePosition, vector.normalized, magnitude, Constants.ShipAndObjectsMask))
-                __instance.GetComponent<SpriteAnim>().Play(__instance.EnterVentAnim, 1f);
+                __instance.myAnim.Play(__instance.EnterVentAnim, 1f);
 
             if (pc.AmOwner && Constants.ShouldPlaySfx())
             {
                 SoundManager.Instance.StopSound(ShipStatus.Instance.VentEnterSound);
-                SoundManager.Instance.PlaySound(ShipStatus.Instance.VentEnterSound, false, 1f).pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+                SoundManager.Instance.PlaySound(ShipStatus.Instance.VentEnterSound, false, 1f).pitch = FloatRange.Next(0.8f, 1.2f);
             }
 
             return false;
@@ -184,12 +182,12 @@ namespace StellarRoles.Patches
 
             if (pc != null && !HideVentInFog || HideVentInFog && magnitude < PlayerControl.LocalPlayer.lightSource.viewDistance &&
                 !PhysicsHelpers.AnyNonTriggersBetween(truePosition, vector.normalized, magnitude, Constants.ShipAndObjectsMask))
-                __instance.GetComponent<SpriteAnim>().Play(__instance.ExitVentAnim, 1f);
+                __instance.myAnim.Play(__instance.ExitVentAnim, 1f);
 
             if (pc.AmOwner && Constants.ShouldPlaySfx())
             {
                 SoundManager.Instance.StopSound(ShipStatus.Instance.VentEnterSound);
-                SoundManager.Instance.PlaySound(ShipStatus.Instance.VentEnterSound, false, 1f).pitch = UnityEngine.Random.Range(0.8f, 1.2f);
+                SoundManager.Instance.PlaySound(ShipStatus.Instance.VentEnterSound, false, 1f).pitch = FloatRange.Next(0.8f, 1.2f);
             }
 
             return false;
@@ -240,32 +238,34 @@ namespace StellarRoles.Patches
         }
     }
 
-    [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.FixedUpdate))]
+    [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
     class VentButtonVisibilityPatch
     {
-        static void Postfix(PlayerControl __instance)
+        static void Postfix(HudManager __instance)
         {
             if (Helpers.IsHideAndSeek) return;
-
-            if (__instance.AmOwner && Helpers.CanShowButtons)
+            if (!Helpers.GameStarted)
             {
-                FastDestroyableSingleton<HudManager>.Instance.ImpostorVentButton.Hide();
-                FastDestroyableSingleton<HudManager>.Instance.SabotageButton.Hide();
+                __instance.ImpostorVentButton.Hide();
+                __instance.SabotageButton.Hide();
+                return;
+            }
 
-                if (Helpers.CanShowButtons)
+            if (Helpers.CanShowButtons)
+            {
+                __instance.ImpostorVentButton.Hide();
+                __instance.SabotageButton.Hide();
+
+                if (PlayerControl.LocalPlayer.RoleCanUseVents() && PlayerControl.LocalPlayer != Engineer.Player)
                 {
-                    if (__instance.RoleCanUseVents())
-                    {
-                        FastDestroyableSingleton<HudManager>.Instance.ImpostorVentButton.Show();
-                        FastDestroyableSingleton<HudManager>.Instance.ImpostorVentButton.gameObject.SetActive(true);
-                    }
-
+                    __instance.ImpostorVentButton.Show();
+                    __instance.ImpostorVentButton.gameObject.SetActive(true);
                 }
 
-                if (__instance.RoleCanSabotage())
+                if (PlayerControl.LocalPlayer.RoleCanSabotage())
                 {
-                    FastDestroyableSingleton<HudManager>.Instance.SabotageButton.Show();
-                    FastDestroyableSingleton<HudManager>.Instance.SabotageButton.gameObject.SetActive(true);
+                    __instance.SabotageButton.Show();
+                    __instance.SabotageButton.gameObject.SetActive(true);
                 }
             }
         }

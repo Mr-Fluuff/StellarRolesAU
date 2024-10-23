@@ -14,12 +14,12 @@ namespace StellarRoles.Objects
 
         public CustomMessage(string message, float duration, bool flash, Color color)
         {
-            RoomTracker roomTracker = FastDestroyableSingleton<HudManager>.Instance?.roomTracker;
+            RoomTracker roomTracker = HudManager.Instance?.roomTracker;
             if (roomTracker != null)
             {
                 GameObject gameObject = UnityEngine.Object.Instantiate(roomTracker.gameObject);
 
-                gameObject.transform.SetParent(FastDestroyableSingleton<HudManager>.Instance.transform);
+                gameObject.transform.SetParent(HudManager.Instance.transform);
                 UnityEngine.Object.DestroyImmediate(gameObject.GetComponent<RoomTracker>());
                 text = gameObject.GetComponent<TMPro.TMP_Text>();
                 text.text = message;
@@ -28,7 +28,7 @@ namespace StellarRoles.Objects
                 gameObject.transform.localPosition = new Vector3(0, -1.8f, gameObject.transform.localPosition.z);
                 customMessages.Add(this);
 
-                FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(duration, new Action<float>((p) =>
+                HudManager.Instance.StartCoroutine(Effects.Lerp(duration, new Action<float>((p) =>
                 {
                     bool even = ((int)(p * duration / 0.25f)) % 2 == 0; // Bool flips every 0.25 seconds
                     /*                    string prefix = (even ? "<color=#FCBA03FF>" : "<color=#FF0000FF>");

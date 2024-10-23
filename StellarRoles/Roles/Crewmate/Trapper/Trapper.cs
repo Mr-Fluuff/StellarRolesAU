@@ -7,13 +7,13 @@ namespace StellarRoles
     {
         public static readonly Color Color = new Color32(30, 140, 30, byte.MaxValue);
 
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static float TrapCount { get; set; }
         public static float CoverCount { get; set; }
         public static float TrapCooldown => CustomOptionHolder.TrapperTrapCoverCooldown.GetFloat();
         public static float CoverCooldown => CustomOptionHolder.TrapperTrapCoverCooldown.GetFloat();
         public static float TrapRootDuration => CustomOptionHolder.TrapperRootDuration.GetFloat();
-        public static bool RoleBlock => CustomOptionHolder.TrapperRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.TrapperRoleBlock.GetBool();
         public static Vent VentTarget { get; set; } = null;
 
         private static Sprite _CloseVentButtonSprite;
@@ -22,6 +22,7 @@ namespace StellarRoles
         private static Sprite _StaticVentSealedSprite;
         private static Sprite _SubmergedCentralUpperVentSealedSprite;
         private static Sprite _SubmergedCentralLowerVentSealedSprite;
+        private static Sprite _FungalSealedSprite;
         private static float LastPPU;
 
         public static void GetDescription()
@@ -69,6 +70,11 @@ namespace StellarRoles
         public static Sprite GetSubmergedCentralLowerSealedSprite()
         {
             return _SubmergedCentralLowerVentSealedSprite ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.CentralLowerBlocked.png", 145f);
+        }
+
+        public static Sprite GetFungalSealedSprite()
+        {
+            return _FungalSealedSprite ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.SealFungleVent.png", 145f);
         }
 
         public static void ClearAndReload()

@@ -1,14 +1,13 @@
 ﻿using HarmonyLib;
 
-namespace TheOtherRoles.Patches
+namespace StellarRoles.Patches
 {
-    [HarmonyPatch(typeof(Constants), nameof(Constants.GetBroadcastVersion))]
+    [HarmonyPatch(typeof(Constants), nameof(Constants.IsVersionModded))]
     public static class ConstantsPatch
     {
-        public static void Postfix(ref int __result)
+        public static void Postfix(ref bool __result)
         {
-            if (AmongUsClient.Instance.NetworkMode == NetworkModes.OnlineGame)
-                __result = Constants.GetVersion(2222, 0, 0, 0);
+            //__result = true;
         }
     }
 }

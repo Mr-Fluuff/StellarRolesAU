@@ -27,7 +27,7 @@ namespace StellarRoles
 
         public static bool FakeCompare => CustomOptionHolder.ParityCopFakeCompare.GetBool();
         public static float CompareCooldown => CustomOptionHolder.ParityCopCompareCooldown.GetFloat();
-        public static bool RoleBlock => CustomOptionHolder.ParityCopRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.ParityCopRoleBlock.GetBool();
 
         public readonly PlayerList ComparedPlayers = new();
         public readonly PlayerControl Player;

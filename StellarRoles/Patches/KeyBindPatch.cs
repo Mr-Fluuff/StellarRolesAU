@@ -21,7 +21,13 @@ namespace StellarRoles.Patches
                 && DestroyableSingleton<HudManager>.Instance.ImpostorVentButton != null
                 && DestroyableSingleton<HudManager>.Instance.ImpostorVentButton.isActiveAndEnabled
                 && ConsoleJoystick.player.GetButtonDown(50))
+            {
                 DestroyableSingleton<HudManager>.Instance.ImpostorVentButton.DoClick();
+                if (Engineer.Player == PlayerControl.LocalPlayer)
+                {
+                    EngineerButtons.EngineerVent.ActionButton.DoClick();
+                }
+            }
 
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
@@ -40,6 +46,15 @@ namespace StellarRoles.Patches
                     Object.Destroy(ChangelingUtils.ChangelingUI);
                     ChangelingUtils.ChangelingUI = null;
                 }
+
+                if (PreviousGameHistory.HistoryUI?.active == true)
+                {
+                    PreviousGameHistory.HistoryUI.SetActive(false);
+                }
+            }
+            if (Input.GetKeyDown(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.R) && LobbyBehaviour.Instance)
+            {
+                PlayerControl.LocalPlayer.NetTransform.Halt();
             }
         }
     }

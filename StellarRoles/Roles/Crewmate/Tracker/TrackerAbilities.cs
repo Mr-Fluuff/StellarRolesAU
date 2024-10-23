@@ -57,7 +57,7 @@ namespace StellarRoles
                                 arrow.Update(player.transform.position);
                             }
                             else
-                                foreach ((DeadPlayer deadPlayer, Vector3 position) in Detective.FeatureDeadBodies)
+                                foreach ((DeadPlayer deadPlayer, Vector3 position) in Detective.FreshDeadBodies)
                                     if (deadPlayer.Player == player)
                                     {
                                         Tracker.TrackedPlayerLocalArrows[player.PlayerId].Update(position);

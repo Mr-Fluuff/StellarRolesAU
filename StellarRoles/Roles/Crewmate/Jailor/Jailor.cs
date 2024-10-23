@@ -12,6 +12,7 @@ namespace StellarRoles
         public static float InitialCharges => CustomOptionHolder.InitialJailCharges.GetFloat();
         public static float TasksToRecharge => CustomOptionHolder.JailorTasksPerRecharge.GetFloat();
         public static bool CanJailSelf => CustomOptionHolder.JailorCanJailSelf.GetBool();
+        public static bool JailedTargetsGuessedAsJailor => CustomOptionHolder.JailedTargetsGuessed.GetBool() && CanJailSelf;
         private static Sprite _CheckSprite;
 
         public bool TargetJailedIcons = false;
@@ -21,17 +22,21 @@ namespace StellarRoles
         public float Charges;
         public float CurrentRechargeTasks;
         public bool HasJailed;
-        public bool GivenExtraCharges = false;
 
         public static void GetDescription()
         {
-            RoleInfo.Jailor.SettingsDescription = Helpers.WrapText(
+            string description =
                 $"The {nameof(Jailor)} is designed to protect players from meeting-based powers. " +
                 $"After doing {Helpers.ColorString(Color.yellow, TasksToRecharge.ToString())} task(s), the {nameof(Jailor)} gains a charge of jail to be used in the meeting.\n\n" +
                 $"Putting a player in jail will protect them from {nameof(Vigilante)} and {nameof(Assassin)} shots, also extra {nameof(Mayor)} votes. " +
                 $"The {nameof(Mayor)} may not use their powers while jailed.\n\n" +
                 $"If the {nameof(Vigilante)} or {nameof(Assassin)} are jailed, their menu will change and they will only be allowed to guess the {nameof(Jailor)}. " +
-                $"If the {nameof(Jailor)} is killed in meeting, the jail will break.");
+                $"If the {nameof(Jailor)} is killed in meeting, the jail will break.";
+
+            if (JailedTargetsGuessedAsJailor)
+                description += $"\n\nJailed targets can be guessed as {nameof(Jailor)}.";
+
+            RoleInfo.Jailor.SettingsDescription = Helpers.WrapText(description);
         }
 
         public Jailor(PlayerControl playerControl)
@@ -42,7 +47,6 @@ namespace StellarRoles
             CurrentRechargeTasks = TasksToRecharge;
             HasJailed = false;
             TargetJailedIcons = false;
-            GivenExtraCharges = false;
         }
 
         public static Sprite GetCheckSprite()

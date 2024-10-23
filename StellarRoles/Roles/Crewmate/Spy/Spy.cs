@@ -4,11 +4,11 @@ namespace StellarRoles
 {
     public static class Spy
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = Palette.ImpostorRed;
         public static bool ImpostorsCanKillAnyone => CustomOptionHolder.SpyImpostorsCanKillAnyone.GetBool();
         // TODO: does this game option need to be removed
-        public static bool RoleBlock => CustomOptionHolder.CrewRoleBlock.GetBool() && CustomOptionHolder.SpyRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.SpyRoleBlock.GetBool();
 
         private static Sprite _VentButtonSprite;
 

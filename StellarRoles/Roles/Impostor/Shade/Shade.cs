@@ -6,7 +6,7 @@ namespace StellarRoles
     [HarmonyPatch]
     public static class Shade
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
 
         public static readonly PlayerList BlindedPlayers = new();
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
@@ -14,7 +14,7 @@ namespace StellarRoles
         public static float ShadeCooldown => CustomOptionHolder.ShadeCooldown.GetFloat();
         public static float ShadeDuration => CustomOptionHolder.ShadeDuration.GetFloat();
         public static float EvidenceDuration => CustomOptionHolder.ShadeEvidence.GetFloat();
-        public static int KillsToGainBlind => CustomOptionHolder.ShadeKillsToGainBlind.GetSelection();
+        public static int KillsToGainBlind => CustomOptionHolder.ShadeKillsToGainBlind.GetInt();
         public static int Killed { get; set; } = 0;
         public static float BlindCooldown => CustomOptionHolder.ShadeBlindCooldown.GetFloat();
         public static float BlindDuration => CustomOptionHolder.ShadeBlindDuration.GetFloat();

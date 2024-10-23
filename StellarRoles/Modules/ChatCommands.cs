@@ -2,15 +2,12 @@ using HarmonyLib;
 using StellarRoles.Utilities;
 using System;
 using System.Linq;
-using TMPro;
 
 namespace StellarRoles.Modules
 {
     [HarmonyPatch]
     public static class ChatCommands
     {
-
-
 
         [HarmonyPatch(typeof(ChatController), nameof(ChatController.SendChat))]
         private static class SendChatPatch
@@ -58,7 +55,7 @@ namespace StellarRoles.Modules
                     if (text.ToLower().Equals("/murder"))
                     {
                         PlayerControl.LocalPlayer.Exiled();
-                        FastDestroyableSingleton<HudManager>.Instance.KillOverlay.ShowKillAnimation(PlayerControl.LocalPlayer.Data, PlayerControl.LocalPlayer.Data);
+                        HudManager.Instance.KillOverlay.ShowKillAnimation(PlayerControl.LocalPlayer.Data, PlayerControl.LocalPlayer.Data);
                         handled = true;
                     }
                     else if (text.ToLower().StartsWith("/color "))
@@ -93,13 +90,13 @@ namespace StellarRoles.Modules
                     {
                         Helpers.Log(LogLevel.Debug, "Starting Duel Command");
                         // TODO: convert into one RPC call
-                        RPCProcedure.Send(CustomRPC.Duel, PlayerControl.LocalPlayer.PlayerId, message);
+                        RPCProcedure.Send(CustomRPC.Duel, PlayerControl.LocalPlayer, message);
                         RPCProcedure.Duel(PlayerControl.LocalPlayer, message);
 
                         RPCProcedure.Send(CustomRPC.SendResultOfDuel);
                         RPCProcedure.DuelResults();
 
-                        RPCProcedure.Send(CustomRPC.ClearDuel, PlayerControl.LocalPlayer.PlayerId);
+                        RPCProcedure.Send(CustomRPC.ClearDuel, PlayerControl.LocalPlayer);
                         RPCProcedure.RemoveCompletedDuels(PlayerControl.LocalPlayer);
                         handled = true;
                         Helpers.Log(LogLevel.Debug, "Ending Duel Command");
@@ -121,19 +118,6 @@ namespace StellarRoles.Modules
             }
         }
 
-        [HarmonyPatch(typeof(ChatController), nameof(ChatController.Toggle))]
-        private static class ChatFont
-        {
-            private static TMP_FontAsset betterFont = null;
-            private static void Postfix(ChatController __instance)
-            {
-                if (betterFont == null)
-                {
-                    betterFont = __instance.scroller.transform.GetChild(1).GetChild(5).GetComponent<TextMeshPro>().font;
-                }
-                __instance.freeChatField.textArea.GetComponent<TextMeshPro>().font = betterFont;
-            }
-        }
         [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
         private static class EnableChat
         {
@@ -143,7 +127,6 @@ namespace StellarRoles.Modules
                 {
                     if (
                         !__instance.Chat.isActiveAndEnabled && (
-                            PlayerControl.LocalPlayer.IsTeamCultist() ||
                             PlayerControl.LocalPlayer == Detective.Player ||
                             AmongUsClient.Instance.NetworkMode == NetworkModes.FreePlay
                         )
@@ -178,20 +161,11 @@ namespace StellarRoles.Modules
 
                 bool player = meeting || localPlayer.Data.IsDead || localSource;
 
-                if (__instance != HudManager.Instance.Chat)
-                    return true;
+                if (__instance != HudManager.Instance.Chat) return true;
+
+                if (chatText.StartsWith("[ImpChat]") && (localPlayer.Data.Role.IsImpostor || localPlayer.Data.IsDead)) return true;
 
                 if (localPlayer == Detective.Player) return player;
-
-                if (sourcePlayer.IsTeamCultist() || localPlayer.IsTeamCultist())
-                {
-                    if (chatText.ToLower().StartsWith("/cultist "))
-                    {
-                        chatText = chatText[9..];
-                        return sourcePlayer.GetCultistPartner() == localPlayer || localSource;
-                    }
-                    else return sourcePlayer.GetCultistPartner() == localPlayer || player;
-                }
 
                 return player;
             }

@@ -1,5 +1,4 @@
-﻿using AmongUs.GameOptions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using StellarRoles.Utilities;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +10,7 @@ namespace StellarRoles
     {
         public static void Postfix(HudManager __instance)
         {
-            if (!Helpers.GameStarted || !PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac))return;
+            if (!Helpers.GameStarted || !PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac)) return;
             PyromaniacSetTarget(pyromaniac);
         }
 

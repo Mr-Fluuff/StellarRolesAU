@@ -18,7 +18,7 @@ namespace StellarRoles
 
         public PlayerControl Player;
         public bool IsExiled = false;
-        public readonly List<PlayerControl> VotedBy = new();
+        public readonly PlayerList VotedBy = new();
 
         public Spiteful(PlayerControl player)
         {

@@ -47,7 +47,7 @@ namespace StellarRoles
 
         public static void hackerSetTarget()
         {
-            bool betterPolusVitals = CustomOptionHolder.MoveVitals.GetBool() && CustomOptionHolder.EnableBetterPolus.GetBool();
+            bool betterPolusVitals = CustomOptionHolder.MoveVitals.GetBool();
             Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
             List<InformationSourceDetails> allInformationSources = InformationSourceDetails.BuildAllInformationSources(betterPolusVitals);
             Hacker.CurrentTargetInformationSource = InformationSource.None;

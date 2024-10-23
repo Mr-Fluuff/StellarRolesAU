@@ -5,16 +5,24 @@ using UnityEngine;
 namespace StellarRoles
 {
     [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
+    [HarmonyPriority(Priority.Last)]
     public static class SpectateButtonUpdate
     {
         public static void Postfix()
         {
-            if (!AmongUsClient.Instance.AmHost || !LobbyBehaviour.Instance || Helpers.IsHideAndSeek) return;
-            Spectator.Target = GetClosestPlayer(PlayerControl.LocalPlayer);
-            HudManagerStartPatch.SpectatorButton.Update();
+            if (!LobbyBehaviour.Instance) return;
+            try
+            {
+                HudManagerStartPatch.RefreshCosmeticsButton.Update();
+                if (!AmongUsClient.Instance.AmHost) return;
+                if (Helpers.IsHideAndSeek) return;
+                Spectator.Target = GetClosestPlayer(PlayerControl.LocalPlayer);
+                HudManagerStartPatch.SpectatorButton.Update();
 
-            BaseOutlines();
-            SpectateOutline();
+                BaseOutlines();
+                SpectateOutline();
+            }
+            catch { }
         }
 
         public static PlayerControl GetClosestPlayer(PlayerControl refPlayer)
@@ -64,7 +72,7 @@ namespace StellarRoles
             // The game code checks for this so we should check as well to be certain.
             if (player != null)
             {
-                RPCProcedure.Send(CustomRPC.RemoveSpectator, player.PlayerId);
+                RPCProcedure.Send(CustomRPC.RemoveSpectator, player);
                 RPCProcedure.RemoveSpectator(player);
             }
         }

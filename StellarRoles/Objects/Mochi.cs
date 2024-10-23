@@ -49,14 +49,7 @@ namespace StellarRoles.Objects
 
             float time = StellarRoles.rnd.Next(15, 20);
 
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(time, new Action<float>((p) =>
-            {
-                if (p == 1f)
-                {
-                    Animation();
-                }
-
-            })));
+            time.DelayedAction(Animation);
         }
 
         [HideFromIl2Cpp]
@@ -64,7 +57,7 @@ namespace StellarRoles.Objects
         {
             if (MochiGameObject == null || Helpers.GameStarted) return;
 
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(1.5f, new Action<float>((p) =>
+            HudManager.Instance.StartCoroutine(Effects.Lerp(1.5f, new Action<float>((p) =>
             {
                 if (Renderer != null)
                     Renderer.sprite = GetMochiAnimation((int)(p * MochiAnimation.Length));

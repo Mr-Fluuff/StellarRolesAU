@@ -1,3 +1,4 @@
+using Epic.OnlineServices.RTCAudio;
 using System.Collections.Generic;
 using UnityEngine;
 using Types = StellarRoles.CustomOption.CustomOptionType;
@@ -6,13 +7,21 @@ namespace StellarRoles
 {
     public class CustomOptionHolder
     {
-        private static readonly string[] RoleRates = new string[] { "0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%" };
-        private static readonly string[] ModifierRates = new string[] { "1", "2", "3" };
-        private static readonly string[] Presets = new string[] { "Default", "Streamer Prox", "Streamer Non-Prox", "Beginner", "Chaotic", "Stell's Lobby","Vanilla Plus", "Custom 1", "Custom 2", "Custom 3" };
-        private static readonly string[] SpeedRates = new string[] { ".7x", ".8x", ".9x", "1.0x", "1.1x", "1.2x", "1.3x", "1.4x", "1.5x", "1.6x", "1.7x", "1.8x", "1.9x", "2.0x", "2.1x", "2.2x", "2.3x" };
-        private static readonly string[] OddRate15 = new string[] { "Off", "0", "2.5", "5", "7.5", "10", "12.5", "15" };
+        private static readonly string[] RoleRates = ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"];
+        private static readonly string[] ModifierRates = ["1", "2", "3"];
+        private static readonly string[] Presets = ["Default", "Proximity", "Standard", "Beginner", "Chaotic", "Vanilla Tweaks", "Vanilla Plus", "Custom 1", "Custom 2", "Custom 3"];
+        private static readonly string[] SpeedRates = [".7x", ".8x", ".9x", "1.0x", "1.1x", "1.2x", "1.3x", "1.4x", "1.5x", "1.6x", "1.7x", "1.8x", "1.9x", "2.0x", "2.1x", "2.2x", "2.3x"];
+        private static readonly object[] OddRate15 = ["Off", 0f, 2.5f, 5f, 7.5f, 10f, 12.5f, 15f];
+        private static readonly object[] Off020 = ["Off", 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f, 18f, 19f, 20f];
+        private static readonly object[] MinerVents = ["After Meeting", 0f, 2.5f, 5f, 7.5f, 10f, 12.5f, 15f, 17.5f, 20f, 22.5f, 25f, 27.5f, 30f];
+        private static readonly object[] EngiVents = ["Unlimited", 5f, 7.5f, 10f, 12.5f, 15f, 17.5f, 20f, 22.5f, 25f];
+        private static readonly object[] MayorVotes = ["Disabled", 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f, 18f, 19f, 20f];
+        private static readonly object[] Timer = ["Disabled", 1f, 1.5f, 2f, 2.5f, 3f, 3.5f, 4f, 4.5f, 5f, 5.5f, 6f,6.5f, 7f, 7.5f, 8f, 8.5f, 9f, 9.5f, 10f, 10.5f, 11f, 11.5f, 12f, 12.5f, 13f, 13.5f, 14f, 14.5f, 15f, 15.5f, 16f, 16.5f, 17f, 17.5f, 18f, 18.5f, 19f, 19.5f, 20f];
+        private static readonly object[] ParasiteControl = ["Unlimited", 5f, 7.5f, 10f, 12.5f, 15f, 17.5f, 20f, 22.5f, 25f, 27.5f, 30f, 32.5f, 35f, 37.5f, 40f, 42.5f, 45f];
+
+
+
         #region Presets
-        public static CustomOption ActivateRoles { get; set; }
         public static CustomOption CrewmateRolesCountMin { get; set; }
         public static CustomOption CrewmateRolesCountMax { get; set; }
         public static CustomOption NeutralRolesCountMin { get; set; }
@@ -70,6 +79,14 @@ namespace StellarRoles
         public static CustomOption ShadeBlindCooldown { get; set; }
         public static CustomOption ShadeBlindDuration { get; set; }
 
+        public static CustomOption ParasiteSpawnRate { get; set; }
+        public static CustomOption ParasiteInfestCooldown { get; set; }
+        public static CustomOption ParasiteControlDuration { get; set; }
+        public static CustomOption ParasiteSaveInfested { get; set; }
+        public static CustomOption ParasiteNormalKillButton { get; set; }
+
+
+
         public static CustomOption CamouflagerSpawnRate { get; set; }
         public static CustomOption CamouflagerCooldown { get; set; }
         public static CustomOption CamouflagerDuration { get; set; }
@@ -100,13 +117,6 @@ namespace StellarRoles
         public static CustomOption ArsonistDuration { get; set; }
         public static CustomOption DisableArsonistOnMira { get; set; }
 
-        public static CustomOption BountyHunterSpawnRate { get; set; }
-        public static CustomOption BountyHunterBountyDuration { get; set; }
-        public static CustomOption BountyHunterReducedCooldown { get; set; }
-        public static CustomOption BountyHunterPunishmentTime { get; set; }
-        public static CustomOption BountyHunterShowArrow { get; set; }
-        public static CustomOption BountyHunterArrowUpdateIntervall { get; set; }
-
         public static CustomOption UndertakerSpawnRate { get; set; }
         public static CustomOption UndertakerDragingDelaiAfterKill { get; set; }
         public static CustomOption UndertakerDragCooldown { get; set; }
@@ -114,27 +124,29 @@ namespace StellarRoles
 
         public static CustomOption CultistSpawnRate { get; set; }
         public static CustomOption CultistSpecialRolesEnabled { get; set; }
+        public static CustomOption CultistChatInMeeting { get; set; }
+
 
         public static CustomOption MinerSpawnRate { get; set; }
         public static CustomOption MinerCooldown { get; set; }
         public static CustomOption MinerCharges { get; set; }
-        public static CustomOption MinerVentsActiveWhen { get; set; }
         public static CustomOption MinerVentsDelay { get; set; }
 
         public static CustomOption MayorSpawnRate { get; set; }
-        public static CustomOption MayorCanSeeVoteColors { get; set; }
         public static CustomOption MayorTasksNeededToSeeVoteColors { get; set; }
         public static CustomOption MayorCanRetire { get; set; }
 
         public static CustomOption EngineerSpawnRate { get; set; }
         public static CustomOption EngineerHasFix { get; set; }
         public static CustomOption EngineerCanVent { get; set; }
+        public static CustomOption EngineerVentCooldown { get; set; }
+        public static CustomOption EngineerVentTimer { get; set; }
+
         public static CustomOption EngineerHighlightForEvil { get; set; }
         public static CustomOption EngineerAdvancedSabotageRepairs { get; set; }
 
         public static CustomOption SheriffSpawnRate { get; set; }
         public static CustomOption SheriffMisfireKills { get; set; }
-        public static CustomOption SheriffCanKillNeutrals { get; set; }
         public static CustomOption SheriffCanKillArsonist { get; set; }
         public static CustomOption SheriffCanKillJester { get; set; }
         public static CustomOption SheriffCanKillExecutioner { get; set; }
@@ -150,6 +162,8 @@ namespace StellarRoles
         public static CustomOption GuardianShieldFadesOnDeath { get; set; }
         public static CustomOption GuardianVisionRangeOfShield { get; set; }
         public static CustomOption GuardianShieldIsVisibleTo { get; set; }
+        public static CustomOption GuardianSelfShield { get; set; }
+
 
         public static CustomOption AdministratorSpawnRate { get; set; }
         public static CustomOption AdministratorInitialBatteryTime { get; set; }
@@ -201,8 +215,6 @@ namespace StellarRoles
         public static CustomOption RefugeeSpawnRate { get; set; }
         public static CustomOption VestCooldown { get; set; }
         public static CustomOption VestDuration { get; set; }
-        public static CustomOption CanBeGuessed { get; set; }
-
         public static CustomOption WatcherSpawnRate { get; set; }
         public static CustomOption WatcherNonCrewFlash { get; set; }
         public static CustomOption WatcherInitialBatteryTime { get; set; }
@@ -243,6 +255,8 @@ namespace StellarRoles
         public static CustomOption InitialJailCharges { get; set; }
         public static CustomOption JailorTasksPerRecharge { get; set; }
         public static CustomOption JailorCanJailSelf { get; set; }
+        public static CustomOption JailedTargetsGuessed { get; set; }
+
 
         public static CustomOption NeutralKillersGetNonCritSabo { get; set; }
         public static CustomOption ImpsLoseDoors { get; set; }
@@ -257,7 +271,8 @@ namespace StellarRoles
         public static CustomOption CamouflagerIsNeutral { get; set; }
         public static CustomOption WraithIsNeutral { get; set; }
         public static CustomOption ShadeIsNeutral { get; set; }
-        public static CustomOption BountyHunterIsNeutral { get; set; }
+        public static CustomOption ParasiteIsNeutral { get; set; }
+
         public static CustomOption MinerIsNeutral { get; set; }
         public static CustomOption JanitorIsNeutral { get; set; }
         public static CustomOption BomberIsNeutral { get; set; }
@@ -315,6 +330,9 @@ namespace StellarRoles
         public static CustomOption ShieldFirstKill { get; set; }
         public static CustomOption RoundOneKilledIndicators { get; set; }
         public static CustomOption DeadCrewPreventTaskWin { get; set; }
+        public static CustomOption JoustingHeader { get; set; }
+        public static CustomOption VanillaTweaksHeader { get; set; }
+
         public static CustomOption JoustingRoleNKWin { get; set; }
         public static CustomOption JoustingRoleImpWin { get; set; }
         public static CustomOption HideOutOfSightNametags { get; set; }
@@ -322,15 +340,96 @@ namespace StellarRoles
         public static CustomOption ToggleRoles { get; set; }
         public static CustomOption GameStartKillCD { get; set; }
 
+        public static CustomOption EnableImpChat { get; set; }
+
+        public static CustomOption GeneralHeader { get; set; }
+        public static CustomOption DisabledRolesSkeldHeader { get; set; }
+        public static CustomOption DisabledRolesMiraHeader { get; set; }
+        public static CustomOption DisabledRolesFungleHeader { get; set; }
+
+
+        public static CustomOption EnableFlashlightMode { get; set; }
+        public static CustomOption CrewFlashlightRange { get; set; }
+        public static CustomOption ImpFlashlightRange { get; set; }
+
         public static CustomOption NoCamsFirstRound { get; set; }
-        public static CustomOption RestrictAdminOnMira { get; set; }
-        public static CustomOption RestrictCamsOnSkeld { get; set; }
+        public static CustomOption MiraAdminTasks { get; set; }
+        public static CustomOption MiraLogsTasks { get; set; }
+
+        public static CustomOption PolusAdminTasks { get; set; }
+        public static CustomOption SkeldAdminTasks { get; set; }
+
+        public static CustomOption FungalSecurityTasks { get; set; }
+        public static CustomOption FungalAdminTable { get; set; }
+        public static CustomOption FungalEasierDoorSabo { get; set; }
+        public static CustomOption FungalEasierFish { get; set; }
+
+        public static CustomOption SkeldCamsTasks { get; set; }
+        public static CustomOption PolusCamsTasks { get; set; }
+        public static CustomOption OverrideMapSettings { get; set; }
+        public static CustomOption OverrideSkeld { get; set; }
+        public static CustomOption OverrideMira { get; set; }
+        public static CustomOption OverridePolus { get; set; }
+        public static CustomOption OverrideAirship { get; set; }
+        public static CustomOption OverrideFungle { get; set; }
+        public static CustomOption OverrideSubmerged { get; set; }
+
         public static CustomOption DynamicMap { get; set; }
         public static CustomOption DynamicMapEnableSkeld { get; set; }
+        public static CustomOption SkeldCommonTasks { get; set; }
+        public static CustomOption SkeldLongTasks { get; set; }
+        public static CustomOption SkeldShortTasks { get; set; }
+        public static CustomOption SkeldKillCD { get; set; }
+        public static CustomOption SkeldButtonCD { get; set; }
+        public static CustomOption SkeldCrewVision { get; set; }
+
         public static CustomOption DynamicMapEnableMira { get; set; }
+        public static CustomOption MiraCommonTasks { get; set; }
+        public static CustomOption MiraLongTasks { get; set; }
+        public static CustomOption MiraShortTasks { get; set; }
+        public static CustomOption MiraKillCD { get; set; }
+        public static CustomOption MiraButtonCD { get; set; }
+        public static CustomOption MiraCrewVision { get; set; }
+
         public static CustomOption DynamicMapEnablePolus { get; set; }
+        public static CustomOption PolusCommonTasks { get; set; }
+        public static CustomOption PolusLongTasks { get; set; }
+        public static CustomOption PolusShortTasks { get; set; }
+        public static CustomOption PolusKillCD { get; set; }
+        public static CustomOption PolusButtonCD { get; set; }
+        public static CustomOption PolusCrewVision { get; set; }
+
+
+
         public static CustomOption DynamicMapEnableAirShip { get; set; }
+        public static CustomOption AirShipCommonTasks { get; set; }
+        public static CustomOption AirShipLongTasks { get; set; }
+        public static CustomOption AirShipShortTasks { get; set; }
+        public static CustomOption AirShipKillCD { get; set; }
+        public static CustomOption AirShipButtonCD { get; set; }
+        public static CustomOption AirShipCrewVision { get; set; }
+
+
+
+        public static CustomOption DynamicMapEnableFungal { get; set; }
+        public static CustomOption FungalCommonTasks { get; set; }
+        public static CustomOption FungalLongTasks { get; set; }
+        public static CustomOption FungalShortTasks { get; set; }
+        public static CustomOption FungalKillCD { get; set; }
+        public static CustomOption FungalButtonCD { get; set; }
+        public static CustomOption FungalCrewVision { get; set; }
+
+
+
         public static CustomOption DynamicMapEnableSubmerged { get; set; }
+        public static CustomOption SubmergedCommonTasks { get; set; }
+        public static CustomOption SubmergedLongTasks { get; set; }
+        public static CustomOption SubmergedShortTasks { get; set; }
+        public static CustomOption SubmergedKillCD { get; set; }
+        public static CustomOption SubmergedButtonCD { get; set; }
+        public static CustomOption SubmergedCrewVision { get; set; }
+
+
         public static CustomOption DisableWatcherOnSkeld { get; set; }
         public static CustomOption DisableAdministratorOnMira { get; set; }
 
@@ -339,33 +438,28 @@ namespace StellarRoles
         public static CustomOption GhostsSeeTasks { get; set; }
         public static CustomOption GhostsSeeModifiers { get; set; }
         public static CustomOption GhostsSeeRomanticTarget { get; set; }
-
-        public static CustomOption DeveloperSettings { get; set; }
+        public static CustomOption GameTimer { get; set; }
         public static CustomOption LobbySize { get; set; }
-
-        public static CustomOption RoleBlockComms { get; set; }
-
-        public static CustomOption DisableRolesSkeld { get; set; }
         public static CustomOption DisableArsonistOnSkeld { get; set; }
         public static CustomOption DisableScavengerOnSkeld { get; set; }
         public static CustomOption DisableJanitorOnSkeld { get; set; }
         public static CustomOption DisableMedicOnSkeld { get; set; }
 
-        public static CustomOption DisableRolesMira { get; set; }
         public static CustomOption DisableScavengerOnMira { get; set; }
         public static CustomOption DisableJanitorOnMira { get; set; }
         public static CustomOption DisableMedicOnMira { get; set; }
         public static CustomOption DisableMinerOnMira { get; set; }
 
-
-        public static CustomOption ImposterRoleBlock { get; set; }
+        public static CustomOption DisableScavengerOnFungle { get; set; }
+        public static CustomOption DisableJanitorOnFungle { get; set; }
+        public static CustomOption DisableMinerOnFungle { get; set; }
+        public static CustomOption DisableAdministratorOnFungle { get; set; }
         public static CustomOption ImposterKillAbilitiesRoleBlock { get; set; }
         public static CustomOption ImposterAbiltiesRoleBlock { get; set; }
 
         public static CustomOption NeutralKillerRoleBlock { get; set; }
         public static CustomOption NeutralRoleBlock { get; set; }
 
-        public static CustomOption CrewRoleBlock { get; set; }
         public static CustomOption ParityCopRoleBlock { get; set; }
         public static CustomOption EngineerRoleBlock { get; set; }
         public static CustomOption InvestigatorRoleBlock { get; set; }
@@ -379,7 +473,6 @@ namespace StellarRoles
         public static CustomOption PsychicRoleBlock { get; set; }
 
 
-        public static CustomOption EnableBetterPolus { get; set; }
         public static CustomOption MoveVitals { get; set; }
         public static CustomOption VentSystem { get; set; }
         public static CustomOption ColdTempDeathValley { get; set; }
@@ -390,6 +483,7 @@ namespace StellarRoles
         public static CustomOption HackerJamChargesPerKill { get; set; }
         public static CustomOption HackerJamCooldown { get; set; }
         public static CustomOption HackerJamDuration { get; set; }
+        public static CustomOption TournamentLogs { get; set; }
 
         public static readonly Dictionary<RoleId, RoleId[]> BlockedRolePairings = new()
         {
@@ -405,6 +499,9 @@ namespace StellarRoles
             { RoleId.Romantic, new[] { RoleId.Cultist } },
             { RoleId.Executioner, new[] { RoleId.Cultist } },
             { RoleId.HeadHunter, new[] { RoleId.Cultist } },
+            { RoleId.Undertaker, new[] { RoleId.Parasite} },
+            { RoleId.Parasite, new[] { RoleId.Undertaker} },
+
         };
 
         public static string cs(Color c, string s)
@@ -418,28 +515,41 @@ namespace StellarRoles
             return (byte)(f * 255);
         }
 
+        private static Color FungleColor = Color.green;
+        private static Color SkeldColor = Color.gray;
+        private static Color MiraColor = Spiteful.Color;
+        private static Color PolusColor = Administrator.Color;
+        private static Color SubmergedColor = Color.blue;
+        private static Color AirshipColor = Color.red;
+        private static string FungleName => cs(Color.green, "Fungle");
+        private static string SkeldName => cs(Color.gray, "Skeld");
+        private static string MiraName => cs(Spiteful.Color, "Mira");
+        private static string PolusName => cs(Administrator.Color, "Polus");
+        private static string SubmergedName => cs(Color.blue, "Submerged");
+        private static string AirshipName => cs(Color.red, "Airship");
+
+
         public static void Load()
         {
             // Using new id's for the options to not break compatibilty with older versions
 
             CustomOption.VanillaSettings = StellarRolesPlugin.Instance.Config.Bind("Preset0", "VanillaOptions", "");
 
-            CustomOption.Create(0, Types.General, cs(new Color(204f / 255f, 204f / 255f, 0, 1f), "Preset"), Presets, null, true);
-
-            ActivateRoles = CustomOption.Create(1, Types.General, cs(new Color(204f / 255f, 204f / 255f, 0, 1f), "Enable Mod Roles &\nBlock Vanilla Roles"), true, null, true);
+            CustomOption.Create(0, Types.General, "Current Preset", Presets, null, true, heading: "Presets");
 
             #region Impostors
-            ImpostorRolesCountMin = CustomOption.Create(100, Types.Impostor, "Minimum " + cs(Palette.ImpostorRed, "Impostor") + " Roles", 2f, 0f, 3f, 1f, null, true);
-            ImpostorRolesCountMax = CustomOption.Create(101, Types.Impostor, "Maximum " + cs(Palette.ImpostorRed, "Impostor") + " Roles", 2f, 0f, 3f, 1f);
+            ImpostorRolesCountMin = CustomOption.Create(100, Types.Impostor, "Minimum Impostor Roles", 2f, 0f, 3f, 1f, null, true, null, "Impostor Min/Max Roles");
+            ImpostorRolesCountMax = CustomOption.Create(101, Types.Impostor, "Maximum Impostor Roles", 2f, 0f, 3f, 1f);
 
             //Assassin
-            AssassinCount = CustomOption.Create(200, Types.Impostor, cs(Palette.ImpostorRed, "Assassin"), 0f, 0f, 3f, 1f, null, true);
-            AssassinNumberOfShots = CustomOption.Create(201, Types.Impostor, "Number Of Shots", 5f, 0f, 15f, 1f, AssassinCount);
+            CustomOption.CreateHeader(199, Types.Impostor, "Assassin", headerColor: Palette.ImpostorRed);
+            AssassinCount = CustomOption.Create(200, Types.Impostor, cs(Palette.ImpostorRed, "Assassin") + " Count", 0f, 0f, 3f, 1f, null);
+            AssassinNumberOfShots = CustomOption.Create(201, Types.Impostor, "Number Of Shared Shots", 5f, 0f, 15f, 1f, AssassinCount);
             AssassinMultipleShotsPerMeeting = CustomOption.Create(202, Types.Impostor, "Limit One Shot Per Meeting", false, AssassinCount);
             AssassinCanGuessCrewmate = CustomOption.Create(205, Types.Impostor, "Can Guess Crewmate", false, AssassinCount);
 
             //Bomber
-            BomberSpawnRate = CustomOption.Create(250, Types.Impostor, cs(Palette.ImpostorRed, "Bomber"), RoleRates, null, true);
+            BomberSpawnRate = CustomOption.Create(250, Types.Impostor, "Bomber", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             BomberBombCooldown = CustomOption.Create(251, Types.Impostor, "Bomb Cooldown", 10f, 5f, 60f, 2.5f, BomberSpawnRate);
             BomberDelay = CustomOption.Create(252, Types.Impostor, "Bomb Delay", 5f, 1f, 10f, 0.5f, BomberSpawnRate);
             BomberTimer = CustomOption.Create(253, Types.Impostor, "Bomb Timer", 25f, 5f, 30f, 5f, BomberSpawnRate);
@@ -447,109 +557,112 @@ namespace StellarRoles
             BomberCanReport = CustomOption.Create(255, Types.Impostor, "Bombed Target Can Report", false, BomberSpawnRate);
             BomberHotPotatoMode = CustomOption.Create(256, Types.Impostor, "Hot Potato Mode", false, BomberSpawnRate);
 
-            //BountyHunter
-            BountyHunterSpawnRate = CustomOption.Create(750, Types.Impostor, cs(Palette.ImpostorRed, "Bounty Hunter"), RoleRates, null, true);
-            BountyHunterBountyDuration = CustomOption.Create(751, Types.Impostor, "Bounty Duration", 30f, 10f, 180f, 5f, BountyHunterSpawnRate);
-            BountyHunterReducedCooldown = CustomOption.Create(752, Types.Impostor, "Bounty Kill Cooldown Bonus", 15f, 0f, 30f, 2.5f, BountyHunterSpawnRate);
-            BountyHunterPunishmentTime = CustomOption.Create(753, Types.Impostor, "Non-Bounty Kill Cooldown Penalty", 10f, 0f, 60f, 2.5f, BountyHunterSpawnRate);
-            BountyHunterShowArrow = CustomOption.Create(754, Types.Impostor, "Enable Bounty Arrow", true, BountyHunterSpawnRate);
-            BountyHunterArrowUpdateIntervall = CustomOption.Create(755, Types.Impostor, "Arrow Update Interval", 2.5f, 2.5f, 60f, 2.5f, BountyHunterShowArrow);
-
             //Camouflager
-            CamouflagerSpawnRate = CustomOption.Create(550, Types.Impostor, cs(Palette.ImpostorRed, "Camouflager"), RoleRates, null, true);
+            CamouflagerSpawnRate = CustomOption.Create(550, Types.Impostor, "Camouflager", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             CamouflagerCooldown = CustomOption.Create(551, Types.Impostor, "Camouflage Cooldown", 22.5f, 10f, 60f, 2.5f, CamouflagerSpawnRate);
             CamouflagerDuration = CustomOption.Create(552, Types.Impostor, "Camouflage Duration", 12.5f, 5f, 20f, 2.5f, CamouflagerSpawnRate);
-            CamouflagerChargesPerKill = CustomOption.Create(570, Types.Impostor, "Charges Per Kill", 2f, 1f, 5f, 1f, CamouflagerSpawnRate);
+            CamouflagerChargesPerKill = CustomOption.Create(570, Types.Impostor, "Camouflage Charges per Kill", 2f, 1f, 5f, 1f, CamouflagerSpawnRate);
 
             //Changling
-            ChangelingSpawnRate = CustomOption.Create(350, Types.Impostor, cs(Palette.ImpostorRed, "Changeling"), RoleRates, null, true);
+            ChangelingSpawnRate = CustomOption.Create(350, Types.Impostor, "Changeling", RoleRates, null, true, headerColor: Palette.ImpostorRed);
 
             //Cultist
-            CultistSpawnRate = CustomOption.Create(600, Types.Impostor, cs(Palette.ImpostorRed, "Cultist"), RoleRates, null, true);
-            CultistSpecialRolesEnabled = CustomOption.Create(8011, Types.Impostor, cs(Cultist.Color, "Converted Role\nResembles Previous Role"), false, CultistSpawnRate);
+            CultistSpawnRate = CustomOption.Create(600, Types.Impostor, "Cultist", RoleRates, null, true, headerColor: Palette.ImpostorRed);
+            CultistSpecialRolesEnabled = CustomOption.Create(8011, Types.Impostor, "Converted Role Resembles Previous Role", false, CultistSpawnRate);
+            CultistChatInMeeting = CustomOption.Create(8012, Types.Impostor, "Cultist/Follower Meeting Chat", false, CultistSpawnRate);
 
             // Hacker
-            HackerSpawnRate = CustomOption.Create(610, Types.Impostor, cs(Hacker.Color, "Hacker"), RoleRates, null, true);
+            HackerSpawnRate = CustomOption.Create(610, Types.Impostor, "Hacker", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             HackerMaximumDownloadDuration = CustomOption.Create(611, Types.Impostor, "Max Download Duration", 10f, 3f, 15f, 1f, HackerSpawnRate);
             HackerJamChargesPerKill = CustomOption.Create(612, Types.Impostor, "Jam Charges Per Kill", 2f, 0f, 5f, 1f, HackerSpawnRate);
             HackerJamCooldown = CustomOption.Create(613, Types.Impostor, "Jam Cooldown", 20f, 10f, 35f, 2.5f, HackerJamChargesPerKill);
             HackerJamDuration = CustomOption.Create(614, Types.Impostor, "Jam Duration", 12.5f, 5f, 20f, 2.5f, HackerJamChargesPerKill);
 
             //Janitor
-            JanitorSpawnRate = CustomOption.Create(650, Types.Impostor, cs(Palette.ImpostorRed, "Janitor"), RoleRates, null, true);
+            JanitorSpawnRate = CustomOption.Create(650, Types.Impostor, "Janitor", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             JanitorCooldown = CustomOption.Create(651, Types.Impostor, "Clean Cooldown", 30f, 10f, 60f, 2.5f, JanitorSpawnRate);
             JanitorInitialCharges = CustomOption.Create(652, Types.Impostor, "Initial Clean Charges", 10f, 1f, 15f, 1f, JanitorSpawnRate);
-            JanitorChargesPerKill = CustomOption.Create(653, Types.Impostor, "Charges Per Kill", 2f, 0f, 3f, 1f, JanitorSpawnRate);
+            JanitorChargesPerKill = CustomOption.Create(653, Types.Impostor, "Clean Charges per Kill", 2f, 0f, 3f, 1f, JanitorSpawnRate);
 
             //Miner
-            MinerSpawnRate = CustomOption.Create(400, Types.Impostor, cs(Palette.ImpostorRed, "Miner"), RoleRates, null, true);
+            MinerSpawnRate = CustomOption.Create(400, Types.Impostor, "Miner", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             MinerCooldown = CustomOption.Create(401, Types.Impostor, "Mine Cooldown", 15f, 10f, 60f, 2.5f, MinerSpawnRate);
             MinerCharges = CustomOption.Create(402, Types.Impostor, "Maximum Miner Vents", 12f, 3f, 60f, 1f, MinerSpawnRate);
-            MinerVentsActiveWhen = CustomOption.Create(403, Types.Impostor, "Miner Vents Are Active", new string[] { "After Meeting", "On Place" }, MinerSpawnRate);
-            MinerVentsDelay = CustomOption.Create(404, Types.Impostor, "Vent Activation Delay", 15f, 0f, 30f, 2.5f, MinerVentsActiveWhen);
+            MinerVentsDelay = CustomOption.Create(404, Types.Impostor, "Vent Activation Delay", MinerVents, MinerSpawnRate);
 
             //Morphling
-            MorphlingSpawnRate = CustomOption.Create(300, Types.Impostor, cs(Palette.ImpostorRed, "Morphling"), RoleRates, null, true);
+            MorphlingSpawnRate = CustomOption.Create(300, Types.Impostor, "Morphling", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             MorphlingCooldown = CustomOption.Create(301, Types.Impostor, "Morph Cooldown", 20f, 5f, 60f, 2.5f, MorphlingSpawnRate);
             MorphlingDuration = CustomOption.Create(302, Types.Impostor, "Morph Duration", 10f, 1f, 20f, 0.5f, MorphlingSpawnRate);
 
+            //Parasite
+            ParasiteSpawnRate = CustomOption.Create(307, Types.Impostor, "Parasite", RoleRates, null, true, headerColor: Palette.ImpostorRed);
+            ParasiteInfestCooldown = CustomOption.Create(308, Types.Impostor, "Infest Cooldown", 25f, 10f, 45f, 2.5f, ParasiteSpawnRate);
+            ParasiteControlDuration = CustomOption.Create(306, Types.Impostor, "Control Duration", ParasiteControl, ParasiteSpawnRate);
+            ParasiteSaveInfested = CustomOption.Create(309, Types.Impostor, "Parasite Death\nSaves Infested", false, ParasiteSpawnRate);
+            ParasiteNormalKillButton = CustomOption.Create(305, Types.Impostor, "Parasite Normal Kill Button", false, ParasiteSpawnRate);
+
+
             //Shade
-            ShadeSpawnRate = CustomOption.Create(500, Types.Impostor, cs(Palette.ImpostorRed, "Shade"), RoleRates, null, true);
+            ShadeSpawnRate = CustomOption.Create(500, Types.Impostor, "Shade", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             ShadeCooldown = CustomOption.Create(501, Types.Impostor, "Vanish Cooldown", 30f, 2.5f, 60f, 2.5f, ShadeSpawnRate);
             ShadeDuration = CustomOption.Create(502, Types.Impostor, "Vanish Duration", 10f, 1f, 60f, 1f, ShadeSpawnRate);
             ShadeEvidence = CustomOption.Create(503, Types.Impostor, "Evidence Duration", 10f, 1f, 30f, 1f, ShadeSpawnRate);
             ShadeKillsToGainBlind = CustomOption.Create(505, Types.Impostor, "Kills To Gain Blind", 3f, 1f, 10f, 1f, ShadeSpawnRate);
-            ShadeBlindRange = CustomOption.Create(520, Types.Impostor, "Blind Range", new string[] { ".75x", "1x", "1.25x", "1.5x", "1.75x", "2x", "2.25x", "2.5x", "2.75x", "3x", "Global" }, ShadeSpawnRate);
+            ShadeBlindRange = CustomOption.Create(520, Types.Impostor, "Blind Range", [".75x", "1x", "1.25x", "1.5x", "1.75x", "2x", "2.25x", "2.5x", "2.75x", "3x", "Global"], ShadeSpawnRate);
             ShadeBlindCooldown = CustomOption.Create(506, Types.Impostor, "Blind Cooldown", 25f, 5f, 60f, 2.5f, ShadeSpawnRate);
             ShadeBlindDuration = CustomOption.Create(507, Types.Impostor, "Blind Duration", 10f, 5f, 15f, 1f, ShadeSpawnRate);
 
             //Undertaker
-            UndertakerSpawnRate = CustomOption.Create(508, Types.Impostor, cs(Palette.ImpostorRed, "Undertaker"), RoleRates, null, true);
+            UndertakerSpawnRate = CustomOption.Create(508, Types.Impostor, "Undertaker", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             UndertakerDragingDelaiAfterKill = CustomOption.Create(509, Types.Impostor, "Drag Cooldown After Kill", 0f, 0f, 15f, 1f, UndertakerSpawnRate);
             UndertakerDragCooldown = CustomOption.Create(510, Types.Impostor, "Drag Cooldown", 10f, 5f, 30f, 2.5f, UndertakerSpawnRate);
             UndertakerCanDragAndVent = CustomOption.Create(511, Types.Impostor, "Can Vent While Dragging", true, UndertakerSpawnRate);
 
             //Vampire
-            VampireSpawnRate = CustomOption.Create(553, Types.Impostor, cs(Palette.ImpostorRed, "Vampire"), RoleRates, null, true);
+            VampireSpawnRate = CustomOption.Create(553, Types.Impostor, "Vampire", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             VampireKillDelay = CustomOption.Create(554, Types.Impostor, "Bite Kill Delay", 5f, 1f, 10f, 1f, VampireSpawnRate);
             VampireCooldown = CustomOption.Create(555, Types.Impostor, "Bite Cooldown", 25f, 10f, 60f, 2.5f, VampireSpawnRate);
             VampireKillButton = CustomOption.Create(556, Types.Impostor, "Vampire Also Has Kill Button", false, VampireSpawnRate);
 
             //Warlock
-            WarlockSpawnRate = CustomOption.Create(700, Types.Impostor, cs(Palette.ImpostorRed, "Warlock"), RoleRates, null, true);
+            WarlockSpawnRate = CustomOption.Create(700, Types.Impostor, "Warlock", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             WarlockCooldown = CustomOption.Create(701, Types.Impostor, "Curse Cooldown", 30f, 10f, 60f, 2.5f, WarlockSpawnRate);
             WarlockRootTime = CustomOption.Create(702, Types.Impostor, "Curse-Kill Root Time", 4f, 0f, 15f, 1f, WarlockSpawnRate);
 
             //Wraith
-            WraithSpawnRate = CustomOption.Create(450, Types.Impostor, cs(Palette.ImpostorRed, "Wraith"), RoleRates, null, true);
+            WraithSpawnRate = CustomOption.Create(450, Types.Impostor, "Wraith", RoleRates, null, true, headerColor: Palette.ImpostorRed);
             WraithPhaseCooldown = CustomOption.Create(451, Types.Impostor, "Dash Cooldown", 30f, 10f, 60f, 2.5f, WraithSpawnRate);
             WraithPhaseDuration = CustomOption.Create(452, Types.Impostor, "Dash Duration", 10f, 3f, 15f, 1f, WraithSpawnRate);
             WraithLantern = CustomOption.Create(454, Types.Impostor, "Lantern", true, WraithSpawnRate);
             WraithLanternCooldown = CustomOption.Create(455, Types.Impostor, "Lantern Cooldown", 30f, 5f, 60f, 2.5f, WraithLantern);
             WraithLanternDuration = CustomOption.Create(456, Types.Impostor, "Lantern Duration", 10f, 1f, 20f, 0.5f, WraithLantern);
-            WraithInvisibleDuration = CustomOption.Create(458, Types.Impostor, "Invisible Duration", 2f, 0f, 5f, 0.5f, WraithLantern);
+            WraithInvisibleDuration = CustomOption.Create(458, Types.Impostor, "Invisible Duration After Return", 2f, 0f, 5f, 0.5f, WraithLantern);
             #endregion Impostors
 
             #region Neutral Killing
-            NeutralKillerRolesCountMin = CustomOption.Create(1500, Types.NeutralK, "Minimum " + cs(NeutralKiller.Color, "Neutral Killing") + " Roles", 0f, 0f, 15f, 1f, null, true);
-            NeutralKillerRolesCountMax = CustomOption.Create(1501, Types.NeutralK, "Maximum " + cs(NeutralKiller.Color, "Neutral Killing") + " Roles", 0f, 0f, 15f, 1f);
+            NeutralKillerRolesCountMin = CustomOption.Create(1500, Types.NeutralK, "Minimum Neutral Killing Roles", 0f, 0f, 15f, 1f, null, true, null, "Neutral Killing Min/Max Roles");
+            NeutralKillerRolesCountMax = CustomOption.Create(1501, Types.NeutralK, "Maximum Neutral Killing Roles", 0f, 0f, 15f, 1f, null);
 
-            NeutralKillersGetNonCritSabo = CustomOption.Create(1550, Types.NeutralK, "Neutral Killers Get Non-Critical Sabotage", new string[] { "Imp Team Wipe", "Never", "Game Start" });
-            ImpsLooseCritSabo = CustomOption.Create(1551, Types.NeutralK, "Impostors Lose Critical Sabotage", new string[] { "Team Wipe", "Never" });
-            ImpsLoseDoors = CustomOption.Create(1552, Types.NeutralK, "Impostors Lose Door Sabotage", new string[] { "Team Wipe", "Never" });
-            NeutralKillerGainsAssassin = CustomOption.Create(1553, Types.NeutralK, "Neutral Killers Gain Assassin Ability", new string[] { "Never", "Imp Team Wipe", "Game Start" });
+            CustomOption.CreateHeader(1549, Types.NeutralK, "Neutral Killer Extra Options");
+            NeutralKillersGetNonCritSabo = CustomOption.Create(1550, Types.NeutralK, "Neutral Killers Get Non-Critical Sabotage", ["Imp Team Wipe", "Never", "Game Start"]);
+            ImpsLooseCritSabo = CustomOption.Create(1551, Types.NeutralK, "Impostors Lose Critical Sabotage", ["Team Wipe", "Never"]);
+            ImpsLoseDoors = CustomOption.Create(1552, Types.NeutralK, "Impostors Lose Door Sabotage", ["Team Wipe", "Never"]);
+
+            CustomOption.CreateHeader(1548, Types.NeutralK, "Neutral Killer Assassin");
+            NeutralKillerGainsAssassin = CustomOption.Create(1553, Types.NeutralK, "Neutral Killers Gain Assassin Ability", ["Never", "Imp Team Wipe", "Game Start"]);
             NeutralKillerAssassinNumberOfShots = CustomOption.Create(1554, Types.NeutralK, "Number Of Shots", 5f, 0f, 15f, 1f, NeutralKillerGainsAssassin);
             NeutralKillerAssassinMultipleShotsPerMeeting = CustomOption.Create(1555, Types.NeutralK, "Limit One Shot Per Meeting", false, NeutralKillerGainsAssassin);
             NeutralKillerAssassinCanGuessCrewmate = CustomOption.Create(1556, Types.NeutralK, "Can Guess Crewmate", false, NeutralKillerGainsAssassin);
 
             //Rogue Impostors
-            EnableRogueImpostors = CustomOption.Create(1602, Types.NeutralK, cs(NeutralKiller.Color, "Enabled Rogue Impostors"), new string[] { "Hide", "Show" }, null, true);
+            EnableRogueImpostors = CustomOption.CreateHeader(1602, Types.NeutralK, "Rogue Impostors", headerColor: Color.grey);
             BomberIsNeutral = CustomOption.Create(1613, Types.NeutralK, "Bomber", false, EnableRogueImpostors);
-            BountyHunterIsNeutral = CustomOption.Create(1610, Types.NeutralK, "Bounty Hunter", false, EnableRogueImpostors);
             CamouflagerIsNeutral = CustomOption.Create(1607, Types.NeutralK, "Camouflager", false, EnableRogueImpostors);
             JanitorIsNeutral = CustomOption.Create(1612, Types.NeutralK, "Janitor", false, EnableRogueImpostors);
             MinerIsNeutral = CustomOption.Create(1611, Types.NeutralK, "Miner", false, EnableRogueImpostors);
             MorphlingIsNeutral = CustomOption.Create(1603, Types.NeutralK, "Morphling", false, EnableRogueImpostors);
+            ParasiteIsNeutral = CustomOption.Create(1610, Types.NeutralK, "Parasite", false, EnableRogueImpostors);
             ShadeIsNeutral = CustomOption.Create(1609, Types.NeutralK, "Shade", false, EnableRogueImpostors);
             UndertakerIsNeutral = CustomOption.Create(1605, Types.NeutralK, "Undertaker", false, EnableRogueImpostors);
             VampireIsNeutral = CustomOption.Create(1604, Types.NeutralK, "Vampire", false, EnableRogueImpostors);
@@ -557,12 +670,12 @@ namespace StellarRoles
             WraithIsNeutral = CustomOption.Create(1608, Types.NeutralK, "Wraith", false, EnableRogueImpostors);
 
             //Headhunter
-            HeadHunterSpawnRate = CustomOption.Create(1650, Types.NeutralK, cs(HeadHunter.Color, "HeadHunter"), RoleRates, null, true);
+            HeadHunterSpawnRate = CustomOption.Create(1650, Types.NeutralK, "HeadHunter", RoleRates, null, true, headerColor: HeadHunter.Color);
             HeadHunterTrackingCooldown = CustomOption.Create(1651, Types.NeutralK, "Pursue Cooldown", 20f, 15f, 30f, 2.5f, HeadHunterSpawnRate);
             HeadHunterTrackerDuration = CustomOption.Create(1652, Types.NeutralK, "Pursue Duration", 5f, 5f, 30f, 2.5f, HeadHunterSpawnRate);
 
             //Nightmare
-            NightmareSpawnRate = CustomOption.Create(1700, Types.NeutralK, cs(Nightmare.Color, "Nightmare"), RoleRates, null, true);
+            NightmareSpawnRate = CustomOption.Create(1700, Types.NeutralK, "Nightmare", RoleRates, null, true, headerColor: Nightmare.Color);
             NightmareParalyzeCooldown = CustomOption.Create(1701, Types.NeutralK, "Paralyze Cooldown", 20f, 15f, 20f, 2.5f, NightmareSpawnRate);
             NightmareParalyzeDuration = CustomOption.Create(1702, Types.NeutralK, "Paralyze Duration", 7f, 3f, 15f, 1f, NightmareSpawnRate);
             NightmareBlindCooldown = CustomOption.Create(1703, Types.NeutralK, "Blind Cooldown", 20f, 10f, 35f, 2.5f, NightmareSpawnRate);
@@ -570,51 +683,50 @@ namespace StellarRoles
             NightmareBlindRadius = CustomOption.Create(1705, Types.NeutralK, "Blind Radius", 1.0f, .25f, 5, .25f, NightmareSpawnRate);
 
             //Pyromaniac
-            PyromaniacSpawnRate = CustomOption.Create(1800, Types.NeutralK, cs(Pyromaniac.Color, "Pyromaniac"), RoleRates, null, true);
+            PyromaniacSpawnRate = CustomOption.Create(1800, Types.NeutralK, "Pyromaniac", RoleRates, null, true, headerColor: Pyromaniac.Color);
             PyromaniacDouseCooldown = CustomOption.Create(1801, Types.NeutralK, "Douse Cooldown", 22.5f, 10f, 30f, 2.5f, PyromaniacSpawnRate);
             PyromaniacDousedDuration = CustomOption.Create(1802, Types.NeutralK, "Douse Duration", 1f, 1f, 5f, 1f, PyromaniacSpawnRate);
             PyromaniacDouseKillCooldown = CustomOption.Create(1803, Types.NeutralK, "Doused Kill Cooldown", 3f, 0f, 15f, 1f, PyromaniacSpawnRate);
             #endregion Neutral Killing
 
             #region Neutrals
-            NeutralRolesCountMin = CustomOption.Create(2500, Types.Neutral, "Minimum " + cs(Color.grey, "Neutral") + " Roles", 0f, 0f, 15f, 1f, null, true);
-            NeutralRolesCountMax = CustomOption.Create(2501, Types.Neutral, "Maximum " + cs(Color.grey, "Neutral") + " Roles", 0f, 0f, 15f, 1f);
+            NeutralRolesCountMin = CustomOption.Create(2500, Types.Neutral, "Minimum Neutral Roles", 0f, 0f, 15f, 1f, null, true, null, "Neutral Min/Max Roles");
+            NeutralRolesCountMax = CustomOption.Create(2501, Types.Neutral, "Maximum Neutral Roles", 0f, 0f, 15f, 1f);
 
             //Arsonist
-            ArsonistSpawnRate = CustomOption.Create(2650, Types.Neutral, cs(Arsonist.Color, "Arsonist"), RoleRates, null, true);
+            ArsonistSpawnRate = CustomOption.Create(2650, Types.Neutral, "Arsonist", RoleRates, null, true, headerColor: Arsonist.Color);
             ArsonistCooldown = CustomOption.Create(2651, Types.Neutral, "Douse Cooldown", 22.5f, 2.5f, 60f, 2.5f, ArsonistSpawnRate);
             ArsonistDuration = CustomOption.Create(2652, Types.Neutral, "Douse Duration", 1f, 1f, 10f, 1f, ArsonistSpawnRate);
             ArsonistDouseIgniteRoundCooldown = CustomOption.Create(2654, Types.Neutral, "Douse/Ignite Round Start Cooldown", 15f, 10f, 30f, 2.5f, ArsonistSpawnRate);
 
             //Executioner
-            ExecutionerSpawnRate = CustomOption.Create(2600, Types.Neutral, cs(Executioner.Color, "Executioner"), RoleRates, null, true);
-            ExecutionerPromotesTo = CustomOption.Create(2601, Types.Neutral, "Role on Target Death", new string[] { "Jester", "Refugee" }, ExecutionerSpawnRate);
-            ExecutionerConvertsImmediately = CustomOption.Create(2602, Types.Neutral, "Executioner Converts on Target Death", new string[] { "Immediately", "Next Meeting" }, ExecutionerSpawnRate);
+            ExecutionerSpawnRate = CustomOption.Create(2600, Types.Neutral, "Executioner", RoleRates, null, true, headerColor: Executioner.Color);
+            ExecutionerPromotesTo = CustomOption.Create(2601, Types.Neutral, "Role on Target Death", ["Jester", "Refugee"], ExecutionerSpawnRate);
+            ExecutionerConvertsImmediately = CustomOption.Create(2602, Types.Neutral, "Executioner Converts on Target Death", ["Immediately", "Next Meeting"], ExecutionerSpawnRate);
 
             //Jester
-            JesterSpawnRate = CustomOption.Create(2550, Types.Neutral, cs(Jester.Color, "Jester"), RoleRates, null, true);
+            JesterSpawnRate = CustomOption.Create(2550, Types.Neutral, "Jester", RoleRates, null, true, headerColor: Jester.Color);
             JesterCanCallEmergency = CustomOption.Create(2551, Types.Neutral, "Jester Can Call Emergency Meeting", true, JesterSpawnRate);
             JesterCanEnterVents = CustomOption.Create(2552, Types.Neutral, "Jester Can Enter Vents", true, JesterSpawnRate);
             JesterLightsOnVision = CustomOption.Create(2553, Types.Neutral, "Jester Lights On Vision", .75f, 0.25f, 5f, 0.25f, JesterSpawnRate);
             JesterLightsOffVision = CustomOption.Create(2554, Types.Neutral, "Jester Lights Off Vision", .5f, 0.25f, 5f, 0.25f, JesterSpawnRate);
 
             //Refugee
-            RefugeeSpawnRate = CustomOption.Create(2800, Types.Neutral, cs(Refugee.Color, "Refugee"), new string[] { "Hide", "Show" }, null, true);
+            RefugeeSpawnRate = CustomOption.CreateHeader(2800, Types.Neutral, "Refugee", headerColor: Refugee.Color);
             VestCooldown = CustomOption.Create(2801, Types.Neutral, "Refuge Cooldown", 25f, 10f, 60f, 2.5f, RefugeeSpawnRate);
             VestDuration = CustomOption.Create(2802, Types.Neutral, "Refuge Duration", 7f, 3f, 20f, 1f, RefugeeSpawnRate);
-            CanBeGuessed = CustomOption.Create(2803, Types.Neutral, "Refugee can be Guessed", false, RefugeeSpawnRate);
 
             //Romantic
-            RomanticSpawnRate = CustomOption.Create(2750, Types.Neutral, cs(Romantic.Color, "Romantic"), RoleRates, null, true);
+            RomanticSpawnRate = CustomOption.Create(2750, Types.Neutral, "Romantic", RoleRates, null, true, headerColor: Romantic.Color);
             RomanticProtectCooldown = CustomOption.Create(2751, Types.Neutral, "Protect Cooldown", 25f, 10f, 60f, 2.5f, RomanticSpawnRate);
             RomanticProtectDuration = CustomOption.Create(2752, Types.Neutral, "Protect Duration", 7f, 3f, 15f, 1f, RomanticSpawnRate);
-            RomanticKnowsTargetRoleWhen = CustomOption.Create(2753, Types.Neutral, "Romantic Knows Target Identity", new string[] { "Instantly", "On Target Death" }, RomanticSpawnRate);
-            RomanticLoverSeesLove = CustomOption.Create(2755, Types.Neutral, "Romantic Target Knows They Are Selected", new string[] { "Never", "Next Meeting", "Instantly" }, RomanticSpawnRate);
-            RomanticOnAllImpsDead = CustomOption.Create(8002, Types.Neutral, "Imp Romantic Becomes\non Last Impostor Death", new string[] { "Dead", "Refugee" }, RomanticSpawnRate);
+            RomanticKnowsTargetRoleWhen = CustomOption.Create(2753, Types.Neutral, "Romantic Knows Target Identity", ["Instantly", "On Target Death"], RomanticSpawnRate);
+            RomanticLoverSeesLove = CustomOption.Create(2755, Types.Neutral, "Romantic Target Knows They Are Selected", ["Never", "Next Meeting", "Instantly"], RomanticSpawnRate);
+            RomanticOnAllImpsDead = CustomOption.Create(8002, Types.Neutral, "Imp Romantic Becomes on Last Impostor Death", ["Dead", "Refugee"], RomanticSpawnRate);
 
 
             //Scavenger
-            ScavengerSpawnRate = CustomOption.Create(2700, Types.Neutral, cs(Scavenger.Color, "Scavenger"), RoleRates, null, true);
+            ScavengerSpawnRate = CustomOption.Create(2700, Types.Neutral, "Scavenger", RoleRates, null, true, headerColor: Scavenger.Color);
             ScavengerCooldown = CustomOption.Create(2701, Types.Neutral, "Eat Cooldown", 20f, 10f, 60f, 2.5f, ScavengerSpawnRate);
             ScavengerNumberToWin = CustomOption.Create(2702, Types.Neutral, "Number of Eats to Win", 3f, 1f, 10f, 1f, ScavengerSpawnRate);
             ScavengerCanUseVents = CustomOption.Create(2703, Types.Neutral, "Scavenger Can Use Vents", true, ScavengerSpawnRate);
@@ -623,90 +735,93 @@ namespace StellarRoles
             #endregion Neutrals
 
             #region Crewmates
-            CrewmateRolesCountMin = CustomOption.Create(3500, Types.Crewmate, "Minimum " + cs(Color.cyan, "Crewmate") + " Roles", 0f, 0f, 15f, 1f, null, true);
-            CrewmateRolesCountMax = CustomOption.Create(3501, Types.Crewmate, "Maximum " + cs(Color.cyan, "Crewmate") + " Roles", 0f, 0f, 15f, 1f);
+            CrewmateRolesCountMin = CustomOption.Create(3500, Types.Crewmate, "Minimum Crewmate Roles", 0f, 0f, 15f, 1f, null, true, heading:"Crewmate Min/Max Roles");
+            CrewmateRolesCountMax = CustomOption.Create(3501, Types.Crewmate, "Maximum Crewmate Roles", 0f, 0f, 15f, 1f);
 
             //Administrator
-            AdministratorSpawnRate = CustomOption.Create(3900, Types.Crewmate, cs(Administrator.Color, "Administrator"), RoleRates, null, true); ;
+            AdministratorSpawnRate = CustomOption.Create(3900, Types.Crewmate, "Administrator", RoleRates, null, true, headerColor: Administrator.Color);
             AdministratorInitialBatteryTime = CustomOption.Create(3901, Types.Crewmate, "Initial Battery Charge", 0f, 0f, 25f, 1f, AdministratorSpawnRate);
             AdministratorBatteryTimePerTask = CustomOption.Create(3902, Types.Crewmate, "Charge Amount (Seconds)", 1f, 0f, 5f, 0.5f, AdministratorSpawnRate);
-            AdministratorSelfChargingBatteryCooldown = CustomOption.Create(3903, Types.Crewmate, "Self-Charge Cooldown", 20f, 10f, 30f, 2.5f, AdministratorSpawnRate);
+            AdministratorSelfChargingBatteryCooldown = CustomOption.Create(3903, Types.Crewmate, "(Tasks Complete) Self-Charge Interval", 20f, 10f, 30f, 2.5f, AdministratorSpawnRate);
             AdministratorDisableRoundOneAccess = CustomOption.Create(3905, Types.Crewmate, "Disable Charging and Access Round One", false, AdministratorSpawnRate);
 
             //Detective
-            DetectiveSpawnRate = CustomOption.Create(4300, Types.Crewmate, cs(Detective.Color, "Detective"), RoleRates, null, true);
+            DetectiveSpawnRate = CustomOption.Create(4300, Types.Crewmate, "Detective", RoleRates, null, true, headerColor: Detective.Color);
             DetectiveInspectDuration = CustomOption.Create(4301, Types.Crewmate, "Inspect Duration", 2f, .5f, 5f, .5f, DetectiveSpawnRate);
             DetectiveInspectsPerRound = CustomOption.Create(4302, Types.Crewmate, "Inspects Per Round", 3f, 1f, 8f, 1f, DetectiveSpawnRate);
             DetectiveEnableCrimeScenes = CustomOption.Create(4303, Types.Crewmate, "Enable Crime Scenes", true, DetectiveSpawnRate);
 
             //Engineer
-            EngineerSpawnRate = CustomOption.Create(3700, Types.Crewmate, cs(Engineer.Color, "Engineer"), RoleRates, null, true);
-            EngineerHasFix = CustomOption.Create(3701, Types.Crewmate, "Enable Remote Fix", new string[] { "Off", "On", "On Task Completion" }, EngineerSpawnRate);
+            EngineerSpawnRate = CustomOption.Create(3700, Types.Crewmate, "Engineer", RoleRates, null, true, headerColor: Engineer.Color);
+            EngineerHasFix = CustomOption.Create(3701, Types.Crewmate, "Enable Remote Fix", ["Off", "On", "On Task Completion"], EngineerSpawnRate);
             EngineerCanVent = CustomOption.Create(3702, Types.Crewmate, "Can Vent", true, EngineerSpawnRate);
+            EngineerVentCooldown = CustomOption.Create(3706, Types.Crewmate, "Vent Cooldown", 10f, 0f, 25f, 2.5f, EngineerSpawnRate);
+            EngineerVentTimer = CustomOption.Create(3708, Types.Crewmate, "Max Time in Vents", EngiVents, EngineerSpawnRate);
             EngineerHighlightForEvil = CustomOption.Create(3703, Types.Crewmate, "Evil Killers See Vent Highlights", true, EngineerCanVent);
             EngineerAdvancedSabotageRepairs = CustomOption.Create(3704, Types.Crewmate, "Advanced Sabotage Repair", true, EngineerSpawnRate);
 
             //Guardian
-            GuardianSpawnRate = CustomOption.Create(3875, Types.Crewmate, cs(Guardian.Color, "Guardian"), RoleRates, null, true);
-            GuardianShieldIsVisibleTo = CustomOption.Create(3882, Types.Crewmate, "Shield Is Visible To", new string[] { "Protected", "Unprotected", "Killers", "Everyone", "Guardian Only" }, GuardianSpawnRate);
+            GuardianSpawnRate = CustomOption.Create(3875, Types.Crewmate, "Guardian", RoleRates, null, true, headerColor: Guardian.Color);
+            GuardianShieldIsVisibleTo = CustomOption.Create(3882, Types.Crewmate, "Shield Is Visible To", ["Protected", "Unprotected", "Killers", "Everyone", "Guardian Only"], GuardianSpawnRate);
             GuardianShieldVisibilityDelay = CustomOption.Create(3877, Types.Crewmate, "Shield Visibility Delay", 10f, 0f, 30f, 2.5f, GuardianSpawnRate);
             GuardianVisionRangeOfShield = CustomOption.Create(3880, Types.Crewmate, "Shield Vision Range", .5f, .25f, 1.25f, .25f, GuardianSpawnRate);
             GuardianShieldFadesOnDeath = CustomOption.Create(3878, Types.Crewmate, "Shield Fades On Death", false, GuardianSpawnRate);
+            GuardianSelfShield = CustomOption.Create(3879, Types.Crewmate, "One Time Self Shield", false, GuardianSpawnRate);
 
             //Investigator
-            InvestigatorSpawnRate = CustomOption.Create(3800, Types.Crewmate, cs(Investigator.Color, "Investigator"), RoleRates, null, true);
+            InvestigatorSpawnRate = CustomOption.Create(3800, Types.Crewmate, "Investigator", RoleRates, null, true, headerColor: Investigator.Color);
             InvestigatorAnonymousFootprints = CustomOption.Create(3801, Types.Crewmate, "Anonymous Footprints", false, InvestigatorSpawnRate);
             InvestigatorFootprintInterval = CustomOption.Create(3802, Types.Crewmate, "Footprint Interval", 0.25f, 0.25f, 10f, 0.25f, InvestigatorSpawnRate);
             InvestigatorFootprintDuration = CustomOption.Create(3803, Types.Crewmate, "Footprint Duration", 3.75f, 0.25f, 10f, 0.25f, InvestigatorSpawnRate);
 
             //Jailor
-            JailorSpawnRate = CustomOption.Create(4200, Types.Crewmate, cs(Jailor.Color, "Jailor"), RoleRates, null, true);
+            JailorSpawnRate = CustomOption.Create(4200, Types.Crewmate, "Jailor", RoleRates, null, true, headerColor: Jailor.Color);
             InitialJailCharges = CustomOption.Create(4201, Types.Crewmate, "Initial Jail Charges", 0f, 0f, 10f, 1f, JailorSpawnRate);
             JailorTasksPerRecharge = CustomOption.Create(4203, Types.Crewmate, "Tasks Per Recharge", 2f, 1f, 10f, 1f, JailorSpawnRate);
             JailorCanJailSelf = CustomOption.Create(4205, Types.Crewmate, "Can Jail Self", true, JailorSpawnRate);
+            JailedTargetsGuessed = CustomOption.Create(4206, Types.Crewmate, "Jailed Targets can be Guessed as Jailor", true, JailorCanJailSelf);
 
             //Mayor
-            MayorSpawnRate = CustomOption.Create(3650, Types.Crewmate, cs(Mayor.Color, "Mayor"), RoleRates, null, true);
-            MayorCanSeeVoteColors = CustomOption.Create(3651, Types.Crewmate, "Can See Vote Colors", true, MayorSpawnRate);
-            MayorTasksNeededToSeeVoteColors = CustomOption.Create(3652, Types.Crewmate, "Completed Tasks Needed To See Vote Colors", 10f, 0f, 20f, 1f, MayorCanSeeVoteColors);
+            MayorSpawnRate = CustomOption.Create(3650, Types.Crewmate, "Mayor", RoleRates, null, true, headerColor: Mayor.Color);
+            MayorTasksNeededToSeeVoteColors = CustomOption.Create(3652, Types.Crewmate, "Completed Tasks Needed To See Vote Colors", MayorVotes, MayorSpawnRate);
             MayorCanRetire = CustomOption.Create(3653, Types.Crewmate, "Enable Retire", true, MayorSpawnRate);
 
             //Medic
-            MedicSpawnRate = CustomOption.Create(3950, Types.Crewmate, cs(Medic.Color, "Medic"), RoleRates, null, true);
+            MedicSpawnRate = CustomOption.Create(3950, Types.Crewmate, "Medic", RoleRates, null, true, headerColor: Medic.Color);
             MedicNonCrewFlash = CustomOption.Create(3956, Types.Crewmate, "Non-Crew Monitor Notification Delay", OddRate15, MedicSpawnRate);
             MedicInitialBatteryTime = CustomOption.Create(3951, Types.Crewmate, "Initial Battery Charge", 2f, 1f, 20f, 1f, MedicSpawnRate);
             MedicBatteryTimePerTask = CustomOption.Create(3952, Types.Crewmate, "Charge Amount (Seconds)", 1f, 0f, 5f, 0.5f, MedicSpawnRate);
-            MedicSelfChargingBatteryCooldown = CustomOption.Create(3953, Types.Crewmate, "Self-Charge Cooldown", 20f, 10f, 30f, 2.5f, MedicSpawnRate);
+            MedicSelfChargingBatteryCooldown = CustomOption.Create(3953, Types.Crewmate, "(Tasks Complete) Self-Charge Interval", 20f, 10f, 30f, 2.5f, MedicSpawnRate);
             MedicDisableRoundOneAccess = CustomOption.Create(3955, Types.Crewmate, "Disable Charging and Access Round One", false, MedicSpawnRate);
 
             //ParityCop
-            ParityCopSpawnRate = CustomOption.Create(3600, Types.Crewmate, cs(ParityCop.Color, "Parity Cop"), RoleRates, null, true);
+            ParityCopSpawnRate = CustomOption.Create(3600, Types.Crewmate, "Parity Cop", RoleRates, null, true, headerColor: ParityCop.Color);
             ParityCopNeutralsMatchKillers = CustomOption.Create(3601, Types.Crewmate, "Neutral Roles Match Killers", true, ParityCopSpawnRate);
             ParityCopCompareCooldown = CustomOption.Create(3605, Types.Crewmate, "Compare Cooldown", 10f, 5f, 30f, 2.5f, ParityCopSpawnRate);
             ParityCopFakeCompare = CustomOption.Create(3606, Types.Crewmate, "Enable Fake Out", false, ParityCopSpawnRate);
 
-            PsychicSpawnRate = CustomOption.Create(3610, Types.Crewmate, cs(Psychic.Color, "Psychic"), RoleRates, null, true);
+            //Psychic
+            PsychicSpawnRate = CustomOption.Create(3610, Types.Crewmate, "Psychic", RoleRates, null, true, headerColor: Psychic.Color);
             PsychicPlayerRange = CustomOption.Create(3611, Types.Crewmate, "Player Counter Range", .75f, .5f, 1.5f, .25f, PsychicSpawnRate);
             PsychicDetectInvisible = CustomOption.Create(3612, Types.Crewmate, "Include Invisible Players", false, PsychicSpawnRate);
             PsychicDetectInVent = CustomOption.Create(3613, Types.Crewmate, "Include Venting Players", false, PsychicSpawnRate);
 
             //Sheriff
-            SheriffSpawnRate = CustomOption.Create(3750, Types.Crewmate, cs(Sheriff.Color, "Sheriff"), RoleRates, null, true);
-            SheriffMisfireKills = CustomOption.Create(3751, Types.Crewmate, "Misfire Kills", new string[] { "Self", "One Target", "Both" }, SheriffSpawnRate);
-            SheriffCanKillNeutrals = CustomOption.Create(3752, Types.Crewmate, "Can Kill Neutrals", true, SheriffSpawnRate);
-            SheriffCanKillArsonist = CustomOption.Create(3753, Types.Crewmate, "Can Kill " + cs(Arsonist.Color, "Arsonist"), true, SheriffCanKillNeutrals);
-            SheriffCanKillJester = CustomOption.Create(3754, Types.Crewmate, "Can Kill " + cs(Jester.Color, "Jester"), true, SheriffCanKillNeutrals);
-            SheriffCanKillExecutioner = CustomOption.Create(3755, Types.Crewmate, "Can Kill " + cs(Executioner.Color, "Executioner"), true, SheriffCanKillNeutrals);
-            SheriffCanKillScavenger = CustomOption.Create(3756, Types.Crewmate, "Can Kill " + cs(Scavenger.Color, "Scavenger"), true, SheriffCanKillNeutrals);
+            SheriffSpawnRate = CustomOption.Create(3750, Types.Crewmate, "Sheriff", RoleRates, null, true, headerColor: Sheriff.Color);
+            SheriffMisfireKills = CustomOption.Create(3751, Types.Crewmate, "Misfire Kills", ["Self", "One Target", "Both"], SheriffSpawnRate);
+            SheriffCanKillArsonist = CustomOption.Create(3753, Types.Crewmate, "Can Kill " + cs(Arsonist.Color, "Arsonist"), true);
+            SheriffCanKillJester = CustomOption.Create(3754, Types.Crewmate, "Can Kill " + cs(Jester.Color, "Jester"), true);
+            SheriffCanKillExecutioner = CustomOption.Create(3755, Types.Crewmate, "Can Kill " + cs(Executioner.Color, "Executioner"), true);
+            SheriffCanKillScavenger = CustomOption.Create(3756, Types.Crewmate, "Can Kill " + cs(Scavenger.Color, "Scavenger"), true);
 
             //Spy
-            SpySpawnRate = CustomOption.Create(4050, Types.Crewmate, cs(Spy.Color, "Spy"), RoleRates, null, true);
+            SpySpawnRate = CustomOption.Create(4050, Types.Crewmate, "Spy", RoleRates, null, true, headerColor: Spy.Color);
             SpyCanDieToSheriff = CustomOption.Create(4051, Types.Crewmate, "Spy Dies to Sheriff", false, SpySpawnRate);
             SpyImpostorsCanKillAnyone = CustomOption.Create(4052, Types.Crewmate, "Impostor Friendly Fire", true, SpySpawnRate);
             AssassinCanKillSpy = CustomOption.Create(203, Types.Crewmate, "Spy Can Be Guessed", false, SpySpawnRate);
 
             //Tracker
-            TrackerSpawnRate = CustomOption.Create(4000, Types.Crewmate, cs(Tracker.Color, "Tracker"), RoleRates, null, true);
+            TrackerSpawnRate = CustomOption.Create(4000, Types.Crewmate, "Tracker", RoleRates, null, true, headerColor: Tracker.Color);
             TrackerTracksPerRound = CustomOption.Create(4002, Types.Crewmate, "Max Marks Per Round", 1f, 1f, 3f, 1f, TrackerSpawnRate);
             TrackerAnonymousArrows = CustomOption.Create(4006, Types.Crewmate, "Anonymous Tracking Arrows", true, TrackerSpawnRate);
             TrackerTrackCooldown = CustomOption.Create(4003, Types.Crewmate, "Track Cooldown", 15f, 10f, 30f, 2.5f, TrackerSpawnRate);
@@ -714,154 +829,240 @@ namespace StellarRoles
             TrackerDelayDuration = CustomOption.Create(4005, Types.Crewmate, "Track Delay Duration", 5f, 3f, 10f, 1f, TrackerSpawnRate);
 
             //Trapper
-            TrapperSpawnRate = CustomOption.Create(4150, Types.Crewmate, cs(Trapper.Color, "Trapper"), RoleRates, null, true);
+            TrapperSpawnRate = CustomOption.Create(4150, Types.Crewmate, "Trapper", RoleRates, null, true, headerColor: Trapper.Color);
             TrapperNumberOfTraps = CustomOption.Create(4151, Types.Crewmate, "Number of Traps", 3f, 1f, 15f, 1f, TrapperSpawnRate);
             TrapperNumberOfCovers = CustomOption.Create(4152, Types.Crewmate, "Number of Covers", 3f, 1f, 15f, 1f, TrapperSpawnRate);
             TrapperTrapCoverCooldown = CustomOption.Create(4153, Types.Crewmate, "Trap/Cover Cooldown", 20f, 5f, 60f, 2.5f, TrapperSpawnRate);
             TrapperRootDuration = CustomOption.Create(4155, Types.Crewmate, "Trap Root Duration", 4f, 1f, 10f, 1f, TrapperSpawnRate);
 
             //Vigilante
-            VigilanteSpawnRate = CustomOption.Create(3550, Types.Crewmate, cs(Vigilante.Color, "Vigilante"), RoleRates, null, true);
+            VigilanteSpawnRate = CustomOption.Create(3550, Types.Crewmate, "Vigilante", RoleRates, null, true, headerColor: new Color(Vigilante.Color.r, Vigilante.Color.g, Vigilante.Color.b, 0.8f));
             VigilanteNumberOfShots = CustomOption.Create(3551, Types.Crewmate, "Number Of Shots", 5f, 1f, 15f, 1f, VigilanteSpawnRate);
             VigilanteHasMultipleShotsPerMeeting = CustomOption.Create(3552, Types.Crewmate, "Limit One Shot Per Meeting", false, VigilanteNumberOfShots);
 
             //Watcher
-            WatcherSpawnRate = CustomOption.Create(4100, Types.Crewmate, cs(Watcher.Color, "Watcher"), RoleRates, null, true);
+            WatcherSpawnRate = CustomOption.Create(4100, Types.Crewmate, "Watcher", RoleRates, null, true, headerColor: Watcher.Color);
             WatcherNonCrewFlash = CustomOption.Create(4110, Types.Crewmate, "Non-Crew Sensor Notification Delay", OddRate15, WatcherSpawnRate);
             WatcherAnonymousArrows = CustomOption.Create(4106, Types.Crewmate, "Anonymous Sensor Arrows", false, WatcherSpawnRate);
             WatcherInitialBatteryTime = CustomOption.Create(4104, Types.Crewmate, "Initial Battery Charge", 6f, 1f, 20f, 1f, WatcherSpawnRate);
             WatcherBatteryTimePerTask = CustomOption.Create(4105, Types.Crewmate, "Charge Amount (Seconds)", 2.5f, 0f, 5f, 0.5f, WatcherSpawnRate);
-            WatcherSelfChargingBatteryCooldown = CustomOption.Create(4107, Types.Crewmate, "Self-Charge Cooldown", 12.5f, 10f, 30f, 2.5f, WatcherSpawnRate);
+            WatcherSelfChargingBatteryCooldown = CustomOption.Create(4107, Types.Crewmate, "(Tasks Complete) Self-Charge Interval", 12.5f, 10f, 30f, 2.5f, WatcherSpawnRate);
             WatcherRoundOneAccess = CustomOption.Create(4109, Types.Crewmate, "Disable Charging and Access Round One", true, WatcherSpawnRate);
             #endregion Crewmates
 
             #region Modifiers
-            ModifierCosmeticMin = CustomOption.Create(5002, Types.Modifier, "Minimum Cosmetic " + cs(Spiteful.Color, "Modifiers"), 0f, 0f, 15f, 1f, null, true);
-            ModifierCosmeticMax = CustomOption.Create(5003, Types.Modifier, "Maximum Cosmetic " + cs(Spiteful.Color, "Modifiers"), 0f, 0f, 15f, 1f);
+            ModifierCosmeticMin = CustomOption.Create(5002, Types.Modifier, "Minimum Cosmetic Modifiers", 0f, 0f, 15f, 1f, null, true, null, "Cosmetic Modifier Min/Max");
+            ModifierCosmeticMax = CustomOption.Create(5003, Types.Modifier, "Maximum Cosmetic Modifiers", 0f, 0f, 15f, 1f);
 
             //Giant
-            ModifierGiant = CustomOption.Create(5200, Types.Modifier, cs(Spiteful.Color, "Giant"), RoleRates, null, true);
+            ModifierGiant = CustomOption.Create(5200, Types.Modifier, "Giant", RoleRates, null, true, headerColor: Spiteful.Color);
             ModifierGiantSpeed = CustomOption.Create(5201, Types.Modifier, cs(Spiteful.Color, "Giant") + " Speed Multiplier", SpeedRates, ModifierGiant);
 
             //Mini
-            ModifierMini = CustomOption.Create(5150, Types.Modifier, cs(Spiteful.Color, "Mini"), RoleRates, null, true);
+            ModifierMini = CustomOption.Create(5150, Types.Modifier, "Mini", RoleRates, null, true, headerColor: Spiteful.Color);
             ModifierMiniSpeed = CustomOption.Create(5151, Types.Modifier, cs(Spiteful.Color, "Mini") + " Speed Multiplier", SpeedRates, ModifierMini);
 
-            ModifiersImpCountMin = CustomOption.Create(5004, Types.Modifier, "Minimum Imposter " + cs(Spiteful.Color, "Modifiers"), 0f, 0f, 15f, 1f, null, true);
-            ModifiersImpCountMax = CustomOption.Create(5005, Types.Modifier, "Maximum Imposter " + cs(Spiteful.Color, "Modifiers"), 0f, 0f, 15f, 1f);
+            ModifiersImpCountMin = CustomOption.Create(5004, Types.Modifier, "Minimum Imposter Modifiers", 0f, 0f, 15f, 1f, null, true, null, "Impostor Modifer Min/Max");
+            ModifiersImpCountMax = CustomOption.Create(5005, Types.Modifier, "Maximum Imposter Modifiers", 0f, 0f, 15f, 1f);
 
             //Clutch
-            ModifierClutch = CustomOption.Create(5260, Types.Modifier, cs(Spiteful.Color, "Clutch"), RoleRates, null, true);
-            ModifierClutchImpact = CustomOption.Create(5261, Types.Modifier, cs(Spiteful.Color, "Clutch") + " Impact", new string[] { "10%", "20%", "30%", "40%", "50%" }, ModifierClutch);
+            ModifierClutch = CustomOption.Create(5260, Types.Modifier, "Clutch", RoleRates, null, true, headerColor: Spiteful.Color);
+            ModifierClutchImpact = CustomOption.Create(5261, Types.Modifier, cs(Spiteful.Color, "Clutch") + " Impact", ["10%", "20%", "30%", "40%", "50%"], ModifierClutch);
             ModifierClutchCount = CustomOption.Create(5263, Types.Modifier, cs(Spiteful.Color, "Clutch") + " Quantity", ModifierRates, ModifierClutch);
             ModifierClutchSeeModifier = CustomOption.Create(5262, Types.Modifier, "Player Sees Modifier", true, ModifierClutch);
 
-            ModifiersMiscCountMin = CustomOption.Create(5000, Types.Modifier, "Minimum Misc " + cs(Spiteful.Color, "Modifiers"), 0f, 0f, 15f, 1f, null, true);
-            ModifiersMiscCountMax = CustomOption.Create(5001, Types.Modifier, "Maximum Misc " + cs(Spiteful.Color, "Modifiers"), 0f, 0f, 15f, 1f);
+            ModifiersMiscCountMin = CustomOption.Create(5000, Types.Modifier, "Minimum Misc Modifiers", 0f, 0f, 15f, 1f, null, true, null, "Misc Modifiers Min/Max");
+            ModifiersMiscCountMax = CustomOption.Create(5001, Types.Modifier, "Maximum Misc Modifiers", 0f, 0f, 15f, 1f);
 
             //Gopher
-            ModifierGopher = CustomOption.Create(5300, Types.Modifier, cs(Spiteful.Color, "Gopher"), RoleRates, null, true);
+            ModifierGopher = CustomOption.Create(5300, Types.Modifier, "Gopher", RoleRates, null, true, headerColor: Spiteful.Color);
             ModifierGopherQuantity = CustomOption.Create(5301, Types.Modifier, cs(Spiteful.Color, "Gopher") + " Quantity", ModifierRates, ModifierGopher);
 
             //Sleepwalker
-            ModifierSleepwalker = CustomOption.Create(5100, Types.Modifier, cs(Spiteful.Color, "Sleepwalker"), RoleRates, null, true);
+            ModifierSleepwalker = CustomOption.Create(5100, Types.Modifier, "Sleepwalker", RoleRates, null, true, headerColor: Spiteful.Color);
             ModifierSleepwalkerQuantity = CustomOption.Create(5101, Types.Modifier, cs(Spiteful.Color, "Sleepwalker") + " Quantity", ModifierRates, ModifierSleepwalker);
             ModifierSleepwalkerSeesModifier = CustomOption.Create(5202, Types.Modifier, "Player Sees Modifier", true, ModifierSleepwalker);
 
             //Sniper
-            ModifierSniper = CustomOption.Create(5400, Types.Modifier, cs(Spiteful.Color, "Sniper"), RoleRates, null, true);
+            ModifierSniper = CustomOption.Create(5400, Types.Modifier, "Sniper", RoleRates, null, true, headerColor: Spiteful.Color);
             ModifierSniperQuantity = CustomOption.Create(5401, Types.Modifier, cs(Spiteful.Color, "Sniper") + " Quantity", ModifierRates, ModifierSniper);
 
             //Spiteful
-            ModifierSpiteful = CustomOption.Create(5250, Types.Modifier, cs(Spiteful.Color, "Spiteful"), RoleRates, null, true);
-            ModifierSpitefulImpact = CustomOption.Create(5251, Types.Modifier, cs(Spiteful.Color, "Spiteful") + " Impact", new string[] { "25%", "50%", "75%", "100%" }, ModifierSpiteful);
+            ModifierSpiteful = CustomOption.Create(5250, Types.Modifier, "Spiteful", RoleRates, null, true, headerColor: Spiteful.Color);
+            ModifierSpitefulImpact = CustomOption.Create(5251, Types.Modifier, cs(Spiteful.Color, "Spiteful") + " Impact", ["25%", "50%", "75%", "100%"], ModifierSpiteful);
             ModifierSpitefulCount = CustomOption.Create(5252, Types.Modifier, cs(Spiteful.Color, "Spiteful") + " Quantity", 1f, 1f, 5f, 1f, ModifierSpiteful);
             ModifierSpitefulSeeModifier = CustomOption.Create(5253, Types.Modifier, "Player Sees Modifier", false, ModifierSpiteful);
             #endregion Modifiers
 
-            #region Other options
-            LobbySize = CustomOption.Create(5901, Types.General, "Lobby Size", 12, 4, 15, 1);
-            GameStartKillCD = CustomOption.Create(5902, Types.General, "Game Start " + cs(Palette.ImpostorRed, "Kill Cooldown"), 10, 10, 35, 1);
+            #region Map Settings
+            DynamicMap = CustomOption.Create(6100, Types.Map, "Play On A Random Map", false, null, true, null, "Dynamic Map Settings");
+            DynamicMapEnableSkeld = CustomOption.Create(6101, Types.Map, $"{SkeldName} Rotation Chance", RoleRates, DynamicMap);
+            DynamicMapEnableMira = CustomOption.Create(6102, Types.Map, $"{MiraName} Rotation Chance", RoleRates, DynamicMap);
+            DynamicMapEnablePolus = CustomOption.Create(6103, Types.Map, $"{PolusName} Rotation Chance", RoleRates, DynamicMap);
+            DynamicMapEnableAirShip = CustomOption.Create(6104, Types.Map, $"{AirshipName} Rotation Chance", RoleRates, DynamicMap);
+            DynamicMapEnableFungal = CustomOption.Create(6110, Types.Map, $"{FungleName} Rotation Chance", RoleRates, DynamicMap);
+            DynamicMapEnableSubmerged = CustomOption.Create(6105, Types.Map, $"{SubmergedName} Rotation Chance", RoleRates, DynamicMap);
 
-            MaxNumberOfMeetings = CustomOption.Create(6000, Types.General, "Number Of Meetings", 10, 0, 15, 1, null, true);
-            ShieldFirstKill = CustomOption.Create(6005, Types.General, "Shield Last Game First Kill", false);
+            OverrideMapSettings = CustomOption.CreateHeader(6250, Types.Map, "Overide Map Settings");
+
+            OverrideSkeld = CustomOption.Create(6251, Types.Map, "Overide Base Setting", false, OverrideMapSettings, true, null, "Skeld", SkeldColor);
+            SkeldCommonTasks = CustomOption.Create(6120, Types.Map, "Common Tasks", 2f, 0f, 4f, 1, OverrideSkeld);
+            SkeldLongTasks = CustomOption.Create(6121, Types.Map, "Long Tasks", 3f, 0f, 15f, 1, OverrideSkeld);
+            SkeldShortTasks = CustomOption.Create(6122, Types.Map, "Short Tasks", 5f, 0f, 23f, 1, OverrideSkeld);
+            SkeldButtonCD = CustomOption.Create(6123, Types.Map, "Emergency Button Cooldown", 20f, 0f, 60f, 5, OverrideSkeld);
+            SkeldCrewVision = CustomOption.Create(6124, Types.Map, "Crew Vision", 0.5f, 0.25f, 5f, 0.25f, OverrideSkeld);
+            SkeldKillCD = CustomOption.Create(6125, Types.Map, "Kill Cooldown", 22.5f, 10f, 60f, 2.5f, OverrideSkeld);
+
+            OverrideMira = CustomOption.Create(6252, Types.Map, "Overide Base Setting", false, OverrideMapSettings, true, null, "Mira", MiraColor);
+            MiraCommonTasks = CustomOption.Create(6130, Types.Map, "Common Tasks", 2f, 0f, 4f, 1, OverrideMira);
+            MiraLongTasks = CustomOption.Create(6131, Types.Map, "Long Tasks", 3f, 0f, 15f, 1, OverrideMira);
+            MiraShortTasks = CustomOption.Create(6132, Types.Map, "Short Tasks", 5f, 0f, 23f, 1, OverrideMira);
+            MiraButtonCD = CustomOption.Create(6133, Types.Map, "Emergency Button Cooldown", 20f, 0f, 60f, 5, OverrideMira);
+            MiraCrewVision = CustomOption.Create(6134, Types.Map, "Crew Vision", 0.5f, 0.25f, 5f, 0.25f, OverrideMira);
+            MiraKillCD = CustomOption.Create(6135, Types.Map, "Kill Cooldown", 22.5f, 10f, 60f, 2.5f, OverrideMira);
+
+            OverridePolus = CustomOption.Create(6253, Types.Map, "Overide Base Setting", false, OverrideMapSettings, true, null, "Polus", PolusColor);
+            PolusCommonTasks = CustomOption.Create(6140, Types.Map, "Common Tasks", 2f, 0f, 4f, 1, OverridePolus);
+            PolusLongTasks = CustomOption.Create(6141, Types.Map, "Long Tasks", 3f, 0f, 15f, 1, OverridePolus);
+            PolusShortTasks = CustomOption.Create(6142, Types.Map, "Short Tasks", 5f, 0f, 23f, 1, OverridePolus);
+            PolusButtonCD = CustomOption.Create(6143, Types.Map, "Emergency Button Cooldown", 20f, 0f, 60f, 5, OverridePolus);
+            PolusCrewVision = CustomOption.Create(6144, Types.Map, "Crew Vision", 0.5f, 0.25f, 5f, 0.25f, OverridePolus);
+            PolusKillCD = CustomOption.Create(6145, Types.Map, "Kill Cooldown", 22.5f, 10f, 60f, 2.5f, OverridePolus);
+
+            OverrideAirship = CustomOption.Create(6254, Types.Map, "Overide Base Setting", false, OverrideMapSettings, true, null, "Airship", AirshipColor);
+            AirShipCommonTasks = CustomOption.Create(6150, Types.Map, "Common Tasks", 2f, 0f, 4f, 1, OverrideAirship);
+            AirShipLongTasks = CustomOption.Create(6151, Types.Map, "Long Tasks", 3f, 0f, 15f, 1, OverrideAirship);
+            AirShipShortTasks = CustomOption.Create(6152, Types.Map, "Short Tasks", 5f, 0f, 23f, 1, OverrideAirship);
+            AirShipButtonCD = CustomOption.Create(6153, Types.Map, "Emergency Button Cooldown", 25f, 0f, 60f, 5, OverrideAirship);
+            AirShipCrewVision = CustomOption.Create(6154, Types.Map, "Crew Vision", 0.5f, 0.25f, 5f, 0.25f, OverrideAirship);
+            AirShipKillCD = CustomOption.Create(6155, Types.Map, "Kill Cooldown", 27.5f, 10f, 60f, 2.5f, OverrideAirship);
+
+            OverrideFungle = CustomOption.Create(6255, Types.Map, "Overide Base Setting", false, OverrideMapSettings, true, null, "Fungle", FungleColor);
+            FungalCommonTasks = CustomOption.Create(6160, Types.Map, "Common Tasks", 2f, 0f, 4f, 1, OverrideFungle);
+            FungalLongTasks = CustomOption.Create(6161, Types.Map, "Long Tasks", 4f, 0f, 15f, 1, OverrideFungle);
+            FungalShortTasks = CustomOption.Create(6162, Types.Map, "Short Tasks", 5f, 0f, 23f, 1, OverrideFungle);
+            FungalButtonCD = CustomOption.Create(6163, Types.Map, "Emergency Button Cooldown", 25f, 0f, 60f, 5, OverrideFungle);
+            FungalCrewVision = CustomOption.Create(6164, Types.Map, "Crew Vision", 0.5f, 0.25f, 5f, 0.25f, OverrideFungle);
+            FungalKillCD = CustomOption.Create(6165, Types.Map, "Kill Cooldown", 27.5f, 10f, 60f, 2.5f, OverrideFungle);
+
+            OverrideSubmerged = CustomOption.Create(6256, Types.Map, "Overide Base Setting", false, OverrideMapSettings, true, null, "Submerged", SubmergedColor);
+            SubmergedCommonTasks = CustomOption.Create(6170, Types.Map, "Common Tasks", 2f, 0f, 4f, 1, OverrideSubmerged);
+            SubmergedLongTasks = CustomOption.Create(6171, Types.Map, "Long Tasks", 3f, 0f, 15f, 1, OverrideSubmerged);
+            SubmergedShortTasks = CustomOption.Create(6172, Types.Map, "Short Tasks", 5f, 0f, 23f, 1, OverrideSubmerged);
+            SubmergedButtonCD = CustomOption.Create(6173, Types.Map, "Emergency Button Cooldown", 20f, 0f, 60f, 5, OverrideSubmerged);
+            SubmergedCrewVision = CustomOption.Create(6174, Types.Map, "Crew Vision", 0.5f, 0.25f, 5f, 0.25f, OverrideSubmerged);
+            SubmergedKillCD = CustomOption.Create(6175, Types.Map, "Kill Cooldown", 22.5f, 10f, 60f, 2.5f, OverrideSubmerged);
+
+            CustomOption.CreateHeader(6012, Types.Map, "Task-Locked Information");
+            MiraAdminTasks = CustomOption.Create(6009, Types.Map, $"Tasks to Unlock {MiraName} Admin", 0f, 0f, 20f, 1, null);
+            MiraLogsTasks = CustomOption.Create(6020, Types.Map, $"Tasks to Unlock {MiraName} Logs", 0f, 0f, 20f, 1);
+
+            SkeldAdminTasks = CustomOption.Create(6018, Types.Map, $"Tasks to Unlock {SkeldName} Admin", 0f, 0f, 20f, 1, null);
+            SkeldCamsTasks = CustomOption.Create(6010, Types.Map, $"Tasks to Unlock {SkeldName} Cameras", 0f, 0f, 20f, 1);
+
+            PolusAdminTasks = CustomOption.Create(6019, Types.Map, $"Tasks to Unlock {PolusName} Admin", 0f, 0f, 20f, 1, null);
+            PolusCamsTasks = CustomOption.Create(6017, Types.Map, $"Tasks to Unlock {PolusName} Cameras", 0f, 0f, 20f, 1);
+
+            CustomOption.CreateHeader(7010, Types.Map, "Fungle Tweaks");
+            FungalSecurityTasks = CustomOption.Create(7012, Types.Map, "Tasks to Unlock Binoculars", Off020);
+            FungalAdminTable = CustomOption.Create(7013, Types.Map, "Add Admin Table", false);
+            FungalEasierDoorSabo = CustomOption.Create(7014, Types.Map, "Easier Doors", false);
+            FungalEasierFish = CustomOption.Create(7015, Types.Map, "Easier Fish/Grill", false);
+
+            CustomOption.CreateHeader(6075, Types.Map, $"Better {PolusName}");
+            MoveVitals = CustomOption.Create(6076, Types.Map, "Vitals Moved To Lab", true);
+            VentSystem = CustomOption.Create(6077, Types.Map, "Reactor Vent Layout Change", true);
+            ColdTempDeathValley = CustomOption.Create(6078, Types.Map, "Cold Temp Moved To Death Valley", true);
+            WifiChartCourseSwap = CustomOption.Create(6079, Types.Map, "Reboot Wifi And Chart Course Swapped", true);
+
+            DisabledRolesSkeldHeader = CustomOption.CreateHeader(9959, Types.Map, "Roles Disabled on Skeld");
+            DisableArsonistOnSkeld = CustomOption.Create(9001, Types.Map, cs(Arsonist.Color, "Arsonist"), false, DisabledRolesSkeldHeader);
+            DisableScavengerOnSkeld = CustomOption.Create(9002, Types.Map, cs(Scavenger.Color, "Scavenger"), true, DisabledRolesSkeldHeader);
+            DisableJanitorOnSkeld = CustomOption.Create(9003, Types.Map, cs(Palette.ImpostorRed, "Janitor"), true, DisabledRolesSkeldHeader);
+            DisableMedicOnSkeld = CustomOption.Create(9004, Types.Map, cs(Medic.Color, "Medic"), false, DisabledRolesSkeldHeader);
+            DisableWatcherOnSkeld = CustomOption.Create(6107, Types.Map, cs(Watcher.Color, "Watcher"), true, DisabledRolesSkeldHeader);
+
+            DisabledRolesMiraHeader = CustomOption.CreateHeader(9960, Types.Map, "Roles Disabled on Mira");
+            DisableArsonistOnMira = CustomOption.Create(2653, Types.Map, cs(Arsonist.Color, "Arsonist"), false, DisabledRolesMiraHeader);
+            DisableScavengerOnMira = CustomOption.Create(9006, Types.Map, cs(Scavenger.Color, "Scavenger"), true, DisabledRolesMiraHeader);
+            DisableJanitorOnMira = CustomOption.Create(9007, Types.Map, cs(Palette.ImpostorRed, "Janitor"), true, DisabledRolesMiraHeader);
+            DisableMedicOnMira = CustomOption.Create(9008, Types.Map, cs(Medic.Color, "Medic"), false, DisabledRolesMiraHeader);
+            DisableMinerOnMira = CustomOption.Create(9009, Types.Map, cs(Palette.ImpostorRed, "Miner"), false, DisabledRolesMiraHeader);
+            DisableAdministratorOnMira = CustomOption.Create(6106, Types.Map, cs(Administrator.Color, "Administrator"), true, DisabledRolesMiraHeader);
+
+            DisabledRolesFungleHeader = CustomOption.CreateHeader(9961, Types.Map, "Roles Disabled on Fungle");
+            DisableAdministratorOnFungle = CustomOption.Create(9011, Types.Map, cs(Administrator.Color, "Administrator"), false, DisabledRolesFungleHeader);
+            DisableJanitorOnFungle = CustomOption.Create(9012, Types.Map, cs(Janitor.Color, "Janitor"), false, DisabledRolesFungleHeader);
+            DisableMinerOnFungle = CustomOption.Create(9013, Types.Map, cs(Miner.Color, "Miner"), false, DisabledRolesFungleHeader);
+            DisableScavengerOnFungle = CustomOption.Create(9014, Types.Map, cs(Scavenger.Color, "Scavenger"), false, DisabledRolesFungleHeader);
+
+            #endregion Map Settings
+
+            #region General options
+            GeneralHeader = CustomOption.CreateHeader(5900, Types.General, "General Options");
+
+            LobbySize = CustomOption.Create(5901, Types.General, "Lobby Size", 12, 4, 15, 1, GeneralHeader);
+            GameStartKillCD = CustomOption.Create(5902, Types.General, "Game Start " + cs(Palette.ImpostorRed, "Kill Cooldown"), 10, 10, 35, 1, GeneralHeader);
+            GameTimer = CustomOption.Create(5903, Types.General, "Game Timer (Minutes)", Timer, GeneralHeader);
+
+            MaxNumberOfMeetings = CustomOption.Create(6000, Types.General, "Number Of Meetings", 10, 0, 15, 1, GeneralHeader);
+
+            //Imp Chat
+            EnableImpChat = CustomOption.Create(8009, Types.General, "Enabled", false, null, true, null, "Impostor Chat");
+
+            ShieldFirstKill = CustomOption.Create(6005, Types.General, "Shield Last Game First Kill", false, null, true, null, "First Round Options");
             RoundOneKilledIndicators = CustomOption.Create(6008, Types.General, "Mark Players Who Die\nRound 1 Next Game", true);
-            HideOutOfSightNametags = CustomOption.Create(6006, Types.General, "Hide Obstructed Player Names", true);
-
-            AllowParallelMedBayScans = CustomOption.Create(6002, Types.General, "Parallel MedBay Scans", true, null, true);
-            DisableMedscanWalking = CustomOption.Create(6003, Types.General, "Disable MedBay Animations", true);
-
-            DisableVentCleanEjections = CustomOption.Create(6004, Types.General, "Disable Vent Cleaning Ejections", true, null, true);
-            VentInFog = CustomOption.Create(6007, Types.General, "Hide Vent Animations\nOut of Vision", true);
-
-            RestrictAdminOnMira = CustomOption.Create(6009, Types.General, "Tasks to Unlock MIRA Admin", 0f, 0f, 20f, 1, null, true);
-            RestrictCamsOnSkeld = CustomOption.Create(6010, Types.General, "Tasks to Unlock Skeld Cameras", 0f, 0f, 20f, 1);
             NoCamsFirstRound = CustomOption.Create(6011, Types.General, "No Cameras First Round", true);
 
-            EnableBetterPolus = CustomOption.Create(6075, Types.General, "Better Polus", false, null, true);
-            MoveVitals = CustomOption.Create(6076, Types.General, "Vitals Moved To Lab", true, EnableBetterPolus);
-            VentSystem = CustomOption.Create(6077, Types.General, "Reactor Vent Layout Change", true, EnableBetterPolus);
-            ColdTempDeathValley = CustomOption.Create(6078, Types.General, "Cold Temp Moved To Death Valley", true, EnableBetterPolus);
-            WifiChartCourseSwap = CustomOption.Create(6079, Types.General, "Reboot Wifi And Chart Course Swapped", true, EnableBetterPolus);
+            EnableFlashlightMode = CustomOption.Create(6890, Types.General, "Enabled", false, null, true, null, "Flashlight Mode");
+            CrewFlashlightRange = CustomOption.Create(6891, Types.General, "Crew Range", 1f, 0.5f, 2f, 0.25f, EnableFlashlightMode);
+            ImpFlashlightRange = CustomOption.Create(6892, Types.General, "Impostor/Neutral Range", 1f, 0.5f, 2f, 0.25f, EnableFlashlightMode);
 
-            JoustingRoleImpWin = CustomOption.Create(6013, Types.General, "Jousting Roles \nPrevent Impostor Victory", false, null, true);
-            JoustingRoleNKWin = CustomOption.Create(6014, Types.General, "Jousting Roles \nPrevent Neutral Killer Victory", false);
-            DeadCrewPreventTaskWin = CustomOption.Create(6015, Types.General, "Crewmate Wipe\nPrevents Task Win", false);
+            VanillaTweaksHeader = CustomOption.CreateHeader(9984, Types.General, "Vanilla Tweaks");
+            HideOutOfSightNametags = CustomOption.Create(6006, Types.General, "Hide Obstructed Player Names", true, VanillaTweaksHeader);
+            AllowParallelMedBayScans = CustomOption.Create(6002, Types.General, "Parallel MedBay Scans", true, VanillaTweaksHeader);
+            DisableMedscanWalking = CustomOption.Create(6003, Types.General, "Disable MedBay Animations", true, VanillaTweaksHeader);
+            DisableVentCleanEjections = CustomOption.Create(6004, Types.General, "Disable Vent Cleaning Ejections", true, VanillaTweaksHeader);
+            VentInFog = CustomOption.Create(6007, Types.General, "Hide Vent Animations Out of Vision", true, VanillaTweaksHeader);
 
-            DisableRolesSkeld = CustomOption.Create(9000, Types.General, "Disabled Roles on Skeld", new string[] { "Hide", "Show" }, null, true);
-            DisableArsonistOnSkeld = CustomOption.Create(9001, Types.General, cs(Arsonist.Color, "Arsonist"), false, DisableRolesSkeld);
-            DisableScavengerOnSkeld = CustomOption.Create(9002, Types.General, cs(Scavenger.Color, "Scavenger"), true, DisableRolesSkeld);
-            DisableJanitorOnSkeld = CustomOption.Create(9003, Types.General, cs(Palette.ImpostorRed, "Janitor"), true, DisableRolesSkeld);
-            DisableMedicOnSkeld = CustomOption.Create(9004, Types.General, cs(Medic.Color, "Medic"), false, DisableRolesSkeld);
-            DisableWatcherOnSkeld = CustomOption.Create(6107, Types.General, cs(Watcher.Color, "Watcher"), true, DisableRolesSkeld);
-            DisableRolesMira = CustomOption.Create(9005, Types.General, "Disabled Roles on Mira", new string[] { "Hide", "Show" });
-            DisableArsonistOnMira = CustomOption.Create(2653, Types.General, cs(Arsonist.Color, "Arsonist"), false, DisableRolesMira);
-            DisableScavengerOnMira = CustomOption.Create(9006, Types.General, cs(Scavenger.Color, "Scavenger"), true, DisableRolesMira);
-            DisableJanitorOnMira = CustomOption.Create(9007, Types.General, cs(Palette.ImpostorRed, "Janitor"), true, DisableRolesMira);
-            DisableMedicOnMira = CustomOption.Create(9008, Types.General, cs(Medic.Color, "Medic"), false, DisableRolesMira);
-            DisableMinerOnMira = CustomOption.Create(9009, Types.General, cs(Palette.ImpostorRed, "Miner"), false, DisableRolesMira);
-            DisableAdministratorOnMira = CustomOption.Create(6106, Types.General, cs(Administrator.Color, "Administrator"), true, DisableRolesMira);
+            JoustingHeader = CustomOption.CreateHeader(6016, Types.General, "Jousting Options");
+            JoustingRoleImpWin = CustomOption.Create(6013, Types.General, "Jousting Roles Prevent Impostor Victory", false, JoustingHeader);
+            JoustingRoleNKWin = CustomOption.Create(6014, Types.General, "Jousting Roles Prevent Neutral Killer Victory", false, JoustingHeader);
+            DeadCrewPreventTaskWin = CustomOption.Create(6015, Types.General, "Crewmate Wipe Prevents Task Win", false, JoustingHeader);
 
-            RoleBlockComms = CustomOption.Create(7000, Types.General, "Roles Blocked by Comms", new string[] { "Show", "Hide" }, null, true);
-            ImposterRoleBlock = CustomOption.Create(7001, Types.General, cs(Palette.ImpostorRed, "Impostors"), false, RoleBlockComms);
-            ImposterKillAbilitiesRoleBlock = CustomOption.Create(7002, Types.General, "Kill Abilties Role Block", false, ImposterRoleBlock);
-            ImposterAbiltiesRoleBlock = CustomOption.Create(7003, Types.General, "Abilities Role Block", false, ImposterRoleBlock);
-            NeutralKillerRoleBlock = CustomOption.Create(7004, Types.General, cs(NeutralKiller.Color, "Neutral Killers"), false, RoleBlockComms);
-            NeutralRoleBlock = CustomOption.Create(7005, Types.General, cs(Color.gray, "Neutrals"), false, RoleBlockComms);
+            CustomOption.CreateHeader(7001, Types.General, "Impostor Role Block Comms");
+            ImposterKillAbilitiesRoleBlock = CustomOption.Create(7002, Types.General, "Kill Abilties Role Block", false);
+            ImposterAbiltiesRoleBlock = CustomOption.Create(7003, Types.General, "Abilities Role Block", false);
+            NeutralKillerRoleBlock = CustomOption.Create(7004, Types.General, "Enabled", false, null, true, heading:"Neutral Killing Role Block Comms");
+            NeutralRoleBlock = CustomOption.Create(7005, Types.General, "Enabled", false, null, true, heading: "Neutral Role Block Comms");
 
-            CrewRoleBlock = CustomOption.Create(7100, Types.General, cs(Palette.CrewmateBlue, "Crewmates"), true, RoleBlockComms);
-            DetectiveRoleBlock = CustomOption.Create(7109, Types.General, cs(Detective.Color, "Detective"), false, CrewRoleBlock);
-            EngineerRoleBlock = CustomOption.Create(7102, Types.General, cs(Engineer.Color, "Engineer"), false, CrewRoleBlock);
-            GuardianRoleBlock = CustomOption.Create(7104, Types.General, cs(Guardian.Color, "Guardian"), true, CrewRoleBlock);
-            InvestigatorRoleBlock = CustomOption.Create(7103, Types.General, cs(Investigator.Color, "Investigator"), false, CrewRoleBlock);
-            MedicRoleBlock = CustomOption.Create(7106, Types.General, cs(Medic.Color, "Medic"), false, CrewRoleBlock);
-            ParityCopRoleBlock = CustomOption.Create(7101, Types.General, cs(ParityCop.Color, "Parity Cop"), false, CrewRoleBlock);
-            PsychicRoleBlock = CustomOption.Create(7111, Types.General, cs(Psychic.Color, "Psychic"), false, CrewRoleBlock);
-            SpyRoleBlock = CustomOption.Create(7107, Types.General, cs(Spy.Color, "Spy"), false, CrewRoleBlock);
-            TrackerRoleBlock = CustomOption.Create(7105, Types.General, cs(Tracker.Color, "Tracker"), true, CrewRoleBlock);
-            TrapperRoleBlock = CustomOption.Create(7110, Types.General, cs(Trapper.Color, "Trapper"), false, CrewRoleBlock);
-            WatcherRoleBlock = CustomOption.Create(7108, Types.General, cs(Watcher.Color, "Watcher"), true, CrewRoleBlock);
+            CustomOption.CreateHeader(7100, Types.General, "Crewmate Role Block Comms");
+            DetectiveRoleBlock = CustomOption.Create(7109, Types.General, cs(Detective.Color, "Detective"), false);
+            EngineerRoleBlock = CustomOption.Create(7102, Types.General, cs(Engineer.Color, "Engineer"), false);
+            GuardianRoleBlock = CustomOption.Create(7104, Types.General, cs(Guardian.Color, "Guardian"), true);
+            InvestigatorRoleBlock = CustomOption.Create(7103, Types.General, cs(Investigator.Color, "Investigator"), false);
+            MedicRoleBlock = CustomOption.Create(7106, Types.General, cs(Medic.Color, "Medic"), false);
+            ParityCopRoleBlock = CustomOption.Create(7101, Types.General, cs(ParityCop.Color, "Parity Cop"), false);
+            PsychicRoleBlock = CustomOption.Create(7111, Types.General, cs(Psychic.Color, "Psychic"), false);
+            SpyRoleBlock = CustomOption.Create(7107, Types.General, cs(Spy.Color, "Spy"), false);
+            TrackerRoleBlock = CustomOption.Create(7105, Types.General, cs(Tracker.Color, "Tracker"), true);
+            TrapperRoleBlock = CustomOption.Create(7110, Types.General, cs(Trapper.Color, "Trapper"), false);
+            WatcherRoleBlock = CustomOption.Create(7108, Types.General, cs(Watcher.Color, "Watcher"), true);
 
-            GhostsHeader = CustomOption.Create(6050, Types.General, "Ghost Options", new string[] { "Hide", "Show" }, null, true);
+            GhostsHeader = CustomOption.CreateHeader(6050, Types.General, "Ghost Options");
             GhostsSeeRoles = CustomOption.Create(6051, Types.General, "Ghosts See Roles", false, GhostsHeader);
             GhostsSeeTasks = CustomOption.Create(6052, Types.General, "Ghosts See Tasks Done", false, GhostsHeader);
             GhostsSeeModifiers = CustomOption.Create(6053, Types.General, "Ghosts See Modifiers", false, GhostsHeader);
             GhostsSeeRomanticTarget = CustomOption.Create(6054, Types.General, "Ghosts see Romantic Target", false, GhostsHeader);
-            ToggleRoles = CustomOption.Create(6049, Types.General, "Toggle Roles With Shift", false, GhostsHeader);
+            ToggleRoles = CustomOption.Create(6049, Types.General, "Toggle Role Visibility With Shift", false, GhostsHeader);
 
-            DynamicMap = CustomOption.Create(6100, Types.General, "Play On A Random Map", false, null, true);
-            DynamicMapEnableSkeld = CustomOption.Create(6101, Types.General, "Skeld Rotation Chance", RoleRates, DynamicMap, false);
-            DynamicMapEnableMira = CustomOption.Create(6102, Types.General, "Mira Rotation Chance", RoleRates, DynamicMap, false);
-            DynamicMapEnablePolus = CustomOption.Create(6103, Types.General, "Polus Rotation Chance", RoleRates, DynamicMap, false);
-            DynamicMapEnableAirShip = CustomOption.Create(6104, Types.General, "Airship Rotation Chance", RoleRates, DynamicMap, false);
-            DynamicMapEnableSubmerged = CustomOption.Create(6105, Types.General, "Submerged Rotation Chance", RoleRates, DynamicMap, false);
-
-            DeveloperSettings = CustomOption.Create(8000, Types.General, cs(Administrator.Color, "Developer Settings"), new string[] { "Hide", "Show" }, null, true);
-            TurnOffRomanticToRefugee = CustomOption.Create(8007, Types.General, "Turn Off Romantic to Refugee", false, DeveloperSettings);
-            ModifierAscended = CustomOption.Create(8005, Types.General, cs(Spiteful.Color, "Ascended"), RoleRates, DeveloperSettings);
+            CustomOption.CreateHeader(8000, Types.General, "Developer Settings", headerColor: Administrator.Color);
+            TurnOffRomanticToRefugee = CustomOption.Create(8007, Types.General, "Turn Off Romantic to Refugee", false);
+            ModifierAscended = CustomOption.Create(8005, Types.General, cs(Spiteful.Color, "Ascended") + " Spawn Chance", RoleRates);
             ModifierAscendedQuantity = CustomOption.Create(8006, Types.General, cs(Spiteful.Color, "Ascended") + " Quantity", 1f, 1f, 5f, 1f, ModifierAscended);
+            TournamentLogs = CustomOption.Create(8008, Types.General, "Tournament Logs", false);
 
-            #endregion Other options
+            #endregion General options
         }
     }
 }

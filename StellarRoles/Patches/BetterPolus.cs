@@ -64,20 +64,6 @@ namespace StellarRoles
             }
         }
 
-/*        [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.FixedUpdate))]
-        public static class ShipStatusFixedUpdatePatch
-        {
-            [HarmonyPrefix]
-            [HarmonyPatch]
-            public static void Prefix(ShipStatus __instance)
-            {
-                if (!IsObjectsFetched || !IsAdjustmentsDone)
-                {
-                    ApplyChanges(__instance);
-                }
-            }
-        }*/
-
         private static void ApplyChanges(ShipStatus instance)
         {
             if (instance.Type == ShipStatus.MapType.Pb)
@@ -96,18 +82,15 @@ namespace StellarRoles
 
         public static void AdjustPolus()
         {
-            if (CustomOptionHolder.EnableBetterPolus.GetBool())
+            if (IsObjectsFetched && IsRoomsFetched)
             {
-                if (IsObjectsFetched && IsRoomsFetched)
-                {
-                    if (CustomOptionHolder.MoveVitals.GetBool()) MoveVitals();
-                    if (!CustomOptionHolder.ColdTempDeathValley.GetBool() && CustomOptionHolder.MoveVitals.GetBool()) MoveTempCold();
-                    if (CustomOptionHolder.ColdTempDeathValley.GetBool()) MoveTempColdDV();
-                    if (CustomOptionHolder.WifiChartCourseSwap.GetBool()) SwitchNavWifi();
-                }
-
-                if (CustomOptionHolder.VentSystem.GetBool()) AdjustVents();
+                if (CustomOptionHolder.MoveVitals.GetBool()) MoveVitals();
+                if (!CustomOptionHolder.ColdTempDeathValley.GetBool() && CustomOptionHolder.MoveVitals.GetBool()) MoveTempCold();
+                if (CustomOptionHolder.ColdTempDeathValley.GetBool()) MoveTempColdDV();
+                if (CustomOptionHolder.WifiChartCourseSwap.GetBool()) SwitchNavWifi();
             }
+
+            if (CustomOptionHolder.VentSystem.GetBool()) AdjustVents();
             AddPengu();
             IsAdjustmentsDone = true;
         }

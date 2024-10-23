@@ -12,15 +12,24 @@ namespace StellarRoles
 
     public static class Engineer
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(0, 40, 245, byte.MaxValue);
         private static Sprite _ButtonSprite;
         private static Sprite _VentButtonSprite;
 
+        public static Vent currentTarget;
+
         public static bool HighlightForEvil => CustomOptionHolder.EngineerHighlightForEvil.GetBool();
         public static bool CanVent => CustomOptionHolder.EngineerCanVent.GetBool();
         public static bool AdvancedSabotageRepair => CustomOptionHolder.EngineerAdvancedSabotageRepairs.GetBool();
-        public static bool RoleBlock => CustomOptionHolder.EngineerRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.EngineerRoleBlock.GetBool();
+        public static bool restrictVenting => CustomOptionHolder.EngineerVentTimer.GetBool();
+        public static float maxVentTime => CustomOptionHolder.EngineerVentTimer.GetFloat();
+        public static float ventCooldown => CustomOptionHolder.EngineerVentCooldown.GetFloat();
+        public static float cooldownSecondsRemaining = 0;
+        public static float inVentTimeRemaining = 0;
+        public static bool isExitVentQueued = false;
+
 
         public static float EngineerVentTimer = 0f;
         public static RemoteFix GetsFix => (RemoteFix)CustomOptionHolder.EngineerHasFix.GetSelection();

@@ -3,6 +3,8 @@ using AmongUs.GameOptions;
 using Cpp2IL.Core.Extensions;
 using HarmonyLib;
 using Hazel;
+using Reactor.Utilities;
+using Rewired.Utils.Platforms.Windows;
 using StellarRoles.Modules;
 using StellarRoles.Objects;
 using StellarRoles.Patches;
@@ -11,10 +13,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static Hazel.Udp.UdpConnection;
 using static StellarRoles.GameHistory;
 using static StellarRoles.HudManagerStartPatch;
 using static StellarRoles.MapOptions;
+using static StellarRoles.Patches.FunglePatches;
 using static StellarRoles.StellarRoles;
+using static UnityEngine.GraphicsBuffer;
 
 namespace StellarRoles
 {
@@ -24,25 +29,42 @@ namespace StellarRoles
         {
             MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(
                 PlayerControl.LocalPlayer.NetId,
-                (byte)method,
-                SendOption.Reliable,
-                -1
+                254,
+                SendOption.Reliable
             );
 
-            if (parameters != null)
-                foreach (object parameter in parameters)
-                    if (parameter is byte @byte)
-                        writer.Write(@byte);
-                    else if (parameter is bool @bool)
-                        writer.Write(@bool);
-                    else if (parameter is int @int)
-                        writer.Write(@int);
-                    else if (parameter is float @float)
-                        writer.Write(@float);
-                    else if (parameter is string @string)
-                        writer.Write(@string);
+            writer.Write((byte)method);
+
+            foreach (var item in parameters)
+            {
+                writer.Write(item);
+            }
 
             AmongUsClient.Instance.FinishRpcImmediately(writer);
+        }
+
+        public static void Write(this MessageWriter writer, object parameter)
+        {
+            if (parameter is byte @byte)
+                writer.Write(@byte);
+            else if (parameter is bool @bool)
+                writer.Write(@bool);
+            else if (parameter is int @int)
+                writer.Write(@int);
+            else if (parameter is float @float)
+                writer.Write(@float);
+            else if (parameter is string @string)
+                writer.Write(@string);
+            else if (parameter is PlayerControl player)
+                writer.Write(player.PlayerId);
+            else if (parameter is DeadBody body)
+                writer.Write(body.ParentId);
+            else if (parameter is PlayerVoteArea area)
+                writer.Write(area.TargetPlayerId);
+            else if (parameter is Vent vent)
+                writer.Write(vent.Id);
+            else if (parameter is RoleId roleId)
+                writer.Write((byte)roleId);
         }
 
         // Main Controls
@@ -60,7 +82,9 @@ namespace StellarRoles
             Helpers.ResetZoom();
             AdminPatch.ResetData();
             CameraPatch.ResetData();
+            DoorLogPatch.ResetData();
             GameStartManagerPatch.GameStartManagerUpdatePatch.StartingTimer = 0;
+            GameTimer.TriggerTimesUpEndGame = false;
         }
 
         public static void HandleShareOptions(byte numberOfOptions, MessageReader reader)
@@ -72,7 +96,7 @@ namespace StellarRoles
                     uint optionId = reader.ReadPackedUInt32();
                     uint selection = reader.ReadPackedUInt32();
                     CustomOption option = CustomOption.Options.First(option => option.Id == (int)optionId);
-                    option.UpdateSelection((int)selection);
+                    option.UpdateSelection((int)selection, i == numberOfOptions - 1);
                 }
             }
             catch (Exception ex)
@@ -88,14 +112,35 @@ namespace StellarRoles
             foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                 if (!player.Data.Role.IsImpostor)
                 {
-                    player.SetRole(RoleTypes.Crewmate);
-                    player.MurderPlayer(player);
+                    GameData.Instance.GetPlayerById(player.PlayerId); // player.RemoveInfected(); (was removed in 2022.12.08, no idea if we ever need that part again, replaced by these 2 lines.) 
+
+                    player.CoSetRole(RoleTypes.Crewmate, true);
+                    player.MurderPlayer(player, MurderResultFlags.Succeeded);
                     player.Data.IsDead = true;
                 }
         }
 
+        public static void ResetKillButton(PlayerControl player)
+        {
+            Helpers.DeleteExtraBodies();
+
+            if (PlayerControl.LocalPlayer != player) return;
+            RogueButtons.RogueKillButton.Timer = 0;
+            ImpKillButton.Timer = 0;
+            HeadHunterButtons.HeadHunterKillButton.Timer = 0;
+            PyromaniacButtons.PyromaniacKillButton.Timer = 0;
+            SheriffButtons.SheriffKillButton.Timer = 0;
+        }
+
+        public static void AddDeadPlayer(PlayerControl player, PlayerControl Killer, DeathReason reason)
+        {
+            new DeadPlayer(player, DateTime.UtcNow, reason, Killer);
+        }
+
         public static void SetRole(RoleId roleId, PlayerControl player)
         {
+            if (player == null) return;
+
             switch (roleId)
             {
                 case RoleId.Spectator:
@@ -223,11 +268,6 @@ namespace StellarRoles
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Vigilante);
                     break;
 
-                case RoleId.BountyHunter:
-                    BountyHunter.Player = player;
-                    PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.BountyHunter);
-                    break;
-
                 case RoleId.Scavenger:
                     Scavenger.Player = player;
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Scavenger);
@@ -266,6 +306,11 @@ namespace StellarRoles
                 case RoleId.Shade:
                     Shade.Player = player;
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Shade);
+                    break;
+
+                case RoleId.Parasite:
+                    Parasite.Player = player;
+                    PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Parasite);
                     break;
 
                 case RoleId.Romantic:
@@ -359,6 +404,13 @@ namespace StellarRoles
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.ShadeNeutralKiller);
                     break;
 
+                case RoleId.ParasiteNK:
+                    Parasite.Player = player;
+                    NeutralKiller.Players.Add(player);
+                    NeutralKiller.RogueImps.Add(player);
+                    PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.ParasiteNeutralKiller);
+                    break;
+
                 case RoleId.UndertakerNK:
                     Undertaker.Player = player;
                     NeutralKiller.Players.Add(player);
@@ -380,13 +432,6 @@ namespace StellarRoles
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.WarlockNeutralKiller);
                     break;
 
-                case RoleId.BountyHunterNK:
-                    BountyHunter.Player = player;
-                    NeutralKiller.Players.Add(player);
-                    NeutralKiller.RogueImps.Add(player);
-                    PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.BountyHunterNeutralKiller);
-                    break;
-
                 case RoleId.Pyromaniac:
                     _ = new Pyromaniac(player);
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Pyromaniac);
@@ -403,6 +448,8 @@ namespace StellarRoles
 
         public static void SetModifier(RoleId modifierId, PlayerControl player)
         {
+            if (player == null) return;
+
             switch (modifierId)
             {
                 case RoleId.Sleepwalker:
@@ -520,6 +567,7 @@ namespace StellarRoles
 
         public static void RemoveCompletedDuels(PlayerControl player)
         {
+            if (player == null) return;
             RockPaperScissorsGame game = RockPaperScissorsGame.FetchDuel(player);
             if (game?.IsComplete == true)
                 RockPaperScissorsGame.Games.Remove(game);
@@ -528,10 +576,12 @@ namespace StellarRoles
 
         public static void VersionHandshake(int major, int minor, int build, int revision, Guid guid, int clientId)
         {
-            GameStartManagerPatch.PlayerVersions[clientId] = new GameStartManagerPatch.PlayerVersion(
-                revision < 0 ? new Version(major, minor, build) : new Version(major, minor, build, revision),
-                guid
-            );
+            System.Version ver;
+            if (revision < 0)
+                ver = new System.Version(major, minor, build);
+            else
+                ver = new System.Version(major, minor, build, revision);
+            GameStartManagerPatch.PlayerVersions[clientId] = new GameStartManagerPatch.PlayerVersion(ver, guid);
         }
 
         public static void AddSpectator(PlayerControl player)
@@ -540,29 +590,16 @@ namespace StellarRoles
             player.cosmetics.nameText.color = Color.gray;
         }
 
-        public static void RemoveSpectator(byte playerId)
-        {
-            PlayerControl player = Helpers.PlayerById(playerId);
-            if (player != null)
-            {
-                RemoveSpectator(player);
-                return;
-            }
-
-            Spectator.ToBecomeSpectator.Remove(playerId);
-            Spectator.Players.Remove(playerId);
-        }
         public static void RemoveSpectator(PlayerControl player)
         {
-            Spectator.ToBecomeSpectator.Remove(player.PlayerId);
-            if (!player.Data.Disconnected)
-                player.cosmetics.nameText.color = Color.white;
+            Spectator.ToBecomeSpectator.Remove(player);
+            player.cosmetics.nameText.color = Color.white;
         }
 
-        public static void AddGameInfo(byte playerId, InfoType info)
+        public static void AddGameInfo(PlayerControl player, InfoType info)
         {
-            if (!PlayerGameInfo.Mapping.TryGetValue(playerId, out PlayerGameInfo gameInfo))
-                PlayerGameInfo.Mapping.Add(playerId, gameInfo = new());
+            if (!PlayerGameInfo.Mapping.TryGetValue(player.PlayerId, out PlayerGameInfo gameInfo))
+                PlayerGameInfo.Mapping.Add(player.PlayerId, gameInfo = new());
 
             switch (info)
             {
@@ -587,12 +624,47 @@ namespace StellarRoles
                 case InfoType.AddEat:
                     gameInfo.ScavengerEats++;
                     break;
+                case InfoType.AddCorrectVote:
+                    gameInfo.CorrectVotes++;
+                    break;
+                case InfoType.AddIncorrectVote:
+                    gameInfo.IncorrectVotes++;
+                    break;
+                case InfoType.AddIncorrectEject:
+                    gameInfo.IncorrectEjects++;
+                    break;
+                case InfoType.AddCorrectEject:
+                    gameInfo.CorrectEjects++;
+                    break;
+                case InfoType.AddCrewmatesEjected:
+                    gameInfo.CrewmatesEjected++;
+                    break;
+                case InfoType.PlayerDiedBeforeLastMeeting:
+                    gameInfo.PlayerAlive = false;
+                    break;
+                case InfoType.FirstTwoPlayersDead:
+                    gameInfo.firstTwoPlayersDead = true;
+                    break;
+                case InfoType.CriticalMeetingError:
+                    gameInfo.criticalMeetingError = true;
+                    break;
+                case InfoType.CritcalMeetingErrorReverse:
+                    gameInfo.criticalMeetingError = false;
+                    break;
             }
         }
 
-        public static void UncheckedMurderPlayer(PlayerControl source, PlayerControl target, bool showAnimation)
+        public static void UpdateSurvivability(PlayerControl player)
         {
-            if (AmongUsClient.Instance.GameState != InnerNet.InnerNetClient.GameStates.Started)
+            Helpers.Log($"Surviveability {player.name} : {MapOptions.PlayersAlive}");
+            if (!PlayerGameInfo.Mapping.TryGetValue(player.PlayerId, out PlayerGameInfo gameInfo))
+                PlayerGameInfo.Mapping.Add(player.PlayerId, gameInfo = new());
+            gameInfo.survivability = MapOptions.PlayersAlive;
+        }
+
+        public static void UncheckedMurderPlayer(PlayerControl source, PlayerControl target, bool showAnimation, bool bombkill)
+        {
+            if (!Helpers.GameStarted)
                 return;
 
             if (!showAnimation)
@@ -602,9 +674,9 @@ namespace StellarRoles
                 VengefulRomantic.Target = source.IsBombed(out Bombed bombed) ? bombed.Bomber : source;
 
             if (Medic.Target == target && Medic.Player != null && !Medic.Player.Data.IsDead)
-                MedicHeartMonitorFlash(source);
+                MedicHeartMonitorFlash(source, bombkill);
 
-            source.MurderPlayer(target);
+            source.MurderPlayer(target, MurderResultFlags.Succeeded);
         }
 
         public static void ParalyzePlayer(Nightmare nightmare, PlayerControl target)
@@ -618,15 +690,12 @@ namespace StellarRoles
 
             nightmare.ParalyzedPlayer = target;
 
-            HudManager.Instance.StartCoroutine(Effects.Lerp(Nightmare.ParalyzeRootTime, new Action<float>((p) =>
-            { // Delayed action
-                if (p == 1f)
-                {
-                    if (target.AmOwner)
-                        Helpers.SetMovement(true);
-                    nightmare.ParalyzedPlayer = null;
-                }
-            })));
+            Nightmare.ParalyzeRootTime.DelayedAction(() =>
+            {
+                if (target.AmOwner && target != Parasite.Controlled)
+                    Helpers.SetMovement(true);
+                nightmare.ParalyzedPlayer = null;
+            });
         }
 
         public static void SetGameStarting()
@@ -636,10 +705,14 @@ namespace StellarRoles
 
         public static void TurnToCrewmate(PlayerControl player)
         {
-            ErasePlayerRoles(player, false);
-            player.RpcSetRole(RoleTypes.Crewmate);
+            ErasePlayerRoles(player, false, true);
+            player.roleAssigned = false;
+            DestroyableSingleton<RoleManager>.Instance.SetRole(player, RoleTypes.Crewmate);
             player.Data.Role.TeamType = RoleTeamTypes.Crewmate;
-            RoleManager.Instance.SetRole(player, RoleTypes.Crewmate);
+            player.roleAssigned = true;
+            foreach (PlayerControl otherPlayer in PlayerControl.AllPlayerControls.GetFastEnumerator())
+                if (!otherPlayer.Data.Role.IsImpostor && PlayerControl.LocalPlayer.Data.Role.IsImpostor)
+                    player.cosmetics.nameText.color = Palette.White;
         }
 
         public static void ChangelingChange(RoleId role)
@@ -656,25 +729,6 @@ namespace StellarRoles
 
             if (!wasChangeling) return;
 
-            if (role == RoleId.BountyHunter)
-            {
-                Vector3 bottomLeft = IntroCutsceneOnDestroyPatch.BottomLeft + new Vector3(-0.25f, 0.25f, 0f);
-                BountyHunter.BountyUpdateTimer = 0f;
-                BountyHunter.CooldownText = UnityEngine.Object.Instantiate(FastDestroyableSingleton<HudManager>.Instance.KillButton.cooldownTimerText, FastDestroyableSingleton<HudManager>.Instance.transform);
-                BountyHunter.CooldownText.alignment = TMPro.TextAlignmentOptions.Center;
-                BountyHunter.CooldownText.transform.localPosition = bottomLeft + new Vector3(0f, -0.35f, -62f);
-                BountyHunter.CooldownText.gameObject.SetActive(true);
-
-                foreach (PlayerControl cachedPlayer in PlayerControl.AllPlayerControls.GetFastEnumerator())
-                    if (PlayerIcons.TryGetValue(cachedPlayer.PlayerId, out PoolablePlayer icon))
-                    {
-                        icon.SetSemiTransparent(false);
-                        icon.transform.localPosition = bottomLeft;
-                        icon.transform.localScale = Vector3.one * 0.4f;
-                        icon.gameObject.SetActive(false);
-                    }
-            }
-
             foreach (CustomButton button in CustomButton.Buttons)
                 if (button == WarlockButtons.CurseButton)
                     button.Timer = 10f;
@@ -687,7 +741,7 @@ namespace StellarRoles
             var switchminigame = Minigame.Instance as SwitchMinigame;
             if (switchminigame != null) switchminigame.Close();
 
-            SwitchSystem switchSystem = MapUtilities.Systems[SystemTypes.Electrical].CastFast<SwitchSystem>();
+            SwitchSystem switchSystem = ShipStatus.Instance.Systems[SystemTypes.Electrical].CastFast<SwitchSystem>();
             switchSystem.ActualSwitches = switchSystem.ExpectedSwitches;
         }
 
@@ -709,8 +763,10 @@ namespace StellarRoles
             if (body != null)
                 Undertaker.DeadBodyDragged = body;
         }
+
         public static void CultistCreateImposter(PlayerControl player)
         {
+            if (player == null) return;
             List<RoleInfo> roles = PlayerGameInfo.GetRoles(player);
             CreateImpostor(player);
             Cultist.NeedsFollower = false;
@@ -744,8 +800,16 @@ namespace StellarRoles
 
         public static void CreateImpostor(PlayerControl player)
         {
+            if (player == null) return;
             ErasePlayerRoles(player, true);
-            Helpers.TurnToImpostor(player);
+            player.TurnToImpostor();
+        }
+
+        public static void ResetAnimation(PlayerControl player)
+        {
+            PlayerPhysics playerPhysics = player.MyPhysics;
+            player.onLadder = false;
+            playerPhysics.ResetAnimState();
         }
 
         public static void FallInLove(PlayerControl player)
@@ -767,11 +831,6 @@ namespace StellarRoles
 
             bool isImpostor = Romantic.IsImpostor = player.Data.Role.IsImpostor;
             Romantic.IsCrewmate = !isImpostor && !player.IsNeutral();
-
-            if (Romantic.Player.AmOwner)
-                Romantic.Lover.cosmetics.nameText.text += Helpers.ColorString(Romantic.Color, " heart");
-            else if (Romantic.Lover.AmOwner)
-                Romantic.Player.cosmetics.nameText.text += Helpers.ColorString(Romantic.Color, " heart");
         }
 
         public static void GuardianSetShielded(PlayerControl shielded)
@@ -793,7 +852,7 @@ namespace StellarRoles
             Medic.UsedHeartMonitor = true;
         }
 
-        public static void MedicHeartMonitorFlash(PlayerControl killer)
+        public static void MedicHeartMonitorFlash(PlayerControl killer, bool bombkill)
         {
             if (Medic.Player == null || Medic.Target == null || MedicAbilities.isRoleBlocked()) return;
 
@@ -803,16 +862,13 @@ namespace StellarRoles
                 _ = new CustomMessage("Your Target Died", 3f, true, Medic.Color);
             }
 
-            if (killer.AmOwner && !killer.IsCrew() && Medic.NonCrewFlash)
+            if (killer.AmOwner && !killer.IsCrew() && Medic.NonCrewFlash && !bombkill)
             {
-                HudManager.Instance.StartCoroutine(Effects.Lerp(Medic.NonCrewFlashDelay, new Action<float>((p) =>
+                Medic.NonCrewFlashDelay.DelayedAction(() =>
                 {
-                    if (p == 1f)
-                    {
-                        Helpers.ShowFlash(Medic.Color, 1.5f);
-                        _ = new CustomMessage($"You Killed The Medic Target {Medic.NonCrewFlashDelay} Seconds Ago", 3f, true, Medic.Color);
-                    }
-                })));
+                    Helpers.ShowFlash(Medic.Color, 1.5f);
+                    _ = new CustomMessage($"You Killed The Medic Target {Medic.NonCrewFlashDelay} Seconds Ago", 3f, true, Medic.Color);
+                });
             }
         }
 
@@ -829,6 +885,7 @@ namespace StellarRoles
 
             jailor.Target = target;
             jailor.HasJailed = true;
+
             foreach (PlayerVoteArea voteArea in meetingHud.playerStates)
             {
                 Transform child = voteArea.transform.FindChild("JailIcon");
@@ -846,8 +903,64 @@ namespace StellarRoles
             Morphling.MorphTarget = target;
             if (Camouflager.CamouflageTimer <= 0f)
             {
-                Morphling.Player.SetLook(target.Data.PlayerName, target.Data.DefaultOutfit.ColorId, target.Data.DefaultOutfit.HatId, target.Data.DefaultOutfit.VisorId, target.Data.DefaultOutfit.SkinId, target.Data.DefaultOutfit.PetId);
+                SetLook(Morphling.Player, target);
             }
+        }
+
+        public static void ControlPlayer(PlayerControl target)
+        {
+            Parasite.ControlTimer = Parasite.ControlDuration;
+            ParasiteAbilites.timer = 0;
+            Parasite.Controlled = target;
+            if (Parasite.Controlled.inVent)
+            {
+                Parasite.Controlled.MyPhysics.ExitAllVents();
+            }
+            if (Camouflager.CamouflageTimer <= 0)
+            {
+                SetLook(Parasite.Controlled, Parasite.Player);
+            }
+            if (PlayerControl.LocalPlayer == Parasite.Controlled)
+            {
+                Helpers.SetMovement(false);
+                new CustomMessage("You are being Controlled", 1f, true, Palette.ImpostorRed);
+            }
+        }
+
+        public static void KillInfected(bool kill)
+        {
+            if (Parasite.Controlled == null || Parasite.Player == null) return;
+            if (Parasite.Controlled.AmOwner)
+            {
+                Helpers.SetMovement(true);
+            }
+            if (kill)
+            {
+                UncheckedMurderPlayer(Parasite.Player, Parasite.Controlled, false, false);
+                if (Parasite.Player.AmOwner)
+                {
+                    Helpers.RPCAddGameInfo(PlayerControl.LocalPlayer, InfoType.AddAbilityKill, InfoType.AddKill);
+                    Helpers.PlayerKilledByAbility(Parasite.Controlled);
+                }
+            }
+            Parasite.Controlled.SetDefaultLook();
+            if (Parasite.Controlled.IsMushroomMixupActive() && Helpers.IsMap(Map.Fungal))
+                Parasite.Controlled.MixUpOutfit(MixUpOutfitPatch1.outfits[Parasite.Controlled.PlayerId]);
+
+            Parasite.Controlled = null;
+
+            if (Parasite.Player.AmOwner)
+            {
+                ParasiteButtons.InfestButton.Timer = Parasite.InfestCooldown * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
+                Helpers.SetKillerCooldown();
+                ParasiteAbilites.DestroyAssets();
+            }
+        }
+
+
+        public static void SetLook(PlayerControl target, PlayerControl target2)
+        {
+            target.SetLook(target2.Data.PlayerName, target2.Data.DefaultOutfit.ColorId, target2.Data.DefaultOutfit.HatId, target2.Data.DefaultOutfit.VisorId, target2.Data.DefaultOutfit.SkinId, target2.Data.DefaultOutfit.PetId);
         }
 
         public static void CamouflagerCamouflage()
@@ -871,31 +984,28 @@ namespace StellarRoles
         public static void RefugeeShield(Refugee refugee)
         {
             refugee.IsVestActive = true;
-            HudManager.Instance.StartCoroutine(Effects.Lerp(Refugee.VestDuration, new Action<float>((p) =>
+            Refugee.VestDuration.DelayedAction(() =>
             {
-                if (p == 1f) refugee.IsVestActive = false;
-            })));
-
+                refugee.IsVestActive = false;
+            });
         }
 
         public static void RuthlessRomanticShield(RuthlessRomantic romantic)
         {
             romantic.IsVestActive = true;
-            HudManager.Instance.StartCoroutine(Effects.Lerp(RuthlessRomantic.VestDuration, new Action<float>((p) =>
+            RuthlessRomantic.VestDuration.DelayedAction(() =>
             {
-                if (p == 1f)
-                    romantic.IsVestActive = false;
-            })));
+                romantic.IsVestActive = false;
+            });
         }
 
         public static void RomanticShield()
         {
             Romantic.IsVestActive = true;
-            HudManager.Instance.StartCoroutine(Effects.Lerp(Romantic.VestDuration, new Action<float>((p) =>
+            Romantic.VestDuration.DelayedAction(() =>
             {
-                if (p == 1f) Romantic.IsVestActive = false;
-            })));
-
+                Romantic.IsVestActive = false;
+            });
         }
 
         public static void TrackerMarkPlayer(PlayerControl player)
@@ -964,7 +1074,7 @@ namespace StellarRoles
             Scavenger.EatenBodies++;
         }
 
-        public static void ErasePlayerRoles(PlayerControl player, bool ignoreModifier = true)
+        public static void ErasePlayerRoles(PlayerControl player, bool ignoreModifier = true, bool eraseHistory = false)
         {
             // Crewmate roles
             if (player == Mayor.Player)
@@ -995,14 +1105,12 @@ namespace StellarRoles
                 Vigilante.ClearAndReload();
             else if (player.IsParityCop(out _))
                 ParityCop.ParityCopDictionary.Remove(player.PlayerId);
-            else if (player == Psychic.Player) 
+            else if (player == Psychic.Player)
                 Psychic.ClearAndReload();
 
             // Impostor roles
             else if (player == Bomber.Player)
                 Bomber.ClearAndReload();
-            else if (player == BountyHunter.Player)
-                BountyHunter.ClearAndReload();
             else if (player == Camouflager.Player)
                 Camouflager.ClearAndReload();
             else if (player == Changeling.Player)
@@ -1019,6 +1127,8 @@ namespace StellarRoles
                 Morphling.ClearAndReload();
             else if (player == Shade.Player)
                 Shade.ClearAndReload();
+            else if (player == Parasite.Player)
+                Parasite.ClearAndReload();
             else if (player == Undertaker.Player)
                 Undertaker.ClearAndReload();
             else if (player == Vampire.Player)
@@ -1068,6 +1178,11 @@ namespace StellarRoles
                 Sleepwalker.Players.RemoveAll(x => x == player.PlayerId);
                 Assassin.Players.RemoveAll(x => x == player.PlayerId);
             }
+
+            if (eraseHistory)
+            {
+                PlayerGameInfo.EraseHistory(player);
+            }
         }
 
         public static void GiveBomb(PlayerControl player, PlayerControl bomber, bool reset)
@@ -1079,24 +1194,25 @@ namespace StellarRoles
             }
 
             Bombed bombed = new(player, bomber);
-
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Bombed.BombDelay, new Action<float>((p) =>
+            Bombed.BombDelay.DelayedAction(() =>
             {
-                if (p == 1f && !MeetingHud.Instance)
+                if (!MeetingHud.Instance)
                 {
                     bombed.BombActive = true;
                     if (bombed.Player.AmOwner)
                     {
-                        AlertBombed(bombed, Bomber.CalculateBombTimer());
+                        bombed.AlertBombed(Bomber.CalculateBombTimer());
                         Helpers.ShowFlash(Bombed.AlertColor, 1f);
                     }
                 }
-            })));
+
+            });
         }
 
         public static void PassBomb(byte bombedPlayerId, byte targetId, int timeLeft)
         {
-            Bombed.IsBombed(bombedPlayerId, out Bombed oldBombed);
+            if (!Bombed.IsBombed(bombedPlayerId, out Bombed oldBombed)) return;
+
             oldBombed.PassedBomb = true;
             PlayerControl player = oldBombed.Player;
             PlayerControl bomber = oldBombed.Bomber;
@@ -1112,33 +1228,9 @@ namespace StellarRoles
 
             if (target.AmOwner)
             {
-                AlertBombed(bombed, timeLeft);
+                bombed.AlertBombed(timeLeft);
                 Helpers.ShowFlash(Bombed.AlertColor, 1f);
             }
-        }
-
-        public static void AlertBombed(Bombed bombed, float time)
-        {
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(time, new Action<float>((p) =>
-            { // Delayed action
-                if (!bombed.PassedBomb && bombed.BombActive && !MeetingHud.Instance)
-                {
-                    int timeLeft = (int)(time - (time * p));
-                    if (timeLeft <= Bombed.BombTimer && bombed.TimeLeft != timeLeft)
-                    {
-                        _ = new CustomMessage($"Your Bomb will explode in {timeLeft} seconds!", 1f, true, Color.red);
-                        bombed.TimeLeft = timeLeft;
-                    }
-                    if (p == 1f)
-                    {
-                        // Perform kill if possible and reset bitten (regardless whether the kill was successful or not)
-                        Helpers.CheckBombedAttemptAndKill(bombed.Bomber, bombed.Player, showAnimation: false);
-                        Send(CustomRPC.GiveBomb, bombed.Player.PlayerId, bombed.Bomber.PlayerId, true);
-                        GiveBomb(bombed.Player, bombed.Bomber, true);
-                        Helpers.AddGameInfo(bombed.Bomber.PlayerId, InfoType.AddAbilityKill, InfoType.AddKill);
-                    }
-                }
-            })));
         }
 
         public static void PlaceShadeTrace(byte[] buffer)
@@ -1146,13 +1238,20 @@ namespace StellarRoles
             _ = new ShadeTrace(ConvertPosition(buffer), Shade.EvidenceDuration);
         }
 
-        public static void SetInvisible(PlayerControl target, bool reset)
+        public static void SetInvisible(PlayerControl target, bool reset, bool fungle = false)
         {
             if (reset)
             {
                 target.cosmetics.currentBodySprite.BodySprite.color = Color.white;
                 target.cosmetics.colorBlindText.gameObject.SetActive(DataManager.Settings.Accessibility.ColorBlindMode);
-                if (Camouflager.CamouflageTimer <= 0) target.SetDefaultLook();
+                if (Camouflager.CamouflageTimer <= 0)
+                {
+                    if (target == Parasite.Controlled && Parasite.Player != null)
+                    {
+                        SetLook(target, Parasite.Player);
+                    }
+                    target.SetDefaultLook();
+                }
                 if (target == Wraith.Player)
                 {
                     Wraith.InvisibleTimer = 0f;
@@ -1163,6 +1262,9 @@ namespace StellarRoles
                     Shade.InvisibleTimer = 0f;
                     Shade.IsInvisble = false;
                 }
+
+                if (target.IsMushroomMixupActive() && Helpers.IsMap(Map.Fungal))
+                    target.MixUpOutfit(MixUpOutfitPatch1.outfits[target.PlayerId]);
                 return;
             }
 
@@ -1173,22 +1275,31 @@ namespace StellarRoles
             target.cosmetics.colorBlindText.gameObject.SetActive(false);
             if (target == Wraith.Player)
             {
-                Wraith.InvisibleTimer = Wraith.InvisibleDuration;
+                if (!fungle)
+                {
+                    Wraith.InvisibleTimer = Wraith.InvisibleDuration;
+                }
                 Wraith.IsInvisible = true;
             }
             else if (target == Shade.Player)
             {
-                Shade.InvisibleTimer = Shade.CalculateShadeDuration();
+                if (!fungle)
+                {
+                    Shade.InvisibleTimer = Shade.CalculateShadeDuration();
+                }
                 Shade.IsInvisble = true;
             }
         }
 
         public static void WraithReturn()
         {
-            Vector3 pos = Lantern.CurrentLantern.LanternGameObject.transform.position;
-            if (SubmergedCompatibility.IsSubmerged)
-                SubmergedCompatibility.ChangeFloor(pos.y > -7);
-            Wraith.Player.NetTransform.RpcSnapTo(pos);
+            if (Wraith.Player.AmOwner)
+            {
+                Vector3 pos = Lantern.CurrentLantern.LanternGameObject.transform.position;
+                if (SubmergedCompatibility.IsSubmerged)
+                    SubmergedCompatibility.ChangeFloor(pos.y > -7);
+                Wraith.Player.NetTransform.RpcSnapTo(pos);
+            }
             Lantern.CurrentLantern.LanternGameObject.SetActive(false);
             UnityEngine.Object.Destroy(Lantern.CurrentLantern.LanternGameObject);
             Lantern.CurrentLantern = null;
@@ -1201,12 +1312,14 @@ namespace StellarRoles
             if (Wraith.Player != null && Wraith.IsInvisible)
                 SetInvisible(Wraith.Player, true);
 
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(10f, new Action<float>((p) =>
+            10f.DelayedAction(() => 
             {
-                if (p == 1)
-                    foreach (DeadBody deadBody in UnityEngine.Object.FindObjectsOfType<DeadBody>())
-                        UnityEngine.Object.Destroy(deadBody.gameObject);
-            })));
+                foreach (DeadBody deadBody in UnityEngine.Object.FindObjectsOfType<DeadBody>())
+                {
+                    UnityEngine.Object.Destroy(deadBody.gameObject);
+                }
+
+            });
         }
 
         public static void Mine(int ventId, byte[] buffer, float zAxis)
@@ -1286,14 +1399,12 @@ namespace StellarRoles
 
             if (player.AmOwner && !player.IsCrew() && Watcher.NonCrewFlash)
             {
-                FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Watcher.NonCrewFlashDelay, new Action<float>((p) =>
+                Watcher.NonCrewFlashDelay.DelayedAction(() => 
                 {
-                    if (p == 1f)
-                    {
-                        Helpers.ShowFlash(Watcher.Color, 1.5f);
-                        _ = new CustomMessage($"You Tripped A Watcher Sensor {Watcher.NonCrewFlashDelay} Seconds Ago", 3f, true, Watcher.Color);
-                    }
-                })));
+                    Helpers.ShowFlash(Watcher.Color, 1.5f);
+                    _ = new CustomMessage($"You Tripped A Watcher Sensor {Watcher.NonCrewFlashDelay} Seconds Ago", 3f, true, Watcher.Color);
+
+                });
             }
         }
 
@@ -1314,13 +1425,10 @@ namespace StellarRoles
         public static void HackerJamToggle()
         {
             Hacker.LockedOut = true;
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Hacker.JamDuration, new Action<float>((p) =>
-            { // Delayed action
-                if (p == 1f)
-                {
-                    Hacker.LockedOut = false;
-                }
-            })));
+            Hacker.JamDuration.DelayedAction(() => 
+            {
+                Hacker.LockedOut = false;
+            });
         }
 
         public static void ShadeNearBlind(PlayerControl player)
@@ -1338,15 +1446,20 @@ namespace StellarRoles
 
         public static void SealVent(int ventid)
         {
-            Vent vent = MapUtilities.CachedShipStatus.AllVents.FirstOrDefault((x) => x != null && x.Id == ventid);
+            Vent vent = ShipStatus.Instance.AllVents.FirstOrDefault((x) => x != null && x.Id == ventid);
             if (vent == null) return;
 
             if (PlayerControl.LocalPlayer == Trapper.Player)
             {
-                PowerTools.SpriteAnim animator = vent.GetComponent<PowerTools.SpriteAnim>();
-                animator?.Stop();
+                PowerTools.SpriteAnim animator = vent.myAnim;
                 vent.EnterVentAnim = vent.ExitVentAnim = null;
                 vent.myRend.sprite = animator == null ? Trapper.GetStaticVentSealedSprite() : Trapper.GetAnimatedVentSealedSprite();
+                animator?.Stop();
+                if (Helpers.IsMap(Map.Fungal))
+                {
+                    vent.myRend.sprite = Trapper.GetFungalSealedSprite();
+                    vent.myRend.transform.localPosition = new Vector3(0, -.01f);
+                }
                 if (vent.gameObject.name.StartsWith("MinerVent_")) vent.myRend.sprite = Trapper.GetStaticVentSealedSprite();
                 if (SubmergedCompatibility.IsSubmerged && vent.Id == 0) vent.myRend.sprite = Trapper.GetSubmergedCentralUpperSealedSprite();
                 if (SubmergedCompatibility.IsSubmerged && vent.Id == 14) vent.myRend.sprite = Trapper.GetSubmergedCentralLowerSealedSprite();
@@ -1360,7 +1473,7 @@ namespace StellarRoles
 
         public static void SetVentTrap(int ventid)
         {
-            Vent vent = MapUtilities.CachedShipStatus.AllVents.FirstOrDefault((x) => x != null && x.Id == ventid);
+            Vent vent = ShipStatus.Instance.AllVents.FirstOrDefault((x) => x != null && x.Id == ventid);
             if (vent == null) return;
 
             if (VentTrap.VentTrapMap.ContainsKey(ventid)) return;
@@ -1373,7 +1486,7 @@ namespace StellarRoles
 
         public static void TriggerVentTrap(PlayerControl player, int ventid)
         {
-            Vent vent = MapUtilities.CachedShipStatus.AllVents.FirstOrDefault((x) => x != null && x.Id == ventid);
+            Vent vent = ShipStatus.Instance.AllVents.FirstOrDefault((x) => x != null && x.Id == ventid);
             if (vent == null) return;
 
             VentTrap.VentTrapMap[ventid].useVentTrap();
@@ -1585,9 +1698,11 @@ namespace StellarRoles
 
         public static void GuesserShoot(PlayerControl guesser, PlayerControl dyingTarget, PlayerControl guessedTarget, RoleId guessedRoleId)
         {
+            var meetingHud = MeetingHud.Instance;
+
             if (guesser.AmOwner)
             {
-                Helpers.AddGameInfo(guesser.PlayerId, dyingTarget == guesser ? InfoType.AddIncorrectGuess : InfoType.AddCorrectGuess);
+                PlayerControl.LocalPlayer.RPCAddGameInfo(dyingTarget == guesser ? InfoType.AddIncorrectGuess : InfoType.AddCorrectGuess);
             }
 
             if (dyingTarget == Romantic.Lover && !Romantic.NeutralSided)
@@ -1602,11 +1717,11 @@ namespace StellarRoles
 
             dyingTarget.Exiled();
 
-            Helpers.RemainingShots(guesser, true);
+            guesser.RemainingShots(true);
             if (Constants.ShouldPlaySfx())
                 SoundManager.Instance.PlaySound(dyingTarget.KillSfx, false, 0.8f);
 
-            foreach (PlayerVoteArea voteArea in MeetingHud.Instance.playerStates)
+            foreach (PlayerVoteArea voteArea in meetingHud.playerStates)
             {
                 if (voteArea.TargetPlayerId == dyingTarget.PlayerId)
                 {
@@ -1618,16 +1733,25 @@ namespace StellarRoles
                 if (voteArea.VotedFor != dyingTarget.PlayerId) continue;
                 voteArea.UnsetVote();
                 if (voteArea.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId)
-                    MeetingHud.Instance.ClearVote();
+                    meetingHud.ClearVote();
             }
 
             if (AmongUsClient.Instance.AmHost)
-                MeetingHud.Instance.CheckForEndVoting();
+                meetingHud.CheckForEndVoting();
 
             if (dyingTarget.AmOwner)
-                HudManager.Instance.KillOverlay.ShowKillAnimation(guesser.Data, dyingTarget.Data);
+            {
+                Helpers.TogglePlayerVoteAreas(meetingHud, false);
+                var KillOverlay = HudManager.Instance.KillOverlay;
+                KillOverlay.transform.localPosition = new Vector3(0, 0, -920f);
+                KillOverlay.ShowKillAnimation(guesser.Data, dyingTarget.Data);
+                Helpers.DelayedAction(2.5f, void () =>
+                {
+                    Helpers.TogglePlayerVoteAreas(meetingHud, true);
+                });
+            }
 
-            foreach (PlayerVoteArea voteArea in MeetingHud.Instance.playerStates)
+            foreach (PlayerVoteArea voteArea in meetingHud.playerStates)
             {
                 Transform shootbutton = voteArea.transform.FindChild("ShootButton");
                 if (shootbutton != null && (PlayerControl.LocalPlayer.Data.IsDead || voteArea.TargetPlayerId == dyingTarget.PlayerId))
@@ -1646,7 +1770,7 @@ namespace StellarRoles
 
                 // what is this??
                 if (msg.Contains("who", StringComparison.OrdinalIgnoreCase))
-                    FastDestroyableSingleton<Assets.CoreScripts.Telemetry>.Instance.SendWho();
+                    Assets.CoreScripts.UnityTelemetry.Instance.SendWho();
             }
 
             if (dyingTarget == Executioner.Target)
@@ -1671,12 +1795,13 @@ namespace StellarRoles
                 MeetingHudPatch.AddGuesserButtons();
         }
 
-        public static void SetChatNotificationOverlay(byte targetPlayerId)
+        public static void SetChatNotificationOverlay(byte targetPlayerId, bool impchat)
         {
             if (!MeetingHud.Instance) return;
             try
             {
                 if (PlayerControl.LocalPlayer.PlayerId == targetPlayerId) return;
+                if (impchat && !PlayerControl.LocalPlayer.Data.Role.IsImpostor) return;
                 PlayerVoteArea playerState = MeetingHud.Instance.playerStates.First(x => x.TargetPlayerId == targetPlayerId);
 
                 SpriteRenderer rend = new GameObject("ChatOverlayNotification").AddComponent<SpriteRenderer>();
@@ -1684,16 +1809,17 @@ namespace StellarRoles
                 rend.gameObject.layer = playerState.Megaphone.gameObject.layer;
                 rend.transform.localPosition = new Vector3(-0.5f, 0.2f, -1f);
                 rend.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.ChatOverlay.png", 130f);
+                if (impchat)
+                {
+                    rend.color = Palette.ImpostorRed;
+                }
                 rend.gameObject.SetActive(true);
 
-                FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(2f, new Action<float>((p) =>
-                { // Delayed action
-                    if (p == 1f)
-                    {
-                        rend.gameObject.SetActive(false);
-                        UnityEngine.Object.Destroy(rend.gameObject);
-                    }
-                })));
+                2f.DelayedAction(() => 
+                {
+                    rend.gameObject.SetActive(false);
+                    UnityEngine.Object.Destroy(rend.gameObject);
+                });
             }
             catch
             {
@@ -1709,9 +1835,10 @@ namespace StellarRoles
     {
         static void Postfix([HarmonyArgument(0)] byte packetId, [HarmonyArgument(1)] MessageReader reader)
         {
-            switch ((CustomRPC)packetId)
-            {
+            if (packetId != 254) return;
 
+            switch ((CustomRPC)reader.ReadByte())
+            {
                 // Main Controls
 
                 case CustomRPC.ResetVaribles:
@@ -1727,10 +1854,10 @@ namespace StellarRoles
                     Romantic.PairIsDead = true;
                     break;
                 case CustomRPC.SetRole:
-                    RPCProcedure.SetRole((RoleId)reader.ReadByte(), reader.ReadPlayer());
+                    RPCProcedure.SetRole(reader.ReadRoleID(), reader.ReadPlayer());
                     break;
                 case CustomRPC.SetModifier:
-                    RPCProcedure.SetModifier((RoleId)reader.ReadByte(), reader.ReadPlayer());
+                    RPCProcedure.SetModifier(reader.ReadRoleID(), reader.ReadPlayer());
                     break;
                 case CustomRPC.VersionHandshake:
                     byte major = reader.ReadByte();
@@ -1749,18 +1876,22 @@ namespace StellarRoles
                         guid = new Guid(gbytes);
                     }
                     else
+                    {
                         guid = new Guid(new byte[16]);
+                    }
                     RPCProcedure.VersionHandshake(major, minor, patch, revision == 0xFF ? -1 : revision, guid, versionOwnerId);
                     break;
                 case CustomRPC.AddGameInfo:
-                    RPCProcedure.AddGameInfo(reader.ReadByte(), (InfoType)reader.ReadByte());
+                    RPCProcedure.AddGameInfo(reader.ReadPlayer(), (InfoType)reader.ReadByte());
                     break;
                 case CustomRPC.UncheckedMurderPlayer:
-                    RPCProcedure.UncheckedMurderPlayer(reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadBoolean());
+                    RPCProcedure.UncheckedMurderPlayer(reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadBoolean(), reader.ReadBoolean());
                     break;
                 case CustomRPC.ParalyzePlayer:
-                    if (Nightmare.IsNightmare(reader.ReadByte(), out Nightmare nightmareA))
-                        RPCProcedure.ParalyzePlayer(nightmareA, reader.ReadPlayer());
+                    var nightmare = reader.ReadByte();
+                    var paralyze = reader.ReadPlayer();
+                    if (Nightmare.IsNightmare(nightmare, out Nightmare nightmareA))
+                        RPCProcedure.ParalyzePlayer(nightmareA, paralyze);
                     break;
                 case CustomRPC.DynamicMapOption:
                     GameOptionsManager.Instance.currentNormalGameOptions.MapId = reader.ReadByte();
@@ -1794,7 +1925,7 @@ namespace StellarRoles
                     RPCProcedure.AddSpectator(reader.ReadPlayer());
                     break;
                 case CustomRPC.RemoveSpectator:
-                    RPCProcedure.RemoveSpectator(reader.ReadByte());
+                    RPCProcedure.RemoveSpectator(reader.ReadPlayer());
                     break;
                 case CustomRPC.GuardianResetShielded:
                     RPCProcedure.GuardianResetShield();
@@ -1809,15 +1940,21 @@ namespace StellarRoles
                     RPCProcedure.PassBomb(reader.ReadByte(), reader.ReadByte(), reader.ReadInt32());
                     break;
                 case CustomRPC.JailorJail:
-                    if (Jailor.IsJailor(reader.ReadByte(), out Jailor jailorA))
-                        RPCProcedure.JailorJail(jailorA, reader.ReadPlayer());
+                    var jailor = reader.ReadByte();
+                    var jailed = reader.ReadPlayer();
+                    if (Jailor.IsJailor(jailor, out Jailor jailorA))
+                        RPCProcedure.JailorJail(jailorA, jailed);
                     break;
                 case CustomRPC.JailBreak:
-                    if (Jailor.IsJailor(reader.ReadByte(), out Jailor jailorB))
+                    var jailor2 = reader.ReadByte();
+                    if (Jailor.IsJailor(jailor2, out Jailor jailorB))
                         RPCProcedure.JailBreak(jailorB);
                     break;
                 case CustomRPC.MorphlingMorph:
                     RPCProcedure.MorphlingMorph(reader.ReadPlayer());
+                    break;
+                case CustomRPC.SetLook:
+                    RPCProcedure.SetLook(reader.ReadPlayer(), reader.ReadPlayer());
                     break;
                 case CustomRPC.CamouflagerCamouflage:
                     RPCProcedure.CamouflagerCamouflage();
@@ -1835,14 +1972,17 @@ namespace StellarRoles
                     RPCProcedure.TrackerTrackWarning();
                     break;
                 case CustomRPC.ParityCopCompareAddition:
-                    if (ParityCop.IsParityCop(reader.ReadByte(), out ParityCop parityCopB))
-                        parityCopB.ComparedPlayers.Add(reader.ReadByte());
+                    var parity = reader.ReadByte();
+                    var compare = reader.ReadByte();
+                    if (ParityCop.IsParityCop(parity, out ParityCop parityCopB))
+                        parityCopB.ComparedPlayers.Add(compare);
                     break;
                 case CustomRPC.PlayerKilledByAbility:
                     Detective.PlayersKilledByAbility.Add(reader.ReadPlayer());
                     break;
                 case CustomRPC.SetJesterWinner:
                     Jester.WinningJesterPlayer = reader.ReadPlayer();
+                    Jester.TriggerJesterWin = true;
                     break;
                 case CustomRPC.SetExecutionerWin:
                     Executioner.TriggerExecutionerWin = true;
@@ -1851,8 +1991,10 @@ namespace StellarRoles
                     RPCProcedure.ArsonistDouse(reader.ReadPlayer());
                     break;
                 case CustomRPC.PyromaniacDouse:
-                    if (Pyromaniac.IsPyromaniac(reader.ReadByte(), out Pyromaniac pyromaniac))
-                        pyromaniac.DousedPlayers.Add(reader.ReadByte());
+                    var pyro = reader.ReadByte();
+                    var douse = reader.ReadByte();
+                    if (Pyromaniac.IsPyromaniac(pyro, out Pyromaniac pyromaniac))
+                        pyromaniac.DousedPlayers.Add(douse);
                     break;
                 case CustomRPC.ScavengerEat:
                     RPCProcedure.ScavengerEat(reader.ReadByte());
@@ -1871,6 +2013,9 @@ namespace StellarRoles
                     break;
                 case CustomRPC.WraithReturn:
                     RPCProcedure.WraithReturn();
+                    break;
+                case CustomRPC.ResetAnimation:
+                    RPCProcedure.ResetAnimation(reader.ReadPlayer());
                     break;
                 case CustomRPC.WraithLanternBreak:
                     Lantern.BreakLantern();
@@ -1897,17 +2042,18 @@ namespace StellarRoles
                     RPCProcedure.NightMareBlind(reader.ReadPlayer(), reader.ReadPlayer());
                     break;
                 case CustomRPC.NightMareClear:
-                    if (Nightmare.IsNightmare(reader.ReadByte(), out Nightmare nightmareC))
+                    var nightmare1 = reader.ReadByte();
+                    if (Nightmare.IsNightmare(nightmare1, out Nightmare nightmareC))
                         nightmareC.BlindedPlayers.Clear();
                     break;
                 case CustomRPC.SealVent:
-                    RPCProcedure.SealVent(reader.ReadPackedInt32());
+                    RPCProcedure.SealVent(reader.ReadInt32());
                     break;
                 case CustomRPC.SetTrap:
-                    RPCProcedure.SetVentTrap(reader.ReadPackedInt32());
+                    RPCProcedure.SetVentTrap(reader.ReadInt32());
                     break;
                 case CustomRPC.TriggerVentTrap:
-                    RPCProcedure.TriggerVentTrap(reader.ReadPlayer(), reader.ReadPackedInt32());
+                    RPCProcedure.TriggerVentTrap(reader.ReadPlayer(), reader.ReadInt32());
                     break;
                 case CustomRPC.ExitAllVents:
                     reader.ReadPlayer().MyPhysics.ExitAllVents();
@@ -1916,7 +2062,7 @@ namespace StellarRoles
                     RPCProcedure.ArsonistWin();
                     break;
                 case CustomRPC.GuesserShoot:
-                    RPCProcedure.GuesserShoot(reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadPlayer(), (RoleId)reader.ReadByte());
+                    RPCProcedure.GuesserShoot(reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadRoleID());
                     break;
                 case CustomRPC.ScavengerWin:
                     Scavenger.TriggerScavengerWin = true;
@@ -1949,19 +2095,23 @@ namespace StellarRoles
                     RPCProcedure.TurnToCrewmate(reader.ReadPlayer());
                     break;
                 case CustomRPC.ChangelingChange:
-                    RPCProcedure.ChangelingChange((RoleId)reader.ReadByte());
+                    RPCProcedure.ChangelingChange(reader.ReadRoleID());
                     break;
                 case CustomRPC.RefugeeShield:
-                    if (Refugee.IsRefugee(reader.ReadByte(), out Refugee refugee))
+                    var refu = reader.ReadByte();
+                    if (Refugee.IsRefugee(refu, out Refugee refugee))
                         RPCProcedure.RefugeeShield(refugee);
                     break;
                 case CustomRPC.RuthlessRomanticShield:
-                    if (RuthlessRomantic.IsRuthlessRomantic(reader.ReadByte(), out RuthlessRomantic ruthlessRomanticA))
+                    var Ruthless = reader.ReadByte();
+                    if (RuthlessRomantic.IsRuthlessRomantic(Ruthless, out RuthlessRomantic ruthlessRomanticA))
                         RPCProcedure.RuthlessRomanticShield(ruthlessRomanticA);
                     break;
                 case CustomRPC.FakeCompare:
-                    if (ParityCop.IsParityCop(reader.ReadByte(), out ParityCop parityCopA))
-                        parityCopA.PressedFakeCompare = reader.ReadBoolean();
+                    var Parity1 = reader.ReadByte();
+                    var fake = reader.ReadBoolean();
+                    if (ParityCop.IsParityCop(Parity1, out ParityCop parityCopA))
+                        parityCopA.PressedFakeCompare = fake;
                     break;
                 case CustomRPC.RomanticShield:
                     RPCProcedure.RomanticShield();
@@ -1972,6 +2122,13 @@ namespace StellarRoles
                 case CustomRPC.BecomeLoversRole:
                     RPCProcedure.BecomeLoversRole();
                     break;
+                case CustomRPC.ControlPlayer:
+                    RPCProcedure.ControlPlayer(reader.ReadPlayer());
+                    break;
+                case CustomRPC.KillInfected:
+                    RPCProcedure.KillInfected(reader.ReadBoolean());
+                    break;
+
                 case CustomRPC.ScavengerTurnToRefugee:
                     RPCProcedure.ScavengerTurnToRefugee();
                     break;
@@ -1997,11 +2154,13 @@ namespace StellarRoles
                     Watcher.ResetSensors();
                     break;
                 case CustomRPC.SetMeetingChatOverlay:
-                    RPCProcedure.SetChatNotificationOverlay(reader.ReadByte());
+                    RPCProcedure.SetChatNotificationOverlay(reader.ReadByte(), reader.ReadBoolean());
                     break;
                 case CustomRPC.SpitefulVote:
-                    if (reader.ReadPlayer().IsSpiteful(out Spiteful spiteful))
-                        spiteful.VotedBy.Add(reader.ReadPlayer());
+                    var spite = reader.ReadPlayer();
+                    var vote = reader.ReadByte();
+                    if (spite.IsSpiteful(out Spiteful spiteful))
+                        spiteful.VotedBy.Add(vote);
                     break;
                 case CustomRPC.Duel:
                     RPCProcedure.Duel(reader.ReadPlayer(), reader.ReadString());
@@ -2019,7 +2178,35 @@ namespace StellarRoles
                     Psychic.AbilitesUsed++;
                     break;
                 case CustomRPC.SnapToRpc:
-                    reader.ReadPlayer().NetTransform.SnapTo(reader.ReadPlayer().transform.position);
+                    var player1 = reader.ReadPlayer();
+                    var player2 = reader.ReadPlayer();
+                    if (player1 != null && player2 != null)
+                        player1.NetTransform.SnapTo(player2.transform.position);
+                    break;
+                case CustomRPC.UpdateSurvivability:
+                    RPCProcedure.UpdateSurvivability(reader.ReadPlayer());
+                    break;
+                case CustomRPC.ResetKillButton:
+                    RPCProcedure.ResetKillButton(reader.ReadPlayer());
+                    break;
+                case CustomRPC.AddDeadPlayer:
+                    RPCProcedure.AddDeadPlayer(reader.ReadPlayer(), reader.ReadPlayer(), (DeathReason)reader.ReadByte());
+                    break;
+                case CustomRPC.ClearToBeSpectators:
+                    Spectator.ToBecomeSpectator.Clear();
+                    break;
+                case CustomRPC.MoveControlledPlayer:
+                    //byte moveId = reader.ReadByte();
+                    Vector2 newVel = new Vector2(reader.ReadSingle(), reader.ReadSingle());
+                    //Vector3 newPos = new Vector3(reader.ReadSingle(), reader.ReadSingle());
+
+                    if (Parasite.Controlled != null && Parasite.Controlled.AmOwner)
+                    {
+                        //Parasite.Controlled.transform.position = newPos;
+                        //Parasite.Controlled.MyPhysics.body.position = newPos;
+                        Parasite.Controlled.MyPhysics.body.velocity = newVel;
+                        //Parasite.Controlled.MyPhysics.SetNormalizedVelocity(newVel);
+                    }
                     break;
 
             }
@@ -2028,6 +2215,10 @@ namespace StellarRoles
         private static PlayerControl ReadPlayer(this MessageReader reader)
         {
             return Helpers.PlayerById(reader.ReadByte());
+        }
+        private static RoleId ReadRoleID(this MessageReader reader)
+        {
+            return (RoleId)reader.ReadByte();
         }
     }
 }

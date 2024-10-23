@@ -14,7 +14,7 @@ namespace StellarRoles
             ShieldButton = new CustomButton(
                     () =>
                     {
-                        RPCProcedure.Send(CustomRPC.RuthlessRomanticShield, PlayerControl.LocalPlayer.PlayerId);
+                        RPCProcedure.Send(CustomRPC.RuthlessRomanticShield, PlayerControl.LocalPlayer);
                         PlayerControl.LocalPlayer.IsRuthlessRomantic(out RuthlessRomantic ruthlessRomantic);
                         RPCProcedure.RuthlessRomanticShield(ruthlessRomantic);
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);

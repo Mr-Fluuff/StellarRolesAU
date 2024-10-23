@@ -1,4 +1,5 @@
 ﻿using StellarRoles.Objects;
+using StellarRoles.Patches;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,12 +7,13 @@ namespace StellarRoles
 {
     public static class Cultist
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = Palette.ImpostorRed;
         public static bool NeedsFollower { get; set; } = true;
-        public static bool FollowerImpRolesEnabled = false;
+        public static bool FollowerImpRolesEnabled => CustomOptionHolder.CultistSpecialRolesEnabled.GetBool();
         public static bool FollowerSpecialRoleAssigned = false;
-        public static PlayerControl CurrentFollower { get; set; }
+        public static bool CultistMeetingChat => CustomOptionHolder.CultistChatInMeeting.GetBool();
+        public static PlayerControl CurrentFollower { get; set; } = null;
         public static readonly List<Arrow> LocalArrows = new();
 
         private static Sprite _ButtonSprite;
@@ -24,6 +26,7 @@ namespace StellarRoles
         public static RoleId CultistFollowerRole(RoleId roleId)
         {
             RoleId newRole = RoleId.Follower;
+            var roleinfo = RoleManagerSelectRolesPatch.GetRoleAssignmentData();
             switch (roleId)
             {
                 case RoleId.Administrator:
@@ -32,39 +35,29 @@ namespace StellarRoles
                     newRole = RoleId.Hacker;
                     break;
                 case RoleId.Detective:
+                    newRole = RoleId.Undertaker;
+                    break;
                 case RoleId.Jailor:
-                    if (!Undertaker.IsNeutralKiller)
-                        newRole = RoleId.Undertaker;
+                    newRole = RoleId.Parasite;
                     break;
                 case RoleId.Trapper:
                 case RoleId.Engineer:
-                    if (!Miner.IsNeutralKiller)
-                        newRole = RoleId.Miner;
+                    newRole = RoleId.Miner;
                     break;
                 case RoleId.Guardian:
-                    if (!Vampire.IsNeutralKiller)
-                        newRole = RoleId.Vampire;
+                    newRole = RoleId.Vampire;
                     break;
                 case RoleId.Investigator:
-                    if (!Camouflager.IsNeutralKiller)
-                        newRole = RoleId.Camouflager;
+                    newRole = RoleId.Camouflager;
                     break;
                 case RoleId.Mayor:
-                    if (!Morphling.IsNeutralKiller)
-                        newRole = RoleId.Morphling;
+                    newRole = RoleId.Morphling;
                     break;
                 case RoleId.ParityCop:
-                    if (!Wraith.IsNeutralKiller)
-                        newRole = RoleId.Wraith;
+                    newRole = RoleId.Wraith;
                     break;
                 case RoleId.Psychic:
-                    if (!Warlock.IsNeutralKiller)
-                        newRole = RoleId.Warlock;
-                    break;
-                case RoleId.Tracker:
-                case RoleId.HeadHunter:
-                    if (!BountyHunter.IsNeutralKiller)
-                        newRole = RoleId.BountyHunter;
+                    newRole = RoleId.Warlock;
                     break;
                 case RoleId.Arsonist:
                 case RoleId.Pyromaniac:
@@ -72,16 +65,19 @@ namespace StellarRoles
                         newRole = RoleId.Bomber;
                     break;
                 case RoleId.Nightmare:
-                    if (!Shade.IsNeutralKiller)
-                        newRole = RoleId.Shade;
+                    newRole = RoleId.Shade;
                     break;
                 case RoleId.Sheriff:
                 case RoleId.Executioner:
                 case RoleId.Jester:
-                        newRole = RoleId.Changeling;
+                    newRole = RoleId.Changeling;
                     break;
-
+                default:
+                    newRole = RoleId.Follower;
+                    break;
             }
+            if (!roleinfo.ImpSettings.ContainsKey(newRole) || roleinfo.ImpSettings[newRole] == 0)
+                newRole = RoleId.Follower;
             return newRole;
         }
 
@@ -103,7 +99,6 @@ namespace StellarRoles
             Player = null;
             CurrentFollower = null;
             NeedsFollower = true;
-            FollowerImpRolesEnabled = CustomOptionHolder.CultistSpecialRolesEnabled.GetBool();
             FollowerSpecialRoleAssigned = false;
         }
 

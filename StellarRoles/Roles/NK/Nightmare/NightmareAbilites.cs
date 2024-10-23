@@ -1,5 +1,4 @@
-﻿using AmongUs.GameOptions;
-using HarmonyLib;
+﻿using HarmonyLib;
 using UnityEngine;
 
 namespace StellarRoles
@@ -24,7 +23,7 @@ namespace StellarRoles
 
                 if (nightmare.Player.AmOwner && nightmare.LightsOutTimer <= 0f && nightmare.BlindedPlayers.Count > 0)
                 {
-                    RPCProcedure.Send(CustomRPC.NightMareClear, nightmare.Player.PlayerId);
+                    RPCProcedure.Send(CustomRPC.NightMareClear, nightmare.Player);
                     nightmare.BlindedPlayers.Clear();
                 }
             }

@@ -27,7 +27,7 @@ namespace StellarRoles
                         SoundEffectsManager.Play(Sounds.Douse);
                     }
                 },
-                () => Arsonist.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Arsonist.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     bool dousedEveryoneAlive = Arsonist.DousedEveryoneAlive();
@@ -68,7 +68,7 @@ namespace StellarRoles
                 {
                     if (Arsonist.DouseTarget != null)
                     {
-                        RPCProcedure.Send(CustomRPC.ArsonistDouse, Arsonist.DouseTarget.PlayerId);
+                        RPCProcedure.Send(CustomRPC.ArsonistDouse, Arsonist.DouseTarget);
                         RPCProcedure.ArsonistDouse(Arsonist.DouseTarget);
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);
                     }

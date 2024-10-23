@@ -17,7 +17,7 @@ namespace StellarRoles
         }
 
         public const string SUBMERGED_GUID = "Submerged";
-        public const ShipStatus.MapType SUBMERGED_MAP_TYPE = (ShipStatus.MapType)5;
+        public const ShipStatus.MapType SUBMERGED_MAP_TYPE = (ShipStatus.MapType)6;
 
         public static SemanticVersioning.Version Version { get; private set; }
         public static bool Loaded { get; private set; }
@@ -174,7 +174,7 @@ namespace StellarRoles
             if (!Loaded) return;
             try
             {
-                ShipStatus.Instance.RpcRepairSystem((SystemTypes)130, 64);
+                ShipStatus.Instance.RpcUpdateSystem((SystemTypes)130, 64);
                 RepairDamageMethod.Invoke(SubmarineOxygenSystemInstanceField.Invoke(null, Array.Empty<object>()), new object[] { PlayerControl.LocalPlayer, 64 });
             }
             catch (Exception ex)

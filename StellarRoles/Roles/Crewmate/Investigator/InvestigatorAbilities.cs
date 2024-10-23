@@ -34,7 +34,8 @@ namespace StellarRoles
                         || player.Data.IsDead
                         || (player == Shade.Player && Shade.IsInvisble)
                         || (player == Wraith.Player && Wraith.IsInvisible)
-                        || player == Investigator.Player) continue;
+                        || player == Investigator.Player
+                        || player.NearActiveMushroom()) continue;
 
                     FootprintHolder.Instance.MakeFootprint(player);
                 }
@@ -45,20 +46,29 @@ namespace StellarRoles
     [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.CmdReportDeadBody))]
     public static class BodyReportPatch
     {
-        public static void Postfix([HarmonyArgument(0)] GameData.PlayerInfo target)
+        public static void Postfix([HarmonyArgument(0)] NetworkedPlayerInfo target)
         {
             if (Investigator.Player != PlayerControl.LocalPlayer)
                 return;
 
-            DeadPlayer deadPlayer = GameHistory.DeadPlayers.FirstOrDefault(x => x.Player.PlayerId == target.PlayerId);
+            DeadPlayer deadPlayer = GameHistory.DeadPlayers.FirstOrDefault(x => x.Data.PlayerId == target.PlayerId);
 
-            if (deadPlayer != null && deadPlayer.KillerIfExisting != null)
+            if (deadPlayer != null)
             {
                 float timeSinceDeath = (float)(DateTime.UtcNow - deadPlayer.TimeOfDeath).TotalMilliseconds;
-                string msg = $"Body Report: Killed {Math.Round(timeSinceDeath / 1000)}s ago!";
+                string msg = "";
 
-                if (AmongUsClient.Instance.AmClient && FastDestroyableSingleton<HudManager>.Instance)
-                    FastDestroyableSingleton<HudManager>.Instance.Chat.AddChat(PlayerControl.LocalPlayer, msg);
+                if (deadPlayer.KillerIfExisting != null && deadPlayer.KillerIfExisting != deadPlayer.Player)
+                {
+                    msg = $"Body Report: {deadPlayer.Name} was killed {Math.Round(timeSinceDeath / 1000)}s ago!";
+                }
+                else
+                {
+                    msg = $"Body Report: {deadPlayer.Name} died {Math.Round(timeSinceDeath / 1000)}s ago!";
+                }
+
+                if (AmongUsClient.Instance.AmClient && HudManager.Instance)
+                    HudManager.Instance.Chat.AddChat(PlayerControl.LocalPlayer, msg);
             }
         }
     }

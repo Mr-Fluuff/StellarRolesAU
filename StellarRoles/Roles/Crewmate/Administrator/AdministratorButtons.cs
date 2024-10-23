@@ -17,13 +17,13 @@ namespace StellarRoles
               {
                   if (!Administrator.IsActive)
                   {
+                      Administrator.IsActive = true;
                       if (!MapBehaviour.Instance || !MapBehaviour.Instance.isActiveAndEnabled)
                       {
-                          __instance.InitMap();
+                          HudManager.Instance.InitMap();
+                          MapBehaviour.Instance.ShowNormalMap();
                           MapBehaviour.Instance.ShowCountOverlay(allowedToMove: true, showLivePlayerPosition: true, includeDeadBodies: true);
                       }
-
-                      Administrator.IsActive = true;
                       Administrator.BatteryTime--;
 
                       Helpers.SetMovement(false);

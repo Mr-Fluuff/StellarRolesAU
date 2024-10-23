@@ -1,8 +1,10 @@
 using AmongUs.Data.Legacy;
 using HarmonyLib;
 using StellarRoles.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 namespace StellarRoles.Modules
@@ -14,11 +16,17 @@ namespace StellarRoles.Modules
 
         private static readonly List<int> ORDER = new()
         {
-7,  33, 13, 5,  32, 22, 25,
-14, 10, 24, 30, 19, 20, 2,
-18, 21, 16, 4,  26, 27, 31,
-28, 11, 3,  29, 0,  8,  1,
-15, 17, 23, 9,  6,  12
+            //Vanilla Colors
+            7, 13, 5, 14, 10,
+            2, 16, 4, 11, 3,
+            0, 8, 1, 15, 17,
+            9, 6, 12,
+
+            //Custom Colors
+            33, 32, 22, 25, 24,
+            30, 19, 20, 18, 21,
+            26, 27, 31, 28, 29,
+            23
         };
         public static void Load()
         {
@@ -132,6 +140,7 @@ namespace StellarRoles.Modules
 
             /** Add Colors **/
             int id = 500000;
+
             foreach (CustomColor customColor in colors)
             {
                 longlist.Add((StringNames)id);
@@ -176,24 +185,93 @@ namespace StellarRoles.Modules
                     return true;
                 }
             }
+
+            [HarmonyPatch(typeof(ChatNotification), nameof(ChatNotification.SetUp))]
+            private class ChatNotificationColorsPatch
+            {
+                public static bool Prefix(ChatNotification __instance, PlayerControl sender, string text)
+                {
+                    if (ShipStatus.Instance)
+                    {
+                        return false;
+                    }
+                    __instance.transform.localScale = Vector3.one * 0.4f;
+                    __instance.timeOnScreen = 5f;
+                    __instance.gameObject.SetActive(true);
+                    __instance.SetCosmetics(sender.Data);
+                    string str;
+                    Color color;
+                    try
+                    {
+                        str = ColorUtility.ToHtmlStringRGB(Palette.TextColors[__instance.player.ColorId]);
+                        color = Palette.TextOutlineColors[__instance.player.ColorId];
+                    }
+                    catch
+                    {
+                        Color32 c = Palette.PlayerColors[__instance.player.ColorId];
+                        str = ColorUtility.ToHtmlStringRGB(c);
+
+                        color = c.r + c.g + c.b > 180 ? Palette.Black : Palette.White;
+                        Helpers.Log($"{c.r}, {c.g}, {c.b}");
+                    }
+                    __instance.playerColorText.text = __instance.player.ColorBlindName;
+                    __instance.playerNameText.text = "<color=#" + str + ">" + (string.IsNullOrEmpty(sender.Data.PlayerName) ? "..." : sender.Data.PlayerName);
+                    __instance.playerNameText.outlineColor = color;
+                    __instance.chatText.text = text;
+                    return false;
+                }
+            }
             [HarmonyPatch(typeof(PlayerTab), nameof(PlayerTab.OnEnable))]
             private static class PlayerTabEnablePatch
             {
+                private static TMP_Text textTemplate;
+
                 public static void Postfix(PlayerTab __instance)
                 { // Replace instead
                     Il2CppArrayBase<ColorChip> chips = __instance.ColorChips.ToArray();
+                    textTemplate = GameObject.Find("ColorGroup").transform.FindChild("Text").GetComponent<TMP_Text>();
+
+                    if (textTemplate != null)
+                    {
+                        TMP_Text titleText = UnityEngine.Object.Instantiate(textTemplate, textTemplate.transform.parent);
+                        titleText.transform.localPosition = new Vector3(0.45f, 0.24f);
+                        titleText.transform.localScale = new Vector3(1f, 1f);
+                        titleText.fontSize *= 1f;
+                        titleText.enableAutoSizing = false;
+
+                        TMP_Text OriginalText = UnityEngine.Object.Instantiate(textTemplate, textTemplate.transform.parent);
+                        OriginalText.transform.localPosition = textTemplate.transform.localPosition;
+                        OriginalText.transform.localScale = new Vector3(1f, 1f);
+                        OriginalText.fontSize *= 1f;
+                        OriginalText.enableAutoSizing = false;
+
+                        textTemplate.gameObject.SetActive(false);
+                        __instance.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) =>
+                        {
+                            titleText.SetText("Custom Colors");
+                            OriginalText.SetText("Vanilla Colors");
+                        })));
+
+                    }
 
                     int cols = 7; // TODO: Design an algorithm to dynamically position chips to optimally fill space
+                    int num = 0;
                     for (int i = 0; i < ORDER.Count; i++)
                     {
                         int pos = ORDER[i];
                         if (pos < 0 || pos > chips.Length)
                             continue;
                         ColorChip chip = chips[pos];
-                        int row = i / cols, col = i % cols; // Dynamically do the positioning
+                        if (i == 18)
+                        {
+                            num += 10;
+                        }
+                        int row = num / cols, col = num % cols; // Dynamically do the positioning
                         chip.transform.localPosition = new Vector3(-1.75f + (col * 0.485f), 1.75f - (row * 0.49f), chip.transform.localPosition.z);
                         chip.transform.localScale *= 0.78f;
+                        num++;
                     }
+
                     for (int j = ORDER.Count; j < chips.Length; j++)
                     { // If number isn't in order, hide it
                         ColorChip chip = chips[j];
@@ -225,7 +303,7 @@ namespace StellarRoles.Modules
             {
                 private static bool IsTaken(PlayerControl player, uint color)
                 {
-                    foreach (GameData.PlayerInfo p in GameData.Instance.AllPlayers.GetFastEnumerator())
+                    foreach (NetworkedPlayerInfo p in GameData.Instance.AllPlayers.GetFastEnumerator())
                         if (!p.Disconnected && p.PlayerId != player.PlayerId && p.DefaultOutfit.ColorId == color)
                             return true;
                     return false;

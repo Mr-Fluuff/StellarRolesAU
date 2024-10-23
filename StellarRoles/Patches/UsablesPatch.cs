@@ -5,6 +5,59 @@ using static StellarRoles.MapOptions;
 
 namespace StellarRoles.Patches
 {
+    [HarmonyPatch(typeof(HudManager), nameof(HudManager.Start))]
+    public static class RearangeButtonsPatch
+    {
+        public static void Postfix(HudManager __instance)
+        {
+            var Chatbutton = GameObject.Find("ChatButton");
+            var MenuButton = GameObject.Find("MenuButton");
+            var MapButton = GameObject.Find("Main Camera/Hud/Buttons/TopRight/MapButton");
+            var FriendsButton = GameObject.Find("Main Camera/Hud/Friends List Button");
+            var LobbyInfoPane = GameObject.Find("Main Camera/Hud/LobbyInfoPane");
+            if (Chatbutton != null)
+            {
+                Chatbutton.GetComponent<AspectPosition>().DistanceFromEdge = new Vector3(0.86f, 0.56f, -400f);
+                Chatbutton.transform.localScale = Vector3.one * 1.05f;
+            }
+            if (MenuButton != null)
+            {
+                MenuButton.GetComponent<AspectPosition>().DistanceFromEdge = new Vector3(0.4f, 0.43f, -400f);
+                MenuButton.transform.localScale = Vector3.one * 1.05f;
+            }
+            if (MapButton != null)
+            {
+                MapButton.GetComponent<AspectPosition>().DistanceFromEdge = new Vector3(0.39f, 1.12f, -40f);
+                MapButton.transform.localScale = Vector3.one * 1.05f;
+            }
+            if (FriendsButton != null)
+            {
+                FriendsButton.transform.localPosition = new Vector3(0, 0, 22);
+                var Fbutton = FriendsButton.transform.FindChild("Friends List Button");
+                Fbutton.GetComponent<AspectPosition>().DistanceFromEdge = new Vector3(1.63f, 0.43f, -450f);
+                Fbutton.transform.localScale = Vector3.one * 0.2724f;
+            }
+            if (LobbyInfoPane != null)
+            {
+                LobbyInfoPane.transform.localScale = Vector3.one * 0.4098f;
+                var viewsettings = LobbyInfoPane.transform.FindChild("AspectSize").FindChild("RulesPopOutWindow");
+                viewsettings.localScale = Vector3.one * 1.5f;
+                viewsettings.localPosition = new Vector3(-12.4675f, -4.5114f, -10);
+            }
+        }
+    }
+    [HarmonyPatch(typeof(ModManager), nameof(ModManager.LateUpdate))]
+    public static class ModStampPatch
+    {
+        public static void Postfix(ModManager __instance)
+        {
+            if (__instance.ModStamp.enabled)
+            {
+                __instance.ModStamp.transform.position = AspectPosition.ComputeWorldPosition(__instance.localCamera, AspectPosition.EdgeAlignments.LeftTop, new Vector3(0.6f, 0.6f, __instance.localCamera.nearClipPlane + 0.1f));
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(DeadBody), nameof(DeadBody.OnClick))]
     public static class DeadBodyOnClickPatch
     {
@@ -21,12 +74,13 @@ namespace StellarRoles.Patches
                 return false;
             }
 
+            bool canReport = localPlayer.CanMove || localPlayer.inMovingPlat || localPlayer.onLadder;
             Vector2 localPosition = localPlayer.GetTruePosition();
             Vector2 bodyPosition = __instance.TruePosition;
-            if (Vector2.Distance(bodyPosition, localPosition) <= localPlayer.MaxReportDistance && localPlayer.CanMove && !PhysicsHelpers.AnythingBetween(localPosition, bodyPosition, Constants.ShipAndObjectsMask, false))
+            if (Vector2.Distance(bodyPosition, localPosition) <= localPlayer.MaxReportDistance && canReport && !PhysicsHelpers.AnythingBetween(localPosition, bodyPosition, Constants.ShipAndObjectsMask, false))
             {
                 __instance.Reported = true;
-                GameData.PlayerInfo playerById = GameData.Instance.GetPlayerById(__instance.ParentId);
+                NetworkedPlayerInfo playerById = GameData.Instance.GetPlayerById(__instance.ParentId);
                 localPlayer.CmdReportDeadBody(playerById);
             }
             return false;
@@ -77,7 +131,7 @@ namespace StellarRoles.Patches
     [HarmonyPatch(typeof(Console), nameof(Console.CanUse))]
     public static class ConsoleCanUsePatch
     {
-        public static bool Prefix(ref float __result, Console __instance, [HarmonyArgument(0)] GameData.PlayerInfo pc, [HarmonyArgument(1)] out bool canUse, [HarmonyArgument(2)] out bool couldUse)
+        public static bool Prefix(ref float __result, Console __instance, [HarmonyArgument(0)] NetworkedPlayerInfo pc, [HarmonyArgument(1)] out bool canUse, [HarmonyArgument(2)] out bool couldUse)
         {
             canUse = couldUse = false;
             if (__instance.AllowImpostor || !Helpers.HasFakeTasks(pc.Object)) return true;
@@ -290,6 +344,74 @@ namespace StellarRoles.Patches
                 else
                     MapBehaviour.Instance.ShowNormalMap();
             }));
+        }
+    }
+
+    [HarmonyPatch(typeof(ShipStatus), nameof(ShipStatus.StartMeeting))]
+    class ShipStatusStartMeetingPatch
+    {
+        static void Prefix()
+        {
+            var hudManager = HudManager.Instance;
+            if (hudManager.FullScreen == null)
+                return;
+            var renderer = hudManager.FullScreen;
+            renderer.gameObject.SetActive(true);
+            renderer.enabled = true;
+            //renderer.color = Color.black;
+            var color = Color.black;
+
+            HudManager.Instance.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) =>
+            { // Delayed action
+                var alpha = Mathf.Clamp01(p < 0.25f ? 1 : (1 - p));
+                renderer.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(1 - p));
+                if (p == 1)
+                {
+                    renderer.enabled = false;
+                }
+            })));
+        }
+    }
+
+    [HarmonyPatch(typeof(ZiplineBehaviour), nameof(ZiplineBehaviour.Use), new Type[] { typeof(PlayerControl), typeof(bool) })]
+    class FixHatColorZipline
+    {
+        public static void Postfix(ZiplineBehaviour __instance, PlayerControl player, bool fromTop)
+        {
+            __instance.StartCoroutine(Effects.Lerp(fromTop ? __instance.downTravelTime : __instance.upTravelTime, new System.Action<float>((p) =>
+            {
+                __instance.playerIdHands.TryGetValue(player.PlayerId, out HandZiplinePoolable hand);
+                if (hand != null)
+                {
+                    if (Camouflager.CamouflageTimer <= 0 && !PlayerControl.LocalPlayer.IsMushroomMixupActive())
+                    {
+                        if (player == Parasite.Controlled)
+                        {
+                            hand.SetPlayerColor(Parasite.Player.CurrentOutfit, PlayerMaterial.MaskType.None, 1f);
+                            // Also set hat color, cause the line destroys it...
+                            player.RawSetHat(Parasite.Player.Data.DefaultOutfit.HatId, Parasite.Player.Data.DefaultOutfit.ColorId);
+                        }
+                        else if (player.IsMorphed())
+                        {
+                            hand.SetPlayerColor(Morphling.MorphTarget.CurrentOutfit, PlayerMaterial.MaskType.None, 1f);
+                            // Also set hat color, cause the line destroys it...
+                            player.RawSetHat(Morphling.MorphTarget.Data.DefaultOutfit.HatId, Morphling.MorphTarget.Data.DefaultOutfit.ColorId);
+                        }
+                        else if (player.IsInvisible())
+                        {
+                            hand.SetPlayerColor(player.CurrentOutfit, PlayerMaterial.MaskType.None, 0f);
+                        }
+                        else
+                        {
+                            hand.SetPlayerColor(player.CurrentOutfit, PlayerMaterial.MaskType.None, player.cosmetics.GetPhantomRoleAlpha());
+                        }
+                    }
+                    else
+                    {
+                        PlayerMaterial.SetColors(6, hand.handRenderer);
+                    }
+                }
+            })));
         }
     }
 }

@@ -22,11 +22,12 @@ namespace StellarRoles
             {
                 RPCProcedure.Send(CustomRPC.WraithLanternBreak);
                 Lantern.BreakLantern();
+                WraithButtons.WraithLanternPlaceButton.Timer = Wraith.LanternTimer;
             }
 
             if (Wraith.IsInvisible && Wraith.InvisibleTimer <= 0f)
             {
-                RPCProcedure.Send(CustomRPC.SetInvisible, Wraith.Player.PlayerId, true);
+                RPCProcedure.Send(CustomRPC.SetInvisible, Wraith.Player, true);
                 RPCProcedure.SetInvisible(Wraith.Player, true);
             }
         }

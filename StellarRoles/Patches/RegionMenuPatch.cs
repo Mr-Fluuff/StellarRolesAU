@@ -26,6 +26,7 @@ SOFTWARE.
 using HarmonyLib;
 using StellarRoles.Utilities;
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -37,43 +38,22 @@ namespace StellarRoles.Patches
     {
         private static TextBoxTMP ipField;
         private static TextBoxTMP portField;
+        private static JoinGameButton template;
 
         public static void Postfix(RegionMenu __instance)
         {
             if (!__instance.TryCast<RegionMenu>()) return;
-            bool isCustomRegion = FastDestroyableSingleton<ServerManager>.Instance.CurrentRegion.Name == "Custom";
-            if (!isCustomRegion)
+            bool isCustomRegion = ServerManager.Instance.CurrentRegion.Name == "Custom";
+            if (template == null)
             {
-                if (ipField != null && ipField.gameObject != null)
+                var buttons = UnityEngine.Object.FindObjectsOfType<JoinGameButton>();
+                foreach (var button in buttons)
                 {
-                    ipField.gameObject.SetActive(false);
-
-                }
-                if (portField != null && portField.gameObject != null)
-                {
-                    portField.gameObject.SetActive(false);
-                }
-            }
-            else
-            {
-                if (ipField != null && ipField.gameObject != null)
-                {
-                    ipField.gameObject.SetActive(true);
-
-                }
-                if (portField != null && portField.gameObject != null)
-                {
-                    portField.gameObject.SetActive(true);
-                }
-            }
-            JoinGameButton template = FastDestroyableSingleton<JoinGameButton>.Instance;
-            Il2CppArrayBase<JoinGameButton> joinGameButtons = UnityEngine.Object.FindObjectsOfType<JoinGameButton>();
-            foreach (JoinGameButton t in joinGameButtons)
-            {  // The correct button has a background, the other 2 dont
-                if (t.GameIdText != null && t.GameIdText.Background != null)
-                {
-                    template = t;
-                    break;
+                    if (button.GameIdText != null && button.GameIdText.Background != null)
+                    {
+                        template = button;
+                        break;
+                    }
                 }
             }
             if (template == null || template.GameIdText == null) return;
@@ -160,6 +140,10 @@ namespace StellarRoles.Patches
                     //__instance.ChooseOption(ServerManager.DefaultRegions[ServerManager.DefaultRegions.Length - 1]);
                 }
             }
+
+            ipField?.gameObject?.SetActive(isCustomRegion);
+            portField?.gameObject?.SetActive(isCustomRegion);
+
         }
     }
 
@@ -168,7 +152,7 @@ namespace StellarRoles.Patches
     {
         public static bool Prefix(RegionMenu __instance, IRegionInfo region)
         {
-            if (region.Name != "Custom" || FastDestroyableSingleton<ServerManager>.Instance.CurrentRegion.Name == "Custom") return true;
+            if (region.Name != "Custom" || ServerManager.Instance.CurrentRegion.Name == "Custom") return true;
             DestroyableSingleton<ServerManager>.Instance.SetRegion(region);
             __instance.RegionText.text = "Custom";
             foreach (PoolableBehavior Button in __instance.ButtonPool.activeChildren)

@@ -39,22 +39,33 @@ namespace StellarRoles
 
         public static void DetectiveSetTarget()
         {
-            if (Detective.DeadBodies == null && Detective.FeatureDeadBodies == null) return;
-            List<DeadPlayer> freshBodies = new();
-
-            foreach ((DeadPlayer deadPlayer, _) in Detective.FeatureDeadBodies)
-                freshBodies.Add(deadPlayer);
+            if (Detective.OldDeadBodies == null && Detective.FreshDeadBodies == null) return;
 
             List<(DeadPlayer, Vector3)> allDeadBodies = new();
             if (Detective.IsCrimeSceneEnabled)
-                allDeadBodies.AddRange(Detective.DeadBodies);
-            allDeadBodies.AddRange(Detective.FeatureDeadBodies);
+                allDeadBodies.AddRange(Detective.OldDeadBodies);
+
+            var deadbodies = Object.FindObjectsOfType<DeadBody>();
+
+            if (Detective.FreshDeadBodies.Count > 0)
+            {
+                for (int i = 0; i < Detective.FreshDeadBodies.Count; i++)
+                {
+                    var DeadPlayer = Detective.FreshDeadBodies[i].Item1;
+
+                    var freshbody = deadbodies.Where(x => x.ParentId == DeadPlayer.Data.PlayerId).First();
+                    if (freshbody != null)
+                    {
+                        allDeadBodies.Add((DeadPlayer, freshbody.transform.position));
+                    }
+                }
+            }
 
 
             DeadPlayer target = null;
             Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
             float closestDistance = float.MaxValue;
-            float usableDistance = MapUtilities.CachedShipStatus.AllVents.FirstOrDefault().UsableDistance;
+            float usableDistance = ShipStatus.Instance.AllVents.FirstOrDefault().UsableDistance;
             foreach ((DeadPlayer dp, Vector3 ps) in allDeadBodies)
             {
                 float distance = Vector2.Distance(ps, truePosition);
@@ -65,7 +76,7 @@ namespace StellarRoles
                 }
             }
             Detective.Target = target;
-            Detective.TargetIsFresh = target != null && freshBodies.Any(t => t.Player.PlayerId == target.Player.PlayerId);
+            Detective.TargetIsFresh = target != null && Detective.FreshDeadBodies.Any(t => t.Item1.Player.PlayerId == target.Player.PlayerId);
         }
     }
 }

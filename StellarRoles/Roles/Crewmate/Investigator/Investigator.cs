@@ -5,7 +5,7 @@ namespace StellarRoles
 {
     public static class Investigator
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(76, 131, 76, byte.MaxValue);
 
         public static float FootprintIntervall => CustomOptionHolder.InvestigatorFootprintInterval.GetFloat() * 3;
@@ -14,7 +14,7 @@ namespace StellarRoles
 
         public static readonly PlayerList AllPlayers = new();
         public static float Timer { get; set; } = 6.2f;
-        public static bool RoleBlock => CustomOptionHolder.InvestigatorRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.InvestigatorRoleBlock.GetBool();
 
         private static Sprite _InvestigatorButton;
 

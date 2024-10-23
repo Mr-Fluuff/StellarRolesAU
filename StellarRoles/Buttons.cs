@@ -1,7 +1,9 @@
 using HarmonyLib;
+using StellarRoles.Modules;
 using StellarRoles.Objects;
 using StellarRoles.Patches;
 using UnityEngine;
+using static StellarRoles.Objects.CustomButton;
 
 namespace StellarRoles
 {
@@ -14,7 +16,12 @@ namespace StellarRoles
         public static CustomButton HelpButton { get; set; }
         public static CustomButton NeutralKillerSaboButton { get; set; }
         public static CustomButton SpectatorButton { get; set; }
+        public static CustomButton RefreshCosmeticsButton { get; set; }
         public static CustomButton ImpKillButton { get; set; }
+        public static CustomButton ImpChatButton { get; set; }
+        public static CustomButton HistoryButton { get; set; }
+
+
 
         public static void SetOtherButtonCooldowns()
         {
@@ -75,6 +82,12 @@ namespace StellarRoles
             ImpKillButton.MaxTimer = Helpers.KillCooldown();
             SpectatorButton.Timer = 0f;
             SpectatorButton.MaxTimer = 0f;
+            RefreshCosmeticsButton.Timer = 0f;
+            RefreshCosmeticsButton.MaxTimer = 10f;
+            ImpChatButton.Timer = 0f;
+            ImpChatButton.MaxTimer = 0f;
+            HistoryButton.MaxTimer = 0f;
+            HistoryButton.Timer = 0f;
         }
 
         public static void Postfix(HudManager __instance)
@@ -94,12 +107,12 @@ namespace StellarRoles
                 {
                     if (Spectator.ToBecomeSpectator.Contains(Spectator.Target.PlayerId))
                     {
-                        RPCProcedure.Send(CustomRPC.RemoveSpectator, Spectator.Target.PlayerId);
+                        RPCProcedure.Send(CustomRPC.RemoveSpectator, Spectator.Target);
                         RPCProcedure.RemoveSpectator(Spectator.Target);
                     }
                     else
                     {
-                        RPCProcedure.Send(CustomRPC.AddSpectator, Spectator.Target.PlayerId);
+                        RPCProcedure.Send(CustomRPC.AddSpectator, Spectator.Target);
                         RPCProcedure.AddSpectator(Spectator.Target);
                     }
                 },
@@ -110,23 +123,95 @@ namespace StellarRoles
                     string text = "Assign";
                     if (Spectator.Target == PlayerControl.LocalPlayer)
                         text = "Self Assign";
-                    if (Spectator.ToBecomeSpectator.Contains(Spectator.Target.PlayerId))
+                    if (Spectator.ToBecomeSpectator.Contains(Spectator.Target))
                     {
                         text = "Remove";
                         if (Spectator.Target == PlayerControl.LocalPlayer)
                             text = "Self Remove";
                     }
                     SpectatorButton.ActionButton.buttonLabelText.text = $"{text}\nSpectator";
+                    SpectatorButton.ActionButton.buttonLabelText.transform.localScale = Vector3.one * 1.3f;
+
                     return Spectator.Target != null;
                 },
                 () => { }, // noop
-                Helpers.LoadSpriteFromResources("StellarRoles.Resources.SpectatorButton.png", 115f),  // Invisible button!
-                new Vector3(0, 1, 0),
+                Helpers.LoadSpriteFromResources("StellarRoles.Resources.SpectatorButton.png", 115f),
+                new(-0.25f, 0f, 0f),
                 null,
-                false,
+                true,
                 "Assign\nSpectator"
                 );
 
+            RefreshCosmeticsButton = new CustomButton(
+                () =>
+                {
+                    if (CustomHatLoader.IsRunning || CustomVisorLoader.IsRunning) return;
+
+                    RefreshCosmeticsButton.IsEffectActive = true;
+                    RefreshCosmeticsButton.Timer = 5;
+
+                    Helpers.LoadCosmetics(HatManager.Instance);
+                },
+                () => { return PlayerControl.LocalPlayer && LobbyBehaviour.Instance; },
+                () =>
+                {
+                    var CosmeticsTotal = CustomHatLoader.TotalHatsToDownload + CustomVisorLoader.TotalVisorsToDownload;
+                    var CosmeticsDownloaded = CustomHatLoader.TotalHatsDownloaded + CustomVisorLoader.TotalVisorsDownloaded;
+                    double CosmeticsLeft = ((double)CosmeticsDownloaded / CosmeticsTotal);
+                    string Percent = CosmeticsLeft.ToString("p1");
+
+                    string text = "Cosmetics\nRefresh";
+                    if (CustomHatLoader.IsRunning || CustomVisorLoader.IsRunning)
+                    {
+                        text = "Cosmetics\nDownloading\n" + Percent;
+                    }
+
+                    RefreshCosmeticsButton.ActionButton.buttonLabelText.text = text;
+                    RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localPosition = new Vector3(0, -0.65f);
+                    RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localScale = Vector3.one * 1.2f;
+
+                    return true;
+                },
+                () => { }, // noop
+                Helpers.LoadSpriteFromResources("StellarRoles.Resources.CosmeticRefreshButton.png", 115f),
+                new Vector3(0.75f, .1f, 0),
+                null,
+                true,
+                "Refresh"
+                );
+            HistoryButton = new CustomButton(
+                () =>
+                {
+                    PreviousGameHistory.ToggleHistoryScreen();
+                },
+                () => { return PlayerControl.LocalPlayer && LobbyBehaviour.Instance && PreviousGameHistory.PreviousGameList != null && PreviousGameHistory.PreviousGameList.Count > 0; },
+                () =>
+                {
+                    if (HistoryButton.Timer > 0) HistoryButton.Timer = 0f;
+                    if (PreviousGameHistory.HistoryUI != null && PreviousGameHistory.HistoryUI.active)
+                    {
+                        HistoryButton.ActionButton.buttonLabelText.text = "Close";
+                        HistoryButton.ActionButton.buttonLabelText.transform.localScale = Vector3.one;
+                        if (HudManager.Instance.GameMenu.isActiveAndEnabled)
+                        {
+                            PreviousGameHistory.ToggleHistoryScreen();
+                        }
+                    }
+                    else
+                    {
+                        HistoryButton.ActionButton.buttonLabelText.text = "View\nHistory";
+                        HistoryButton.ActionButton.buttonLabelText.transform.localScale = Vector3.one * 1.3f;
+                    }
+
+                    return true;
+                },
+                () => { }, // noop
+                Helpers.LoadSpriteFromResources("StellarRoles.Resources.GameHistory.GameHistoryButton.png", 150f),
+                new Vector3(-1f, 0f, -12),
+                null,
+                false,
+                "History"
+                );
 
             HelpButton = new CustomButton(
                     () =>
@@ -152,17 +237,22 @@ namespace StellarRoles
                         }
                     },
                     // this will always be true
-                    () => PlayerControl.LocalPlayer != null && !Helpers.IsHideAndSeek,
+                    () => { return PlayerControl.LocalPlayer && !Helpers.IsHideAndSeek; },
                     () =>
                     {
+                        if (HelpButton.Timer > 0) HelpButton.Timer = 0f;
+                        if (Helpers.GameStarted || Helpers.TutorialActive)
+                        {
+                            HelpButton.ActionButton.transform.localPosition += new Vector3(2.02f, -1.36f);
+                        }
                         HelpButton.ActionButton.graphic.sprite = HelpMenu.RolesUI == null
-                            ? Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.HelpButton.png", 150f)
-                            : Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.HelpButtonExit.png", 150f);
+                            ? HelpMenu.GetHelpButtonSprite()
+                            : HelpMenu.GetHelpButtonCloseSprite();
                         return true;
                     },
                     () => { }, // noop
-                    Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.HelpButton.png", 150f),
-                    new Vector3(0.4f, 3.6f, 0),
+                    HelpMenu.GetHelpButtonSprite(),
+                    new Vector3(-1.6f, 4.9f, -20),
                     "Help",
                     seeInMeeting: true
                     );
@@ -185,6 +275,45 @@ namespace StellarRoles
                     buttonText: "Reset\nZoom"
                     );
 
+            ImpChatButton = new CustomButton(
+                    () =>
+                    {
+                        if (HudManager.Instance.Chat.IsOpenOrOpening)
+                        {
+                            if (!Impostor.ImpChatOn)
+                            {
+                                HudManager.Instance.Chat.Toggle();
+                                Impostor.ImpChatOn = true;
+                                HudManager.Instance.Chat.Toggle();
+                            }
+                            else
+                            {
+                                HudManager.Instance.Chat.Toggle();
+                            }
+                        }
+                        else
+                        {
+                            Impostor.ImpChatOn = true;
+                            HudManager.Instance.Chat.Toggle();
+                        }
+                    },
+                    () =>
+                    {
+                        var enabled = Impostor.ChatEnabled || (PlayerControl.LocalPlayer.IsTeamCultist() && Cultist.CultistMeetingChat);
+                        return PlayerControl.LocalPlayer != null && PlayerControl.LocalPlayer.Data.Role.IsImpostor && Spy.Player == null && enabled && MeetingHud.Instance;
+                    },
+                    () =>
+                    {
+                        return true;
+                    },
+                    () => { }, // noop
+                    Impostor.GetImpChatSprite(),
+                    new Vector3(-0.83f, 4.9f, -40),
+                    null,
+                    buttonText: "",
+                    seeInMeeting: true
+                    );
+
             NeutralKillerSaboButton = new CustomButton(
                     () =>
                     {
@@ -194,7 +323,10 @@ namespace StellarRoles
                             MapBehaviour.Instance.ShowSabotageMap();
                         }
                     },
-                    () => PlayerControl.LocalPlayer.NeutralKillerCanSabo(),
+                    () =>
+                    {
+                        return PlayerControl.LocalPlayer && PlayerControl.LocalPlayer.NeutralKillerCanSabo();
+                    },
                     () =>
                     {
                         NeutralKillerSaboButton.ActionButton.buttonLabelText.SetOutlineColor(NeutralKiller.Color);
@@ -214,69 +346,15 @@ namespace StellarRoles
                    if (Helpers.CheckMurderAttemptAndKill(PlayerControl.LocalPlayer, Impostor.CurrentTarget) == MurderAttemptResult.SuppressKill)
                        return;
                    ImpKillButton.Timer = ImpKillButton.MaxTimer;
-
-                   if (PlayerControl.LocalPlayer == BountyHunter.Player)
-                   {
-                       if (Impostor.CurrentTarget == BountyHunter.Bounty)
-                       {
-                           ImpKillButton.Timer = Helpers.KillCooldown() - BountyHunter.BonusTime;
-                           BountyHunter.BountyUpdateTimer = 0f; // Force bounty update
-                       }
-                       else
-                       {
-                           ImpKillButton.Timer = Helpers.KillCooldown() + BountyHunter.PunishmentTime;
-                       }
-                   }
-
-                   if (PlayerControl.LocalPlayer == Undertaker.Player)
-                   {
-                       CustomButton dragButton = UndertakerButtons.UndertakerDragButton;
-                       if (dragButton.Timer < Undertaker.DraggingDelayAfterKill * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer))
-                       {
-                           dragButton.Timer = Undertaker.DraggingDelayAfterKill * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
-                       }
-                   }
-
-                   if (PlayerControl.LocalPlayer == Vampire.Player)
-                   {
-                       CustomButton biteButton = VampireButtons.VampireBiteButton;
-                       if (biteButton.Timer < biteButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer))
-                           biteButton.Timer = biteButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
-                   }
-
-                   if (PlayerControl.LocalPlayer == Bomber.Player)
-                   {
-                       CustomButton bombButton = BomberButtons.BomberBombButton;
-                       if (bombButton.Timer < bombButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer))
-                       {
-                           bombButton.Timer = bombButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
-                       }
-                   }
-
-                   if (PlayerControl.LocalPlayer == Warlock.Player)
-                   {
-                       CustomButton curseButton = WarlockButtons.CurseButton;
-                       if (curseButton.Timer < curseButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer))
-                       {
-                           curseButton.Timer = curseButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
-                       }
-                   }
-
-                   if (PlayerControl.LocalPlayer == Janitor.Player)
-                   {
-                       CustomButton cleanButton = JanitorButtons.CleanButton;
-                       if (cleanButton.Timer < cleanButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer))
-                       {
-                           cleanButton.Timer = cleanButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
-                       }
-                   }
+                   Helpers.ResetAbilityCooldown(true);
                    Impostor.CurrentTarget = null;
-                   Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddKill);
+                   PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddKill);
                },
                () =>
                {
                    var localPlayer = PlayerControl.LocalPlayer;
                    if (localPlayer == Vampire.Player && !Vampire.HasKillButton) return false;
+                   if (localPlayer == Parasite.Player && !Parasite.NormalKillButton) return false;
                    return !localPlayer.Data.IsDead && localPlayer.Data.Role.IsImpostor;
                },
                () =>

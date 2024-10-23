@@ -7,11 +7,11 @@ namespace StellarRoles
     {
         public static readonly Color Color = new Color32(210, 60, 210, byte.MaxValue);
 
-        public static PlayerControl Player { get; set; }
-        public static PlayerControl Lover { get; set; }
+        public static PlayerControl Player { get; set; } = null;
+        public static PlayerControl Lover { get; set; } = null;
         // TODO: make this a getter
         public static bool HasLover { get; set; } = false;
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl CurrentTarget { get; set; } = null;
         public static Arrow Arrow { get; set; } = new(Color);
         public static float Cooldown => CustomOptionHolder.RomanticProtectCooldown.GetFloat();
         public static float VestDuration => CustomOptionHolder.RomanticProtectDuration.GetFloat();

@@ -4,9 +4,6 @@ namespace StellarRoles
 {
     public static class Mini
     {
-        public const float DefaultColliderRadius = 0.2233912f;
-        public const float DefaultColliderOffset = 0.365f;
-
         public static PlayerControl Player { get; set; }
         public static float SpeedMultiplier => (CustomOptionHolder.ModifierMiniSpeed.GetSelection() * .1f) + 0.7f;
 

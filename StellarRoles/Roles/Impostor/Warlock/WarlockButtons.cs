@@ -2,6 +2,7 @@
 using StellarRoles.Objects;
 using StellarRoles.Utilities;
 using System;
+using static UnityEngine.GraphicsBuffer;
 
 namespace StellarRoles
 {
@@ -36,18 +37,17 @@ namespace StellarRoles
                         {
                             Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
                             Helpers.SetMovement(false);
-                            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Warlock.RootTime, new Action<float>((p) =>
-                            { // Delayed action
-                                if (p == 1f)
-                                    Helpers.SetMovement(true);
-                            })));
+                            Warlock.RootTime.DelayedAction(() =>
+                            {
+                                Helpers.SetMovement(true);
+                            });
                         }
 
                         Warlock.CurseVictim = null;
                         Warlock.CurseVictimTarget = null;
                         CurseButton.Timer = CurseButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
                         Helpers.SetKillerCooldown();
-                        Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddAbilityKill, InfoType.AddKill);
+                        PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddAbilityKill, InfoType.AddKill);
                     }
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
 

@@ -1,4 +1,3 @@
-using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,13 +13,14 @@ namespace StellarRoles.Objects
         public float MaxTimer { get; set; } = float.MaxValue;
         public float Timer { get; set; } = 0f;
         public bool HasEffect { get; set; }
+        public bool CanShake { get; set; }
         public bool IsEffectActive { get; set; } = false;
         public bool ShowButtonText { get; set; } = false;
         public float EffectDuration { get; set; }
         public Sprite Sprite { get; set; }
 
 
-        private readonly Vector3 PositionOffset;
+        public readonly Vector3 PositionOffset;
         private readonly Action OnClickHandler;
         private readonly Action OnMeetingEndsHandler;
         private readonly Func<bool> ShouldShowButton;
@@ -57,7 +57,8 @@ namespace StellarRoles.Objects
             Action onEffectEnds,
             bool mirror = false,
             string buttonText = "",
-            bool seeInMeeting = false
+            bool seeInMeeting = false,
+            bool canShake = false
         )
         {
             OnClickHandler = onClick;
@@ -72,14 +73,15 @@ namespace StellarRoles.Objects
             Mirror = mirror;
             ButtonText = buttonText;
             SeeInMeeting = seeInMeeting;
+            CanShake = canShake;
             Timer = 16.2f;
-            Buttons.Add(this);
-            ActionButton = UnityEngine.Object.Instantiate(HudManager.Instance.KillButton, HudManager.Instance.KillButton.transform.parent);
+            ActionButton = UnityEngine.Object.Instantiate(DestroyableSingleton<HudManager>.Instance.KillButton, HudManager.Instance.KillButton.transform.parent);
+            ActionButton.name = buttonText + " Button";
             PassiveButton button = ActionButton.GetComponent<PassiveButton>();
             ShowButtonText = ActionButton.graphic.sprite == sprite || buttonText != "";
             button.OnClick = new Button.ButtonClickedEvent();
             button.OnClick.AddListener((UnityEngine.Events.UnityAction)OnClickEvent);
-
+            Buttons.Add(this);
             SetActive(false);
         }
 
@@ -96,8 +98,9 @@ namespace StellarRoles.Objects
             Action onEffectEnds,
             bool mirror = false,
             string buttonText = "",
-            bool seeInMeeting = false
-        ) : this(onClick, hasButton, couldUse, onMeetingEnds, sprite, positionOffset, hasEffect, effectDuration, onEffectEnds, mirror, buttonText, seeInMeeting)
+            bool seeInMeeting = false,
+            bool canShake = false
+        ) : this(onClick, hasButton, couldUse, onMeetingEnds, sprite, positionOffset, hasEffect, effectDuration, onEffectEnds, mirror, buttonText, seeInMeeting, canShake)
         {
             ActionName = actionName;
         }
@@ -112,23 +115,36 @@ namespace StellarRoles.Objects
             string actionName,
             bool mirror = false,
             string buttonText = "",
-            bool seeInMeeting = false
-        ) : this(onClick, hasButton, couldUse, onMeetingEnds, sprite, positionOffset, actionName, false, 0f, () => { }, mirror, buttonText, seeInMeeting) { }
+            bool seeInMeeting = false,
+            bool canShake = false
+        ) : this(onClick, hasButton, couldUse, onMeetingEnds, sprite, positionOffset, actionName, false, 0f, () => { }, mirror, buttonText, seeInMeeting, canShake) { }
 
         public void OnClickEvent()
         {
-            if (Timer < 0f && ShouldShowButton() && CouldUse())
+            if ((Timer < 0f || CanShake) && ShouldShowButton() && CouldUse())
             {
                 ActionButton.graphic.color = new Color(1f, 1f, 1f, 0.3f);
                 OnClickHandler();
 
                 if (HasEffect && !IsEffectActive)
                 {
-                    Timer = EffectDuration;
-                    ActionButton.cooldownTimerText.color = new Color(0F, 0.8F, 0F);
-                    IsEffectActive = true;
+                    OnEffectStart();
                 }
             }
+        }
+
+        public void OnEffectEnd()
+        {
+            IsEffectActive = false;
+            ActionButton.cooldownTimerText.color = Palette.EnabledColor;
+            OnEffectEnds();
+        }
+
+        public void OnEffectStart()
+        {
+            Timer = EffectDuration;
+            ActionButton.cooldownTimerText.color = new Color(0F, 0.8F, 0F);
+            IsEffectActive = true;
         }
 
         public static void HudUpdate()
@@ -164,11 +180,17 @@ namespace StellarRoles.Objects
 
         public void Update()
         {
+            if (ActionButton?.gameObject == null)
+            {
+                return;
+            }
             PlayerControl localPlayer = PlayerControl.LocalPlayer;
+
             bool moveable = localPlayer.moveable;
             bool nightmare = localPlayer.IsNightmare(out _) && (NightmareButtons.NightmareBlindButton.ActionButton == ActionButton || NightmareButtons.NightmareParalyzeButton.ActionButton == ActionButton);
             bool gopher = Gopher.Players.Contains(localPlayer.PlayerId) && localPlayer.inVent;
-            bool undertaker = localPlayer == Undertaker.Player && (HudManagerStartPatch.ImpKillButton.ActionButton == ActionButton || RogueButtons.RogueKillButton.ActionButton == ActionButton);
+            bool undertaker = Undertaker.Player?.AmOwner == true && (HudManagerStartPatch.ImpKillButton.ActionButton == ActionButton || RogueButtons.RogueKillButton.ActionButton == ActionButton);
+            bool engineer = Engineer.Player?.AmOwner == true && EngineerButtons.EngineerVent.ActionButton == ActionButton;
 
             if (localPlayer.Data == null || (MeetingHud.Instance && !SeeInMeeting) || ExileController.Instance || !ShouldShowButton())
             {
@@ -176,22 +198,42 @@ namespace StellarRoles.Objects
                 return;
             }
             HudManager hudManager = HudManager.Instance;
-            SetActive(hudManager.UseButton.isActiveAndEnabled || hudManager.PetButton.isActiveAndEnabled || (MeetingHud.Instance && SeeInMeeting));
+
+            SetActive(hudManager.UseButton?.isActiveAndEnabled == true || hudManager.PetButton?.isActiveAndEnabled == true || (MeetingHud.Instance != null && SeeInMeeting));
+
             ActionButton.graphic.sprite = Sprite;
             if (ShowButtonText && ButtonText != "")
                 ActionButton.OverrideText(ButtonText);
             ActionButton.buttonLabelText.enabled = ShowButtonText; // Only show the text if it's a kill button
+            Vector3 pos = Vector3.zero;
             if (hudManager.UseButton != null)
             {
-                Vector3 pos = hudManager.UseButton.transform.localPosition;
-                if (Mirror)
-                {
-                    float aspect = Camera.main.aspect;
-                    float safeOrthographicSize = CameraSafeArea.GetSafeOrthographicSize(Camera.main);
-                    float xpos = 0.05f - safeOrthographicSize * aspect * 1.70f;
-                    pos = new Vector3(xpos, pos.y, pos.z);
-                }
-                ActionButton.transform.localPosition = pos + PositionOffset;
+                pos = hudManager.UseButton.transform.localPosition;
+            }
+            else if (hudManager.PetButton != null)
+            {
+                pos = hudManager.PetButton.transform.localPosition;
+            }
+            if (Mirror)
+            {
+                float aspect = Camera.main.aspect;
+                float safeOrthographicSize = CameraSafeArea.GetSafeOrthographicSize(Camera.main);
+                float xpos = 0.05f - safeOrthographicSize * aspect * 1.70f;
+                pos = new Vector3(xpos, pos.y, pos.z);
+            }
+
+            pos += PositionOffset;
+            ActionButton.transform.localPosition = pos;
+
+            if (CanShake && Timer < 3f && ActionButton.isCoolingDown)
+            {
+                ActionButton.graphic.transform.localPosition = pos + (Vector3)UnityEngine.Random.insideUnitCircle * 0.05f;
+                ActionButton.cooldownTimerText.text = Mathf.CeilToInt(Timer).ToString();
+                ActionButton.cooldownTimerText.gameObject.SetActive(true);
+            }
+            else
+            {
+                ActionButton.graphic.transform.localPosition = pos;
             }
 
             if (CouldUse())
@@ -207,7 +249,7 @@ namespace StellarRoles.Objects
 
             if (Timer >= 0)
             {
-                if ((HasEffect && IsEffectActive) || nightmare || gopher || Ascended.AscendedMiner(localPlayer))
+                if ((HasEffect && IsEffectActive) || nightmare || gopher || engineer || Ascended.AscendedMiner(localPlayer))
                 {
                     Timer -= Time.deltaTime;
                 }
@@ -219,12 +261,11 @@ namespace StellarRoles.Objects
             }
             if (Timer <= 0 && HasEffect && IsEffectActive)
             {
-                IsEffectActive = false;
-                ActionButton.cooldownTimerText.color = Palette.EnabledColor;
-                OnEffectEnds();
+                OnEffectEnd();
             }
 
             ActionButton.SetCoolDown(Timer, (HasEffect && IsEffectActive) ? EffectDuration : MaxTimer);
+
 
             // Trigger OnClickEvent if the hotkey is being pressed down
             if (!ActionName.IsNullOrWhiteSpace() && Rewired.ReInput.players.GetPlayer(0).GetButtonDown(ActionName)) OnClickEvent();

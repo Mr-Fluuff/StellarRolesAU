@@ -15,9 +15,9 @@ namespace StellarRoles
         public const float HeadHunterBenefit = 5f;
         public const float HeadHunterPenalty = 10f;
 
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly PlayerList Bounties = new();
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl CurrentTarget { get; set; } = null;
         public static float HeadHunterCurrentCooldown { get; set; }
         public static float PursueCurrentTimer { get; set; }
         public static float PursueDuration => CustomOptionHolder.HeadHunterTrackerDuration.GetFloat();

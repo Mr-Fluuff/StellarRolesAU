@@ -28,7 +28,7 @@ namespace StellarRoles
                 {
                     if (Trapper.VentTarget != null)
                     { // Seal vent
-                        RPCProcedure.Send(CustomRPC.SealVent, Trapper.VentTarget.Id);
+                        RPCProcedure.Send(CustomRPC.SealVent, Trapper.VentTarget);
                         RPCProcedure.SealVent(Trapper.VentTarget.Id);
                         Trapper.VentTarget = null;
                         Trapper.CoverCount--;
@@ -39,7 +39,10 @@ namespace StellarRoles
                     TrapperSetTrapButton.Timer = TrapperSetTrapButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Trapper.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Trapper.CoverCount > 0,
+                () =>
+                {
+                    return Trapper.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Trapper.CoverCount > 0;
+                },
                 () =>
                 {
                     TrapperCoverButton.ActionButton.graphic.sprite = Trapper.GetVentBoardButton();
@@ -66,7 +69,7 @@ namespace StellarRoles
                 {
                     if (Trapper.VentTarget != null)
                     { // Seal vent
-                        RPCProcedure.Send(CustomRPC.SetTrap, Trapper.VentTarget.Id);
+                        RPCProcedure.Send(CustomRPC.SetTrap, Trapper.VentTarget);
                         RPCProcedure.SetVentTrap(Trapper.VentTarget.Id);
                         Trapper.VentTarget = null;
                         Trapper.TrapCount--;
@@ -77,7 +80,7 @@ namespace StellarRoles
                     TrapperCoverButton.Timer = TrapperCoverButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Trapper.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Trapper.TrapCount > 0,
+                () => { return Trapper.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Trapper.TrapCount > 0; },
                 () =>
                 {
                     TrapperSetTrapButton.ActionButton.graphic.sprite = Trapper.GetCloseVentButtonSprite();

@@ -31,7 +31,7 @@ namespace StellarRoles.Objects
             public Transform Transform;
             public SpriteRenderer Renderer;
             public PlayerControl Owner;
-            public GameData.PlayerInfo Data;
+            public NetworkedPlayerInfo Data;
             public float Lifetime;
 
             public Footprint()
@@ -72,7 +72,19 @@ namespace StellarRoles.Objects
 
         private void Update()
         {
-            if (PlayerControl.LocalPlayer != Investigator.Player) return;
+            if (PlayerControl.LocalPlayer != Investigator.Player)
+            {
+                if (_activeFootprints.Count > 0)
+                {
+                    foreach (Footprint footprint in _activeFootprints)
+                    {
+                        footprint.GameObject.SetActive(false);
+                        _activeFootprints.Remove(footprint);
+                        _pool.Add(footprint);
+                    }
+                }
+                return;
+            }
 
             float dt = Time.deltaTime;
             _toRemove.Clear();
@@ -87,10 +99,12 @@ namespace StellarRoles.Objects
                 }
 
                 Color color;
-                if (AnonymousFootprints || Camouflager.CamouflageTimer > 0)
+                if (AnonymousFootprints || Camouflager.CamouflageTimer > 0 || activeFootprint.Owner.IsMushroomMixupActive())
                     color = Palette.PlayerColors[6];
                 else if (activeFootprint.Owner.IsMorphed() && Morphling.MorphTarget.Data != null)
                     color = Palette.PlayerColors[Morphling.MorphTarget.Data.DefaultOutfit.ColorId];
+                else if (activeFootprint.Owner.IsInfested() && Parasite.Player.Data != null)
+                    color = Palette.PlayerColors[Parasite.Player.Data.DefaultOutfit.ColorId];
                 else
                     color = Palette.PlayerColors[activeFootprint.Data.DefaultOutfit.ColorId];
 

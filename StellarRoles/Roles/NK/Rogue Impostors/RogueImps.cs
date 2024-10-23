@@ -25,8 +25,6 @@ namespace StellarRoles
             List<string> rogueImpsList = new();
             if (CustomOptionHolder.BomberIsNeutral.GetBool() && CustomOptionHolder.BomberSpawnRate.GetSelection() > 0)
                 rogueImpsList.Add(nameof(Bomber));
-            if (CustomOptionHolder.BountyHunterIsNeutral.GetBool() && CustomOptionHolder.BountyHunterSpawnRate.GetSelection() > 0)
-                rogueImpsList.Add("Bounty Hunter");
             if (CustomOptionHolder.CamouflagerIsNeutral.GetBool() && CustomOptionHolder.CamouflagerSpawnRate.GetSelection() > 0)
                 rogueImpsList.Add(nameof(Camouflager));
             if (CustomOptionHolder.JanitorIsNeutral.GetBool() && CustomOptionHolder.JanitorSpawnRate.GetSelection() > 0)
@@ -35,6 +33,8 @@ namespace StellarRoles
                 rogueImpsList.Add(nameof(Miner));
             if (CustomOptionHolder.MorphlingIsNeutral.GetBool() && CustomOptionHolder.MorphlingSpawnRate.GetSelection() > 0)
                 rogueImpsList.Add(nameof(Morphling));
+            if (CustomOptionHolder.ParasiteIsNeutral.GetBool() && CustomOptionHolder.ParasiteSpawnRate.GetSelection() > 0)
+                rogueImpsList.Add(nameof(Parasite));
             if (CustomOptionHolder.ShadeIsNeutral.GetBool() && CustomOptionHolder.ShadeSpawnRate.GetSelection() > 0)
                 rogueImpsList.Add(nameof(Shade));
             if (CustomOptionHolder.UndertakerIsNeutral.GetBool() && CustomOptionHolder.UndertakerSpawnRate.GetSelection() > 0)

@@ -40,31 +40,36 @@ namespace StellarRoles
                 if (target.cosmetics?.currentBodySprite?.BodySprite == null) continue;
 
                 bool isMorphedMorphling = target == Morphling.Player && Morphling.MorphTarget != null && Morphling.MorphTimer > 0f;
+                bool isParasiteInfectedPlayer = target == Parasite.Controlled;
                 bool hasVisibleShield = false;
                 Color color = Guardian.ShieldedColor;
-                if (Camouflager.CamouflageTimer <= 0f && (isMorphedMorphling ? Morphling.MorphTarget : target) == Guardian.Shielded)
+                if (Camouflager.CamouflageTimer <= 0f)
                 {
-                    bool isDelayed = Guardian.ShieldVisibilityTimer < Guardian.ShieldVisibilityDelay;
-                    hasVisibleShield = Guardian.CanSeeShield(PlayerControl.LocalPlayer);
-                    bool inRange = true;
-                    if (Guardian.LimitedVisionShield)
-                        inRange = Helpers.PlayerIsClose(target, Guardian.ShieldVisionRadius);
+                    if ((isMorphedMorphling ? Morphling.MorphTarget : isParasiteInfectedPlayer ? Parasite.Player : target) == Guardian.Shielded)
+                    {
+                        bool isDelayed = Guardian.ShieldVisibilityTimer < Guardian.ShieldVisibilityDelay;
+                        hasVisibleShield = Guardian.CanSeeShield(PlayerControl.LocalPlayer);
+                        bool inRange = true;
+                        if (Guardian.LimitedVisionShield)
+                            inRange = Helpers.PlayerIsClose(target, Guardian.ShieldVisionRadius);
 
-                    hasVisibleShield = (hasVisibleShield && !isDelayed) || PlayerControl.LocalPlayer == Guardian.Player;
-                    hasVisibleShield = hasVisibleShield && !GuardianAbilities.IsRoleBlocked() && !Guardian.Shielded.Data.IsDead && inRange;
-                }
-                if (Camouflager.CamouflageTimer <= 0f && MapOptions.ShieldFirstKill && Helpers.IsFirstKilled(isMorphedMorphling ? Morphling.MorphTarget : target))
-                {
-                    hasVisibleShield = true;
-                    color = Color.blue;
-                }
+                        hasVisibleShield = (hasVisibleShield && !isDelayed) || PlayerControl.LocalPlayer == Guardian.Player;
+                        hasVisibleShield = hasVisibleShield && !GuardianAbilities.IsRoleBlocked() && !Guardian.Shielded.Data.IsDead && inRange && !Guardian.Shielded.IsMushroomMixupActive();
+                    }
 
-                if (Camouflager.CamouflageTimer <= 0f && PlayerControl.LocalPlayer == Romantic.Player && (target == Romantic.Lover || (isMorphedMorphling && Morphling.MorphTarget == Romantic.Lover)) && Romantic.IsVestActive)
-                {
-                    hasVisibleShield = true;
-                    color = Romantic.Color;
-                }
+                    if (MapOptions.ShieldFirstKill && Helpers.IsFirstKilled(isMorphedMorphling ? Morphling.MorphTarget : target))
+                    {
+                        hasVisibleShield = true;
+                        color = Color.blue;
+                    }
 
+                    if (PlayerControl.LocalPlayer == Romantic.Player && (target == Romantic.Lover || (isMorphedMorphling && Morphling.MorphTarget == Romantic.Lover)) && Romantic.IsVestActive)
+                    {
+                        hasVisibleShield = true;
+                        color = Romantic.Color;
+                    }
+
+                }
                 if (hasVisibleShield)
                 {
                     target.cosmetics.currentBodySprite.BodySprite.material.SetFloat("_Outline", 1f);
@@ -81,7 +86,7 @@ namespace StellarRoles
         {
             if (!PlayerControl.LocalPlayer.Data.Role.IsImpostor || !PlayerControl.LocalPlayer.CanMove || PlayerControl.LocalPlayer.Data.IsDead)
             { // !isImpostor || !canMove || isDead
-                FastDestroyableSingleton<HudManager>.Instance.KillButton.SetTarget(null);
+                HudManager.Instance.KillButton.SetTarget(null);
                 return;
             }
 
@@ -185,9 +190,14 @@ namespace StellarRoles
         {
             if (Bomber.Player != PlayerControl.LocalPlayer) return;
 
-            List<PlayerControl> players = new() { MapOptions.FirstKillPlayer };
+            List<PlayerControl> players = new();
             foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
-                if (player.IsBombed(out _)) players.Add(player);
+            {
+                if (player.IsBombed() || player == MapOptions.FirstKillPlayer)
+                {
+                    players.Add(player);
+                }
+            }
 
             Bomber.AbilityCurrentTarget = Helpers.SetTarget(untargetablePlayers: players);
             Helpers.SetPlayerOutline(Bomber.AbilityCurrentTarget, Bomber.Color);
@@ -197,7 +207,16 @@ namespace StellarRoles
         {
             if (!PlayerControl.LocalPlayer.IsBombed(out Bombed bombed)) return;
 
-            bombed.CurrentTarget = Helpers.SetTarget(untargetablePlayers: new List<PlayerControl> { bombed.LastBombed });
+            List<PlayerControl> players = new();
+            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            {
+                if (player.IsBombed() || player == MapOptions.FirstKillPlayer || player == bombed.LastBombed)
+                {
+                    players.Add(player);
+                }
+            }
+
+            bombed.CurrentTarget = Helpers.SetTarget(untargetablePlayers: players);
             if (bombed.BombActive)
                 Helpers.SetPlayerOutline(bombed.CurrentTarget, Palette.ImpostorRed);
         }

@@ -1,10 +1,13 @@
+using AmongUs.GameOptions;
 using System;
 
 namespace StellarRoles
 {
     public static class StellarRoles
     {
-        public static Random rnd = new((int)DateTime.Now.Ticks);
+        public static Random rnd => new((int)DateTime.Now.Ticks);
+        public static NormalGameOptionsV08 NormalOptions => GameOptionsManager.Instance.currentNormalGameOptions;
+
 
         public static void ClearAndReloadRoles()
         {
@@ -16,7 +19,6 @@ namespace StellarRoles
             Beloved.ClearAndReload();
             Bombed.ClearAndReload();
             Bomber.ClearAndReload();
-            BountyHunter.ClearAndReload();
             Camouflager.ClearAndReload();
             Scavenger.ClearAndReload();
             Changeling.ClearAndReload();
@@ -46,6 +48,7 @@ namespace StellarRoles
             RuthlessRomantic.ClearAndReload();
             Romantic.ClearAndReload();
             Shade.ClearAndReload();
+            Parasite.ClearAndReload();
             Sheriff.ClearAndReload();
             Spy.ClearAndReload();
             Tracker.ClearAndReload();
@@ -67,6 +70,7 @@ namespace StellarRoles
             Gopher.ClearAndReload();
             Sniper.ClearAndReload();
             Ascended.ClearAndReload();
+            ExtraStats.ClearAndReload();
 
             //
             RockPaperScissorsGame.ClearAndReload();

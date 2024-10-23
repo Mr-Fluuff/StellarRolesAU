@@ -27,7 +27,7 @@ namespace StellarRoles
                 () =>
                 {
                     PlayerControl.LocalPlayer.IsParityCop(out ParityCop parityCop);
-                    RPCProcedure.Send(CustomRPC.ParityCopCompareAddition, PlayerControl.LocalPlayer.PlayerId, parityCop.CurrentTarget.PlayerId);
+                    RPCProcedure.Send(CustomRPC.ParityCopCompareAddition, PlayerControl.LocalPlayer, parityCop.CurrentTarget);
                     parityCop.ComparedPlayers.Add(parityCop.CurrentTarget);
                     SoundEffectsManager.Play(Sounds.TrackPlayer); // uses the same sound as the tracker
                     ParityCopCompareButton.Timer = ParityCopCompareButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
@@ -61,7 +61,7 @@ namespace StellarRoles
             ParityCopFakeCompareButton = new CustomButton(
                 () =>
                 {
-                    RPCProcedure.Send(CustomRPC.FakeCompare, PlayerControl.LocalPlayer.PlayerId, true);
+                    RPCProcedure.Send(CustomRPC.FakeCompare, PlayerControl.LocalPlayer, true);
                     PlayerControl.LocalPlayer.IsParityCop(out ParityCop parityCop);
                     parityCop.PressedFakeCompare = true;
                 },
@@ -84,7 +84,7 @@ namespace StellarRoles
                 {
                     if (PlayerControl.LocalPlayer.IsParityCop(out ParityCop parityCop))
                     {
-                        RPCProcedure.Send(CustomRPC.FakeCompare, PlayerControl.LocalPlayer.PlayerId, false);
+                        RPCProcedure.Send(CustomRPC.FakeCompare, PlayerControl.LocalPlayer, false);
                         parityCop.PressedFakeCompare = false;
                     }
                 },

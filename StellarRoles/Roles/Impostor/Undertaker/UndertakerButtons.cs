@@ -23,6 +23,9 @@ namespace StellarRoles
             UndertakerDragButton = new CustomButton(
                 () =>
                 {
+                    if (PlayerControl.LocalPlayer.inMovingPlat) return;
+                    if (!PlayerControl.LocalPlayer.CanMove && !PlayerControl.LocalPlayer.inVent) return;
+
                     if (Undertaker.DeadBodyDragged == null && Undertaker.DeadBodyCurrentTarget != null)
                     {
                         RPCProcedure.Send(CustomRPC.DragBody, Undertaker.DeadBodyCurrentTarget.ParentId);
@@ -38,7 +41,7 @@ namespace StellarRoles
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                 },
-                () => Undertaker.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Undertaker.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     if (Undertaker.DeadBodyDragged != null)

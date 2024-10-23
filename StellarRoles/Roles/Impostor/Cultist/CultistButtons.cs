@@ -16,11 +16,11 @@ namespace StellarRoles
                 {
                     if (Cultist.CurrentFollower != null)
                     {
-                        RPCProcedure.Send(CustomRPC.CultistCreateImposter, Cultist.CurrentFollower.PlayerId);
+                        RPCProcedure.Send(CustomRPC.CultistCreateImposter, Cultist.CurrentFollower);
                         RPCProcedure.CultistCreateImposter(Cultist.CurrentFollower);
                     }
                 },
-                () => Cultist.NeedsFollower && Cultist.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Cultist.NeedsFollower && Cultist.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(Cultist.CurrentFollower, TurnButton, "Convert");

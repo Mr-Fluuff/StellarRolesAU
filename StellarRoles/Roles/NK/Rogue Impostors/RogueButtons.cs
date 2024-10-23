@@ -17,50 +17,10 @@ namespace StellarRoles
                    if (Helpers.CheckMurderAttemptAndKill(PlayerControl.LocalPlayer, NeutralKiller.CurrentTarget) == MurderAttemptResult.SuppressKill)
                        return;
                    RogueKillButton.Timer = RogueKillButton.MaxTimer;
-
-                   if (PlayerControl.LocalPlayer == BountyHunter.Player)
-                   {
-                       if (NeutralKiller.CurrentTarget == BountyHunter.Bounty)
-                       {
-                           RogueKillButton.Timer = Helpers.KillCooldown() - BountyHunter.BonusTime;
-                           BountyHunter.BountyUpdateTimer = 0f; // Force bounty update
-                       }
-                       else
-                           RogueKillButton.Timer = Helpers.KillCooldown() + BountyHunter.PunishmentTime;
-                   }
-                   if (PlayerControl.LocalPlayer == Undertaker.Player)
-                   {
-                       CustomButton dragButton = UndertakerButtons.UndertakerDragButton;
-                       if (dragButton.Timer < Undertaker.DraggingDelayAfterKill * 0.5f * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer))
-                           dragButton.Timer = Undertaker.DraggingDelayAfterKill * 0.5f * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
-                   }
-                   if (PlayerControl.LocalPlayer == Vampire.Player)
-                   {
-                       CustomButton biteButton = VampireButtons.VampireBiteButton;
-                       if (biteButton.Timer < biteButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer))
-                           biteButton.Timer = biteButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
-                   }
-                   if (PlayerControl.LocalPlayer == Bomber.Player)
-                   {
-                       CustomButton bombButton = BomberButtons.BomberBombButton;
-                       if (bombButton.Timer < bombButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer))
-                           bombButton.Timer = bombButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
-                   }
-                   if (PlayerControl.LocalPlayer == Warlock.Player)
-                   {
-                       CustomButton curseButton = WarlockButtons.CurseButton;
-                       if (curseButton.Timer < curseButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer))
-                           curseButton.Timer = curseButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
-                   }
-                   if (PlayerControl.LocalPlayer == Janitor.Player)
-                   {
-                       CustomButton cleanButton = JanitorButtons.CleanButton;
-                       if (cleanButton.Timer < cleanButton.MaxTimer * 0.5f * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer))
-                           cleanButton.Timer = cleanButton.MaxTimer * 0.5f * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
-                   }
+                   Helpers.ResetAbilityCooldown(false);
 
                    NeutralKiller.CurrentTarget = null;
-                   Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddKill);
+                   PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddKill);
                },
                () =>
                {
@@ -76,6 +36,7 @@ namespace StellarRoles
                    }
 
                    if (localPlayer == Vampire.Player && !Vampire.HasKillButton) return false;
+                   if (localPlayer == Parasite.Player && !Parasite.NormalKillButton) return false;
                    return NeutralKiller.Players.Contains(localPlayer) && !PlayerControl.LocalPlayer.Data.IsDead;
                },
                () => { return NeutralKiller.CurrentTarget != null && PlayerControl.LocalPlayer.CanMove && !PlayerControl.LocalPlayer.IsBombedAndActive(); },

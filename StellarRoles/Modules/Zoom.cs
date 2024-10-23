@@ -30,6 +30,12 @@ namespace StellarRoles.Modules
 
                 ZoomText.gameObject.SetActive(!MeetingHud.Instance);
 
+                if (__instance.Chat.IsOpenOrOpening && Camera.main.orthographicSize != 3f)
+                {
+                    Helpers.ResetZoom();
+                    __instance.Chat.Toggle();
+                }
+
                 if (MeetingHud.Instance) return;
 
                 if (Input.GetAxis("Mouse ScrollWheel") > 0)

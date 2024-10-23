@@ -52,11 +52,7 @@ namespace StellarRoles.Objects
 
             int time = RandomSeed._random.Next(20, 50);
 
-            HudManager.Instance.StartCoroutine(Effects.Lerp(time, new Action<float>((p) =>
-            {
-                if (p == 1f)
-                    Animation();
-            })));
+            ((float)time).DelayedAction(Animation);
         }
 
         [HideFromIl2Cpp]
@@ -65,7 +61,7 @@ namespace StellarRoles.Objects
             if (GoopyGameObject == null || MeetingHud.Instance)
                 return;
 
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(7, new Action<float>((p) =>
+            HudManager.Instance.StartCoroutine(Effects.Lerp(7, new Action<float>((p) =>
             {
                 if (BoxRenderer != null)
                     BoxRenderer.sprite = GetGoopyAnimation((int)(p * GoopyAnimation.Length));

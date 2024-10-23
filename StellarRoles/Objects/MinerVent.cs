@@ -38,7 +38,7 @@ namespace StellarRoles.Objects
             holeRender.color = new Color(1f, 1f, 1f, 0.5f);
 
             // Create the vent
-            Vent referenceVent = UnityEngine.Object.FindObjectOfType<Vent>();
+            Vent referenceVent = ShipStatus.Instance.AllVents.FirstOrDefault();
             vent = UnityEngine.Object.Instantiate(referenceVent, referenceVent.transform.parent);
             vent.transform.position = GameObject.transform.position;
             vent.Left = null;
@@ -47,20 +47,22 @@ namespace StellarRoles.Objects
             vent.EnterVentAnim = null;
             vent.ExitVentAnim = null;
             vent.Offset = new Vector3(0f, 0.1f, 0f);
-            vent.GetComponent<PowerTools.SpriteAnim>()?.Stop();
-            vent.Id = MapUtilities.CachedShipStatus.AllVents.Select(x => x.Id).Max() + 1; // Make sure we have a unique id
-            SpriteRenderer render = vent.GetComponent<SpriteRenderer>();
-            render.sprite = GetMinerConstruction();
-            vent.myRend = render;
+            vent.myAnim?.Stop();
+            vent.Id = ShipStatus.Instance.AllVents.Select(x => x.Id).Max() + 1; // Make sure we have a unique id
+            vent.myRend.sprite = GetMinerConstruction();
+            if (Helpers.IsMap(Map.Fungal))
+            {
+                vent.myRend.transform.localPosition = new Vector3(0, -.01f);
+            }
             vent.name = "MinerVent_" + vent.Id;
             vent.gameObject.SetActive(false);
             if (SubmergedCompatibility.IsSubmerged)
             {
                 vent.gameObject.AddSubmergedComponent(SubmergedCompatibility.Classes.ElevatorMover); // just in case elevator vent is not blocked
             }
-            List<Vent> allVentsList = MapUtilities.CachedShipStatus.AllVents.ToList();
+            List<Vent> allVentsList = ShipStatus.Instance.AllVents.ToList();
             allVentsList.Add(vent);
-            MapUtilities.CachedShipStatus.AllVents = allVentsList.ToArray();
+            ShipStatus.Instance.AllVents = allVentsList.ToArray();
 
 
             // Only render the vent for the Miner
@@ -72,14 +74,7 @@ namespace StellarRoles.Objects
             if (Miner.VisibleInstantly)
                 ConvertToVents();
             else if (Miner.VisibleDelay)
-                FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(Miner.Delay, new Action<float>((p) =>
-                {
-                    if (p == 1f)
-                    {
-                        ConvertToVents();
-                    }
-                })));
-
+                Miner.Delay.DelayedAction(ConvertToVents);
         }
 
         public static void UpdateStates()
@@ -127,7 +122,7 @@ namespace StellarRoles.Objects
 
         public static void ClearMinerVents()
         {
-            foreach(MinerVent vent in AllMinerVents)
+            foreach (MinerVent vent in AllMinerVents)
             {
                 vent.GameObject.SetActive(false);
                 UnityEngine.Object.Destroy(vent.GameObject);

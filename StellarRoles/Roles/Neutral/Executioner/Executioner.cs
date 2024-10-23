@@ -12,8 +12,8 @@ namespace StellarRoles
         public static readonly Color Color = new Color32(201, 204, 63, byte.MaxValue);
         public static readonly Color TargetColor = new Color32(0, 0, 0, byte.MaxValue);
 
-        public static PlayerControl Player { get; set; }
-        public static PlayerControl Target { get; set; }
+        public static PlayerControl Player { get; set; } = null;
+        public static PlayerControl Target { get; set; } = null;
         public static ExePromotes PromotesTo => (ExePromotes)CustomOptionHolder.ExecutionerPromotesTo.GetSelection(); // 0 = Jester, 1 = Refugee
         public static bool ConvertsImmediately => CustomOptionHolder.ExecutionerConvertsImmediately.GetSelection() == 0;
 

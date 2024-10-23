@@ -1,4 +1,7 @@
+using StellarRoles.Utilities;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 //Thanks EvilScum
@@ -8,44 +11,64 @@ namespace StellarRoles
     {
         // Set values
         public static bool HidePetFromOthers { get; set; } = false;
-        public static int MaxNumberOfMeetings { get; set; } = 10;
-        public static bool HideOutOfSightNametags { get; set; } = false;
-        public static bool GhostsSeeRoles { get; set; } = false;
-        public static bool GhostsSeeModifier { get; set; } = false;
-        public static bool GhostsSeeRomanticTarget { get; set; } = false;
-        public static bool GhostsSeeTasks { get; set; } = false;
+        public static int MaxNumberOfMeetings => Mathf.RoundToInt(CustomOptionHolder.MaxNumberOfMeetings.GetSelection());
+        public static bool HideOutOfSightNametags => CustomOptionHolder.HideOutOfSightNametags.GetBool();
+        public static bool GhostsSeeRoles => CustomOptionHolder.GhostsSeeRoles.GetBool();
+        public static bool GhostsSeeModifier => CustomOptionHolder.GhostsSeeModifiers.GetBool();
+        public static bool GhostsSeeRomanticTarget => CustomOptionHolder.GhostsSeeRomanticTarget.GetBool();
+        public static bool GhostsSeeTasks => CustomOptionHolder.GhostsSeeTasks.GetBool();
         public static bool GhostsSeeVotes { get; set; } = true;
         public static bool ShowRoleSummary { get; set; } = true;
-        public static bool AllowParallelMedBayScans { get; set; } = false;
-        public static bool DisableVentCleanEjections { get; set; } = false;
-        public static bool DisableMedscanWalking { get; set; } = false;
+        public static bool AllowParallelMedBayScans => CustomOptionHolder.AllowParallelMedBayScans.GetBool();
+        public static bool DisableVentCleanEjections => CustomOptionHolder.DisableVentCleanEjections.GetBool();
+        public static bool DisableMedscanWalking => CustomOptionHolder.DisableMedscanWalking.GetBool();
         public static bool EnableSoundEffects { get; set; } = true;
-        public static bool ShieldFirstKill { get; set; } = false;
-        public static bool HideVentInFog { get; set; } = true;
+        public static bool ShieldFirstKill => CustomOptionHolder.ShieldFirstKill.GetBool();
+        public static bool HideVentInFog => CustomOptionHolder.VentInFog.GetBool();
         public static float Meetingtime { get; set; } = 20f;
-        public static float TasksTilAdminAccessOnMira { get; set; } = 0;
-        public static float TasksTilSkeldCams { get; set; } = 0f;
-        public static bool NoCamsFirstRound { get; set; } = false;
+        public static bool AddFungleAdmin => CustomOptionHolder.FungalAdminTable.GetBool();
+        public static bool EasierFungalDoors => CustomOptionHolder.FungalEasierDoorSabo.GetBool();
+        public static bool EasierFungalFish => CustomOptionHolder.FungalEasierFish.GetBool();
+        public static bool CanUseFungalSecurity => CustomOptionHolder.FungalSecurityTasks.GetBool();
+
+        public static bool ModifySkeld => CustomOptionHolder.OverrideSkeld.GetBool();
+        public static bool ModifyMira => CustomOptionHolder.OverrideMira.GetBool();
+        public static bool ModifyPolus => CustomOptionHolder.OverridePolus.GetBool();
+        public static bool ModifyAirship => CustomOptionHolder.OverrideAirship.GetBool();
+        public static bool ModifyFungle => CustomOptionHolder.OverrideFungle.GetBool();
+        public static bool ModifySubmerged => CustomOptionHolder.OverrideSubmerged.GetBool();
+
+        public static int TasksTilSkeldCams => CustomOptionHolder.SkeldCamsTasks.GetInt();
+        public static int TasksTilPolusCams => CustomOptionHolder.PolusCamsTasks.GetInt();
+        public static int TasksTilAdminAccessOnMira => CustomOptionHolder.MiraAdminTasks.GetInt();
+        public static int TasksTilLogsAccessOnMira => CustomOptionHolder.MiraLogsTasks.GetInt();
+        public static int TasksTilAdminAccessOnSkeld => CustomOptionHolder.SkeldAdminTasks.GetInt();
+        public static int TasksTilAdminAccessOnPolus => CustomOptionHolder.PolusAdminTasks.GetInt();
+        public static int TaskTilFungalSecurity => CustomOptionHolder.FungalSecurityTasks.GetInt();
+
+        public static bool NoCamsFirstRound => CustomOptionHolder.NoCamsFirstRound.GetBool();
         public static bool Allimpsdead { get; set; } = false;
         public static bool LastImp { get; set; } = false;
-        public static bool ToggleRoles { get; set; } = false;
+        public static bool ToggleRoles => CustomOptionHolder.ToggleRoles.GetBool();
         public static bool ShowRoles { get; set; } = false;
-        public static bool JoustingPreventImp { get; set; } = false;
-        public static bool JoustingPreventNK { get; set; } = false;
-        public static bool DeadCrewPreventTaskWin { get; set; } = false;
-
-        public static bool ImposterRoleBlocks { get; set; } = false;
-        public static bool ImposterKillAbilitiesRoleBlock { get; set; } = false;
-        public static bool ImposterAbiltiesRoleBlock { get; set; } = false;
-        public static bool NeutralKillerRoleBlock { get; set; } = false;
-        public static bool NeutralRoleBlock { get; set; } = false;
+        public static bool JoustingPreventImp => CustomOptionHolder.JoustingRoleImpWin.GetBool();
+        public static bool JoustingPreventNK => CustomOptionHolder.JoustingRoleNKWin.GetBool();
+        public static bool DeadCrewPreventTaskWin => CustomOptionHolder.DeadCrewPreventTaskWin.GetBool();
+        public static bool ImposterKillAbilitiesRoleBlock => CustomOptionHolder.ImposterKillAbilitiesRoleBlock.GetBool();
+        public static bool ImposterAbiltiesRoleBlock => CustomOptionHolder.ImposterAbiltiesRoleBlock.GetBool();
+        public static bool NeutralKillerRoleBlock => CustomOptionHolder.NeutralKillerRoleBlock.GetBool();
+        public static bool NeutralRoleBlock => CustomOptionHolder.NeutralRoleBlock.GetBool();
         public static int PlayersAlive { get; set; } = 0;
+        public static int CrewAlive { get; set; } = 0;
+
+
+        public static bool TournamentLogs => CustomOptionHolder.TournamentLogs.GetBool();
 
         // Updating values
         public static int MeetingsCount { get; set; } = 0;
         public static readonly List<SurvCamera> CamerasToAdd = new();
         public static readonly List<Vent> VentsToSeal = new();
-        public static readonly List<PlayerControl> PlayerPetsToHide = new();
+        public static readonly PlayerList PlayerPetsToHide = new();
         public static readonly Dictionary<byte, PoolablePlayer> PlayerIcons = new();
         public static readonly Dictionary<byte, List<int>> VentsInUse = new();
         public static string FirstKillName { get; set; }
@@ -54,7 +77,9 @@ namespace StellarRoles
         public static readonly List<string> FirstKillPlayersNames = new();
         public static readonly List<PlayerControl> FirstKillPlayers = new();
         public static bool IsFirstRound { get; set; } = true;
-        public static bool ShowRoundOneKillIndicators { get; set; } = false;
+
+        public static bool firstRoundWithDead { get; set; } = true;
+        public static bool ShowRoundOneKillIndicators => CustomOptionHolder.RoundOneKilledIndicators.GetBool();
         public static bool DeadBodiesAdminTable { get; set; } = true;
         public static void ClearAndReloadMapOptions()
         {
@@ -65,40 +90,19 @@ namespace StellarRoles
             VentsInUse.Clear();
             PlayerPetsToHide.Clear();
 
-            MaxNumberOfMeetings = Mathf.RoundToInt(CustomOptionHolder.MaxNumberOfMeetings.GetSelection());
-            DisableMedscanWalking = CustomOptionHolder.DisableMedscanWalking.GetBool();
-            HideOutOfSightNametags = CustomOptionHolder.HideOutOfSightNametags.GetBool();
-            AllowParallelMedBayScans = CustomOptionHolder.AllowParallelMedBayScans.GetBool();
-            DisableVentCleanEjections = CustomOptionHolder.DisableVentCleanEjections.GetBool();
-            ShieldFirstKill = CustomOptionHolder.ShieldFirstKill.GetBool();
-            HideVentInFog = CustomOptionHolder.VentInFog.GetBool();
             FirstKillPlayer = null;
             FirstKillPlayers.Clear();
-            ShowRoundOneKillIndicators = CustomOptionHolder.RoundOneKilledIndicators.GetBool();
 
-            ToggleRoles = CustomOptionHolder.ToggleRoles.GetBool();
-            GhostsSeeRoles = CustomOptionHolder.GhostsSeeRoles.GetBool();
-            GhostsSeeModifier = CustomOptionHolder.GhostsSeeModifiers.GetBool();
-            GhostsSeeTasks = CustomOptionHolder.GhostsSeeTasks.GetBool();
             Meetingtime = GameOptionsManager.Instance.currentNormalGameOptions.VotingTime + GameOptionsManager.Instance.currentNormalGameOptions.DiscussionTime;
-            TasksTilAdminAccessOnMira = CustomOptionHolder.RestrictAdminOnMira.GetFloat();
-            TasksTilSkeldCams = CustomOptionHolder.RestrictCamsOnSkeld.GetFloat();
-            NoCamsFirstRound = CustomOptionHolder.NoCamsFirstRound.GetBool();
-            GhostsSeeRomanticTarget = CustomOptionHolder.GhostsSeeRomanticTarget.GetBool();
+
             ShowRoles = true;
             IsFirstRound = true;
+            firstRoundWithDead = true;
             Allimpsdead = false;
             LastImp = false;
-            ImposterRoleBlocks = CustomOptionHolder.ImposterRoleBlock.GetBool();
-            ImposterKillAbilitiesRoleBlock = CustomOptionHolder.ImposterKillAbilitiesRoleBlock.GetBool() && ImposterRoleBlocks;
-            ImposterAbiltiesRoleBlock = CustomOptionHolder.ImposterAbiltiesRoleBlock.GetBool() && ImposterRoleBlocks;
-            NeutralKillerRoleBlock = CustomOptionHolder.NeutralKillerRoleBlock.GetBool();
-            NeutralRoleBlock = CustomOptionHolder.NeutralRoleBlock.GetBool();
             DeadBodiesAdminTable = false;
-            JoustingPreventImp = CustomOptionHolder.JoustingRoleImpWin.GetBool();
-            JoustingPreventNK = CustomOptionHolder.JoustingRoleNKWin.GetBool();
-            DeadCrewPreventTaskWin = CustomOptionHolder.DeadCrewPreventTaskWin.GetBool();
             PlayersAlive = PlayerControl.AllPlayerControls.Count;
+            CrewAlive = PlayerControl.AllPlayerControls.Count;
         }
 
         public static void ReloadPluginOptions()
@@ -112,17 +116,26 @@ namespace StellarRoles
         public static bool CanUseAdmin()
         {
             if (Helpers.IsHideAndSeek ||
-                !Helpers.IsMap(Map.Mira) ||
                 PlayerControl.LocalPlayer.Data.IsDead ||
                 Helpers.IsNeutral(PlayerControl.LocalPlayer) ||
-                PlayerControl.LocalPlayer.Data.Role.IsImpostor)
+                PlayerControl.LocalPlayer.Data.Role.IsImpostor ||
+                Administrator.Player == PlayerControl.LocalPlayer && Administrator.IsActive)
                 return true;
 
-            (int playerCompleted, _) = TasksHandler.TaskInfo(PlayerControl.LocalPlayer.Data);
+            (int playerCompleted, int playerTotal) = TasksHandler.TaskInfo(PlayerControl.LocalPlayer.Data);
 
-            //ADMINISTRATOR?????
-
-            return playerCompleted >= TasksTilAdminAccessOnMira;
+            switch (Helpers.CurrentMap())
+            {
+                case Map.Skeld:
+                case Map.Dleks:
+                    return playerCompleted >= Math.Min(TasksTilAdminAccessOnSkeld, playerTotal);
+                case Map.Mira:
+                    return playerCompleted >= Math.Min(TasksTilAdminAccessOnMira, playerTotal);
+                case Map.Polus:
+                    return playerCompleted >= Math.Min(TasksTilAdminAccessOnPolus, playerTotal);
+                default:
+                    return true;
+            }
         }
 
         public static bool CanUseCameras()
@@ -131,23 +144,24 @@ namespace StellarRoles
                 return true;
             if (NoCamsFirstRound && IsFirstRound)
                 return false;
-            return true;
-        }
-
-        public static bool CanUseSkeldCameras()
-        {
-            if (!CanUseCameras()) return false;
-
-            if (Helpers.IsHideAndSeek
-                || !Helpers.IsMap(Map.Skeld)
-                || PlayerControl.LocalPlayer.Data.IsDead
-                || PlayerControl.LocalPlayer.IsNeutral()
+            if (PlayerControl.LocalPlayer.Data.IsDead
+                || Helpers.IsNeutral(PlayerControl.LocalPlayer)
                 || PlayerControl.LocalPlayer.Data.Role.IsImpostor)
                 return true;
 
-            (int playerCompleted, _) = TasksHandler.TaskInfo(PlayerControl.LocalPlayer.Data);
-
-            return playerCompleted >= TasksTilSkeldCams;
+            (int playerCompleted, int playerTotal) = TasksHandler.TaskInfo(PlayerControl.LocalPlayer.Data);
+            switch (Helpers.CurrentMap())
+            {
+                case Map.Skeld:
+                case Map.Dleks:
+                    return playerCompleted >= Math.Min(TasksTilSkeldCams, playerTotal);
+                case Map.Polus:
+                    return playerCompleted >= Math.Min(TasksTilPolusCams, playerTotal);
+                case Map.Fungal:
+                    return playerCompleted >= Math.Min(TaskTilFungalSecurity, playerTotal) && CanUseFungalSecurity;
+                default:
+                    return true;
+            }
         }
     }
 }

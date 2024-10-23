@@ -34,9 +34,9 @@ namespace StellarRoles
 
                     if (PyromaniacDouseButton.Timer < PyromaniacDouseButton.MaxTimer * 0.5f)
                         PyromaniacDouseButton.Timer = PyromaniacDouseButton.MaxTimer * 0.5f;
-                    Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddKill);
+                    PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddKill);
                 },
-                () => PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac) && !pyromaniac.Player.Data.IsDead && !pyromaniac.Player.IsBombedAndActive(),
+                () => { return PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac) && !pyromaniac.Player.Data.IsDead && !pyromaniac.Player.IsBombedAndActive(); },
                 () =>
                 {
                     PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac);
@@ -80,7 +80,7 @@ namespace StellarRoles
                         SoundEffectsManager.Play(Sounds.Douse);
                     }
                 },
-                () => PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac) && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac) && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac);
@@ -115,7 +115,7 @@ namespace StellarRoles
                     PlayerControl.LocalPlayer.IsPyromaniac(out Pyromaniac pyromaniac);
                     if (pyromaniac.DouseTarget != null)
                     {
-                        RPCProcedure.Send(CustomRPC.PyromaniacDouse, pyromaniac.Player.PlayerId, pyromaniac.DouseTarget.PlayerId);
+                        RPCProcedure.Send(CustomRPC.PyromaniacDouse, pyromaniac.Player, pyromaniac.DouseTarget);
                         pyromaniac.DousedPlayers.Add(pyromaniac.DouseTarget);
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);
                     }

@@ -26,14 +26,17 @@ namespace StellarRoles
             MedicHeartMonitor = new CustomButton(
                () =>
                {
-                   RPCProcedure.Send(CustomRPC.MedicSetHearMonitor, Medic.CurrentTarget.PlayerId);
+                   RPCProcedure.Send(CustomRPC.MedicSetHearMonitor, Medic.CurrentTarget);
                    RPCProcedure.MedicSetHearMonitor(Medic.CurrentTarget);
                    SoundEffectsManager.Play(Sounds.Shield);
                    MedicHeartMonitor.Timer = MedicHeartMonitor.MaxTimer;
                    RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                },
-               () => Medic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !Medic.UsedHeartMonitor,
+               () =>
+               {
+                   return Medic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !Medic.UsedHeartMonitor;
+               },
                () =>
                {
 
@@ -68,6 +71,8 @@ namespace StellarRoles
                    if (!Medic.IsActive)
                    {
                        SystemConsole e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("panel_vitals"));
+                       if (e == null)
+                           e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("VitalsConsole"));
                        if (e == null || Camera.main == null)
                            return;
                        Medic.IsActive = true;
@@ -87,7 +92,10 @@ namespace StellarRoles
                    }
 
                },
-               () => Medic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+               () =>
+               {
+                   return Medic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead;
+               },
                () =>
                {
                    Helpers.ShowTargetNameOnButtonExplicit(null, MedicVitals, $"VITALS - {(int)Medic.Battery}<size=70%>s</size>");

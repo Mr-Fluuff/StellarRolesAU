@@ -57,8 +57,11 @@ namespace StellarRoles
                 StellarBanner.transform.localScale = new Vector3(1, 1, 1);
 
                 SpriteRenderer panelRenderer = StellarBanner.AddComponent<SpriteRenderer>();
+                panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.StellarBanner.png", 200f);
                 if (DateTime.Today.Month == 12 && DateTime.Today.Day > 15 && DateTime.Today.Day < 31)
+                {
                     panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.Christmas.png", 100f);
+                }
                 else if (DateTime.Today.Month == 2 && DateTime.Today.Day > 11 && DateTime.Today.Day < 16)
                 {
                     panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.ValentinesBanner.png", 200f);
@@ -68,8 +71,16 @@ namespace StellarRoles
 
                     leftsprite.sprite = rightsprite.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.LeftBoxHeart.png", 200f);
                 }
-                else
-                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.StellarBanner.png", 200f);
+                else if ((DateTime.Today.Month == 10 && DateTime.Today.Day >= 17) || (DateTime.Today.Month == 11 && DateTime.Today.Day <= 2))
+                {
+                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.HalloweenBanner.png", 200f);
+                    instance.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.HalloweenLobby.png", 100f);
+                }
+                else if ((DateTime.Today.Month == 11 && DateTime.Today.Day >= 20) || (DateTime.Today.Month == 11 && DateTime.Today.Day <= 30))
+                {
+                    //panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.HalloweenBanner.png", 200f);
+                    instance.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.ThanksgivingLobby.png", 100f);
+                }
 
                 StellarBanner.gameObject.transform.SetParent(instance.transform);
 
@@ -81,12 +92,36 @@ namespace StellarRoles
                 _Engine = UnityEngine.Object.Instantiate(leftEngine, new Vector3(-4.775f, 1.75f, 0.5f), Quaternion.identity);
 
                 Mochi.ClearMochi();
-                Mochi.CreateMochi();
-                GameObject mochi = Mochi.MochiGameObject;
-                mochi.SetActive(true);
-                mochi.transform.position = new Vector3(9.57f, -.11f, -1f);
-                mochi.transform.localScale = new Vector3(1, 1, 1) * 1.8f;
-                mochi.gameObject.transform.SetParent(instance.transform);
+                GhostLad.ClearGhost();
+                if ((DateTime.Today.Month == 10 && DateTime.Today.Day > 16) || (DateTime.Today.Month == 11 && DateTime.Today.Day <= 2))
+                {
+                    GhostLad.CreateGhostLad();
+                    GameObject ghostLad = GhostLad.GhostLadGameObject;
+                    ghostLad.SetActive(true);
+                    ghostLad.transform.position = new Vector3(9.37f, -.11f, 0f);
+                    ghostLad.transform.localScale = new Vector3(1, 1, 1) * 1.8f;
+                    ghostLad.gameObject.transform.SetParent(instance.transform);
+                    Flame.CreateFlames(instance);
+                }
+                else if ((DateTime.Today.Month == 11 && DateTime.Today.Day > 20) || (DateTime.Today.Month == 11 && DateTime.Today.Day <= 30))
+                {
+                    GameObject FoxLad = new GameObject("FoxLad");
+                    var rend = FoxLad.AddComponent<SpriteRenderer>();
+                    rend.sprite = Helpers.LoadSpriteFromResources($"StellarRoles.Resources.CustomLobby.FoxLad.png", 225f);
+                    FoxLad.SetActive(true);
+                    FoxLad.transform.position = new Vector3(9.37f, -.11f, 0f);
+                    FoxLad.transform.localScale = new Vector3(1, 1, 1) * 1.2f;
+                    FoxLad.gameObject.transform.SetParent(instance.transform);
+                }
+                else
+                {
+                    Mochi.CreateMochi();
+                    GameObject mochi = Mochi.MochiGameObject;
+                    mochi.SetActive(true);
+                    mochi.transform.position = new Vector3(9.57f, -.11f, 0f);
+                    mochi.transform.localScale = new Vector3(1, 1, 1) * 1.8f;
+                    mochi.gameObject.transform.SetParent(instance.transform);
+                }
             }
         }
 
@@ -103,6 +138,7 @@ namespace StellarRoles
                         GameObject.Find("allul_customlobby(Clone)").SetActive(false);
 
                         _Engine.SetActive(false);
+                        Flame.ClearAllFlames();
                     }
                 }
                 catch

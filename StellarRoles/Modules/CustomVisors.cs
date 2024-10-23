@@ -1,5 +1,6 @@
 using AmongUs.Data;
 using HarmonyLib;
+using Innersloth.Assets;
 using Newtonsoft.Json.Linq;
 using StellarRoles.Utilities;
 using System;
@@ -22,10 +23,9 @@ namespace StellarRoles.Modules
     {
         private static bool LOADED = false;
         private static bool RUNNING = false;
-        public static Material visorShader;
+        public static Material MagicShader = new Material(Shader.Find("Unlit/PlayerShader"));
 
         public static Dictionary<string, VisorExtenstion> CustomVisorExtRegistry = new();
-        public static Dictionary<string, VisorViewData> CustomVisorViewDatas = new();
 
         public static VisorExtenstion TestExt = null;
 
@@ -35,9 +35,14 @@ namespace StellarRoles.Modules
             public string package { get; set; }
             public string condition { get; set; }
             public Sprite FlipImage { get; set; }
+            public Sprite MainImage { get; set; }
+            public Sprite ClimbImage { get; set; }
+
             public List<Sprite> Animation { get; set; }
             public int frame { get; set; }
             public float time { get; set; }
+            public VisorViewData ViewData { get; set; }
+            public bool Adapive { get; set; }
         }
 
         public class CustomVisor
@@ -68,35 +73,37 @@ namespace StellarRoles.Modules
             return sprite;
         }
 
+        static readonly List<VisorData> visorData = new();
+
+
         private static VisorData CreateVisorBehaviour(CustomVisor ch, bool fromDisk = false)
         {
-            if (visorShader == null)
-            {
-                visorShader = FastDestroyableSingleton<HatManager>.Instance.PlayerMaterial;
-            }
-
-            VisorViewData viewdata = CreateInstance<VisorViewData>();
-            VisorData visor = CreateInstance<VisorData>();
+            VisorViewData viewdata = ScriptableObject.CreateInstance<VisorViewData>();
             viewdata.IdleFrame = CreateVisorSprite(ch.Resource, fromDisk);
             viewdata.FloorFrame = viewdata.IdleFrame;
+
+            var visor = CreateInstance<VisorData>();
             visor.name = ch.Name;
             visor.displayOrder = 99;
             visor.ProductId = "CustomVisor_" + ch.Name.Replace(' ', '_');
             visor.behindHats = !ch.InFront;
             visor.ChipOffset = new Vector2(0f, 0.2f);
             visor.Free = true;
-            visor.SpritePreview = viewdata.IdleFrame;
             if (ch.FlipResource != null)
                 viewdata.LeftIdleFrame = CreateVisorSprite(ch.FlipResource, fromDisk);
-            if (ch.Adaptive && visorShader != null)
-                viewdata.AltShader = visorShader;
+            if (ch.Adaptive)
+                viewdata.MatchPlayerColor = true;
 
 
             VisorExtenstion extend = new()
             {
                 author = ch.Author ?? "Unknown",
                 package = ch.Package ?? "Misc.",
-                condition = ch.Condition ?? "none"
+                condition = ch.Condition ?? "none",
+                MainImage = viewdata.IdleFrame,
+                Adapive = ch.Adaptive,
+                ViewData = viewdata,
+                ClimbImage = Morphling.GetMorphSprite()
             };
 
             if (ch.Animation != null)
@@ -112,8 +119,8 @@ namespace StellarRoles.Modules
                 extend.frame = 0;
             }
 
+            visorData.Add(visor);
             CustomVisorExtRegistry.Add(visor.name, extend);
-            CustomVisorViewDatas.Add(visor.ProductId, viewdata);
 
             AssetReference assetRef = new(viewdata.Pointer);
 
@@ -132,9 +139,15 @@ namespace StellarRoles.Modules
             return CreateVisorBehaviour(chd, true);
         }
 
+        static Dictionary<string, VisorViewData> cache = new();
+
         static VisorViewData getVisorViewData(string id)
         {
-            return CustomVisorViewDatas.ContainsKey(id) ? CustomVisorViewDatas[id] : null;
+            if (!cache.ContainsKey(id))
+            {
+                cache[id] = visorData.FirstOrDefault(x => x.ProductId == id).GetVisorExtension().ViewData;
+            }
+            return cache[id];
         }
 
         [HarmonyPatch(typeof(CosmeticsCache), nameof(CosmeticsCache.GetVisor))]
@@ -208,10 +221,9 @@ namespace StellarRoles.Modules
         {
             public static bool Prefix(VisorLayer __instance, bool flipX)
             {
-                if (__instance.currentVisor == null || !__instance.currentVisor.ProductId.StartsWith("CustomVisor_")) return true;
-
+                if (__instance.visorData == null || !__instance.visorData.ProductId.StartsWith("CustomVisor_")) return true;
                 __instance.Image.flipX = flipX;
-                VisorViewData asset = getVisorViewData(__instance.currentVisor.ProdId);
+                VisorViewData asset = getVisorViewData(__instance.visorData.ProdId);
                 if (flipX && asset.LeftIdleFrame)
                 {
                     __instance.Image.sprite = asset.LeftIdleFrame;
@@ -224,6 +236,18 @@ namespace StellarRoles.Modules
             }
         }
 
+        [HarmonyPatch(typeof(VisorLayer), nameof(VisorLayer.SetClimbAnim))]
+        public class VisorSetClimbAnimPatch
+        {
+            public static bool Prefix(VisorLayer __instance)
+            {
+                if (!CustomVisorExtRegistry.TryGetValue(__instance.visorData.name, out VisorExtenstion visor)) return true;
+                if (__instance.options.HideDuringClimb) return false;
+                __instance.Image.sprite = visor.ClimbImage;
+                return false;
+            }
+        }
+
         [HarmonyPatch(typeof(PlayerPhysics), nameof(PlayerPhysics.FixedUpdate))]
         private static class PlayerPhysicsHandleAnimationPatch
         {
@@ -231,37 +255,41 @@ namespace StellarRoles.Modules
             public static float currenttime => Time.deltaTime * 150;
             private static void Postfix(PlayerPhysics __instance)
             {
-                AnimationClip currentAnimation = __instance.Animations.Animator.GetCurrentAnimation();
-                PlayerControl player = __instance.myPlayer;
-
-                if (currentAnimation == __instance.Animations.group.ClimbUpAnim || currentAnimation == __instance.Animations.group.ClimbDownAnim) return;
-
-                if (player.cosmetics.visor.currentVisor != null)
+                try
                 {
-                    string visorId = player.cosmetics.visor.currentVisor.ProductId;
-                    VisorViewData viewData = getVisorViewData(visorId);
-                    SetVisor(__instance, viewData);
-                }
+                    AnimationClip currentAnimation = __instance.Animations.Animator.GetCurrentAnimation();
+                    PlayerControl player = __instance.myPlayer;
 
-                if (player.AmOwner)
-                {
-                    CustomVisorExtRegistry.Values.ToList().ForEach(extend =>
+                    if (currentAnimation == __instance.Animations.group.ClimbUpAnim || currentAnimation == __instance.Animations.group.ClimbDownAnim) return;
+
+                    if (player.cosmetics.visor.visorData != null && player.cosmetics.visor.visorData.ProdId.StartsWith("CustomVisor_"))
                     {
-                        extend.time += currenttime;
-                        if (extend.time >= delay)
+                        string visorId = player.cosmetics.visor.visorData.ProductId;
+                        VisorViewData viewData = getVisorViewData(visorId);
+                        SetVisor(__instance, viewData);
+                    }
+
+                    if (player.AmOwner)
+                    {
+                        CustomVisorExtRegistry.Values.ToList().ForEach(extend =>
                         {
-                            UpdateVisorFrames(extend);
-                            extend.time = 0;
-                        }
-                    });
+                            extend.time += currenttime;
+                            if (extend.time >= delay)
+                            {
+                                UpdateVisorFrames(extend);
+                                extend.time = 0;
+                            }
+                        });
+                    }
                 }
+                catch { }
             }
 
             public static void SetVisor(PlayerPhysics __instance, VisorViewData viewData)
             {
                 VisorLayer visor = __instance.myPlayer.cosmetics.visor;
                 if (visor == null) return;
-                VisorExtenstion extend = visor.currentVisor.GetVisorExtension();
+                VisorExtenstion extend = visor.visorData.GetVisorExtension();
                 if (extend == null) return;
 
                 visor.Image.sprite = extend.Animation?.Count > 0 ? visor.Image.sprite = extend.Animation[extend.frame]
@@ -283,16 +311,31 @@ namespace StellarRoles.Modules
             }
         }
 
-        [HarmonyPatch(typeof(VisorLayer), nameof(VisorLayer.SetVisor), new Type[] { typeof(VisorData), typeof(VisorViewData), typeof(int) })]
-        class VisorLayerSetVisor2Patch
+        [HarmonyPatch(typeof(VisorLayer), nameof(VisorLayer.SetFloorAnim))]
+        class VisorLayerSetVisorFloorPositionPatch
         {
-            public static bool Prefix(VisorLayer __instance, VisorData data, VisorViewData visorView, int colorId)
+            public static bool Prefix(VisorLayer __instance)
             {
-                if (!data.ProductId.StartsWith("CustomVisor_")) return true;
-                __instance.currentVisor = data;
-                __instance.transform.SetLocalZ(__instance.ZIndexSpacing * (data.BehindHats ? -1.5f : -3f));
-                __instance.SetFlipX(__instance.Image.flipX);
-                __instance.SetMaterialColor(colorId);
+                if (__instance.visorData == null || !__instance.visorData.ProductId.StartsWith("CustomVisor_")) return true;
+                VisorViewData asset = getVisorViewData(__instance.visorData.ProdId);
+                __instance.Image.sprite = asset.FloorFrame ? asset.FloorFrame : asset.IdleFrame;
+                return false;
+            }
+        }
+
+        [HarmonyPatch(typeof(VisorLayer), nameof(VisorLayer.PopulateFromViewData))]
+        class VisorLayerPopulateFromViewDataPatch
+        {
+            public static bool Prefix(VisorLayer __instance)
+            {
+                if (__instance.visorData == null || !__instance.visorData.ProductId.StartsWith("CustomVisor_"))
+                    return true;
+                __instance.UpdateMaterial();
+                if (!__instance.IsDestroyedOrNull())
+                {
+                    __instance.transform.SetLocalZ(__instance.DesiredLocalZPosition);
+                    __instance.SetFlipX(__instance.Image.flipX);
+                }
                 return false;
             }
         }
@@ -300,11 +343,12 @@ namespace StellarRoles.Modules
         [HarmonyPatch(typeof(VisorLayer), nameof(VisorLayer.SetVisor), new Type[] { typeof(VisorData), typeof(int) })]
         class VisorLayerSetVisorPatch
         {
-            public static bool Prefix(VisorLayer __instance, VisorData data, int colorId)
+            public static bool Prefix(VisorLayer __instance, VisorData data, int color)
             {
                 if (!data.ProductId.StartsWith("CustomVisor_")) return true;
-                __instance.currentVisor = data;
-                __instance.SetVisor(__instance.currentVisor, getVisorViewData(data.ProdId), colorId);
+                __instance.visorData = data;
+                __instance.SetMaterialColor(color);
+                __instance.PopulateFromViewData();
                 return false;
             }
         }
@@ -315,23 +359,51 @@ namespace StellarRoles.Modules
         {
             public static bool Prefix(VisorLayer __instance)
             {
-                if (__instance.currentVisor == null || !__instance.currentVisor.ProductId.StartsWith("CustomVisor_")) return true;
-                VisorViewData asset = getVisorViewData(__instance.currentVisor.ProductId);
-                __instance.Image.sharedMaterial = asset.AltShader ?? DestroyableSingleton<HatManager>.Instance.DefaultShader;
-                PlayerMaterial.SetColors(__instance.matProperties.ColorId, __instance.Image);
-                switch (__instance.matProperties.MaskType)
+                if (__instance.visorData == null || !__instance.visorData.ProductId.StartsWith("CustomVisor_")) return true;
+                VisorViewData asset = getVisorViewData(__instance.visorData.ProductId);
+                PlayerMaterial.MaskType maskType = __instance.matProperties.MaskType;
+                if (asset.MatchPlayerColor)
+                {
+                    if (maskType == PlayerMaterial.MaskType.ComplexUI || maskType == PlayerMaterial.MaskType.ScrollingUI)
+                    {
+                        __instance.Image.sharedMaterial = DestroyableSingleton<HatManager>.Instance.MaskedPlayerMaterial;
+                    }
+                    else
+                    {
+                        __instance.Image.sharedMaterial = DestroyableSingleton<HatManager>.Instance.PlayerMaterial;
+                    }
+                }
+                else if (maskType == PlayerMaterial.MaskType.ComplexUI || maskType == PlayerMaterial.MaskType.ScrollingUI)
+                {
+                    __instance.Image.sharedMaterial = DestroyableSingleton<HatManager>.Instance.MaskedMaterial;
+                }
+                else
+                {
+                    __instance.Image.sharedMaterial = HatManager.Instance.DefaultShader;
+                }
+                switch (maskType)
                 {
                     case PlayerMaterial.MaskType.SimpleUI:
-                    case PlayerMaterial.MaskType.ScrollingUI:
-                        __instance.Image.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+                        __instance.Image.maskInteraction = (SpriteMaskInteraction)1;
                         break;
                     case PlayerMaterial.MaskType.Exile:
-                        __instance.Image.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+                        __instance.Image.maskInteraction = (SpriteMaskInteraction)2;
                         break;
                     default:
-                        __instance.Image.maskInteraction = SpriteMaskInteraction.None;
+                        __instance.Image.maskInteraction = (SpriteMaskInteraction)0;
                         break;
                 }
+                __instance.Image.material.SetInt(PlayerMaterial.MaskLayer, __instance.matProperties.MaskLayer);
+                if (asset.MatchPlayerColor)
+                {
+                    PlayerMaterial.SetColors(__instance.matProperties.ColorId, __instance.Image);
+                }
+                if (__instance.matProperties.MaskLayer <= 0)
+                {
+                    PlayerMaterial.SetMaskLayerBasedOnLocalPlayer(__instance.Image, __instance.matProperties.IsLocalPlayer);
+                    return false;
+                }
+                __instance.Image.material.SetInt(PlayerMaterial.MaskLayer, __instance.matProperties.MaskLayer);
                 return false;
             }
         }
@@ -370,7 +442,7 @@ namespace StellarRoles.Modules
                     if (ActiveInputManager.currentControlType == ActiveInputManager.InputType.Keyboard)
                     {
                         colorChip.Button.OnMouseOver.AddListener((Action)(() => __instance.SelectVisor(visor)));
-                        colorChip.Button.OnMouseOut.AddListener((Action)(() => __instance.SelectVisor(FastDestroyableSingleton<HatManager>.Instance.GetVisorById(DataManager.Player.Customization.Visor))));
+                        colorChip.Button.OnMouseOut.AddListener((Action)(() => __instance.SelectVisor(HatManager.Instance.GetVisorById(DataManager.Player.Customization.Visor))));
                         colorChip.Button.OnClick.AddListener((Action)(() => __instance.ClickEquip()));
                     }
                     else
@@ -404,10 +476,22 @@ namespace StellarRoles.Modules
                     }
 
                     colorChip.transform.localPosition = new Vector3(xpos, ypos, -1f);
+                    colorChip.Inner.SetMaskType(PlayerMaterial.MaskType.SimpleUI);
                     colorChip.ProductId = visor.ProductId;
                     colorChip.Inner.transform.localPosition = visor.ChipOffset;
                     __instance.UpdateMaterials(colorChip.Inner.FrontLayer, visor);
-                    visor.SetPreview(colorChip.Inner.FrontLayer, __instance.HasLocalPlayer() ? PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId : ((int)DataManager.Player.Customization.Color));
+                    if (ext != null)
+                    {
+                        colorChip.Inner.FrontLayer.sprite = ext.MainImage;
+                        if (ext.Adapive)
+                        {
+                            PlayerMaterial.SetColors(__instance.HasLocalPlayer() ? PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId : ((int)DataManager.Player.Customization.Color), colorChip.Inner.FrontLayer);
+                        }
+                    }
+                    else
+                    {
+                        visor.SetPreview(colorChip.Inner.FrontLayer, __instance.HasLocalPlayer() ? PlayerControl.LocalPlayer.Data.DefaultOutfit.ColorId : ((int)DataManager.Player.Customization.Color));
+                    }
                     colorChip.Tag = visor;
                     colorChip.SelectionHighlight.gameObject.SetActive(false);
                     __instance.ColorChips.Add(colorChip);
@@ -415,13 +499,13 @@ namespace StellarRoles.Modules
                 return offset - (visors.Count - 1) / __instance.NumPerRow * (isDefaultPackage ? 1f : 1.5f) * __instance.YOffset - 1.75f;
             }
 
-            public static void Postfix(VisorsTab __instance)
+            public static bool Prefix(VisorsTab __instance)
             {
                 for (int i = 0; i < __instance.scroller.Inner.childCount; i++)
                     Destroy(__instance.scroller.Inner.GetChild(i).gameObject);
                 __instance.ColorChips = new Il2CppSystem.Collections.Generic.List<ColorChip>();
 
-                VisorData[] unlockedVisors = FastDestroyableSingleton<HatManager>.Instance.GetUnlockedVisors();
+                VisorData[] unlockedVisors = HatManager.Instance.GetUnlockedVisors();
                 Dictionary<string, List<(VisorData, VisorExtenstion)>> packages = new();
 
                 foreach (VisorData visorBehavior in unlockedVisors)
@@ -457,6 +541,7 @@ namespace StellarRoles.Modules
                     YOffset = CreateVisorPackage(packages[key], key, YOffset, __instance);
 
                 __instance.scroller.ContentYBounds.max = -(YOffset + 4.1f);
+                return false;
             }
         }
 
@@ -464,15 +549,18 @@ namespace StellarRoles.Modules
 
     public class CustomVisorLoader
     {
-        private static bool Running = false;
+        public static bool IsRunning = false;
         private const string REPO_SV = "https://raw.githubusercontent.com/Mr-Fluuff/StellarHats/main";
+        public static int TotalVisorsDownloaded = 0;
+        public static int TotalVisorsToDownload = 0;
 
         public static List<CustomVisorOnline> VisorDetails = new();
         public static void LaunchVisorFetcher()
         {
-            if (Running)
+            if (IsRunning)
                 return;
-            Running = true;
+            IsRunning = true;
+            TotalVisorsDownloaded = 0;
             _ = LaunchVisorFetcherAsync();
         }
 
@@ -488,7 +576,7 @@ namespace StellarRoles.Modules
             {
                 Helpers.Log(LogLevel.Error, "Unable to fetch visors: " + e.StackTrace);
             }
-            Running = false;
+            IsRunning = false;
         }
 
         private static string SanitizeResourcePath(string res)
@@ -594,6 +682,8 @@ namespace StellarRoles.Modules
                     }
                 }
 
+                TotalVisorsToDownload = markedForDownload.Count + markedForDownload2.Count;
+
                 if (markedForDownload.Count <= 0 && markedForDownload2.Count <= 0)
                 {
                     VisorDetails = visordatas;
@@ -604,6 +694,7 @@ namespace StellarRoles.Modules
                     {
                         string file = markedForDownload[i];
                         Helpers.Log(file + " Downloaded");
+                        TotalVisorsDownloaded++;
 
                         HttpResponseMessage visorFileResponse = await http.GetAsync($"{REPO_SV}/visors/{file}", HttpCompletionOption.ResponseContentRead);
                         if (visorFileResponse.StatusCode != HttpStatusCode.OK) continue;
@@ -616,6 +707,7 @@ namespace StellarRoles.Modules
                     {
                         var file = markedForDownload2[i];
                         Helpers.Log(file + " Downloaded");
+                        TotalVisorsDownloaded++;
                         string name = file.Item1;
                         string frame = file.Item2;
 

@@ -4,10 +4,10 @@ namespace StellarRoles
 {
     public static class Mayor
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(32, 77, 66, byte.MaxValue);
-        public static bool CanSeeVoteColorsInMeeting => CustomOptionHolder.MayorCanSeeVoteColors.GetBool();
-        public static int TasksNeededToSeeVoteColors => CustomOptionHolder.MayorTasksNeededToSeeVoteColors.GetSelection();
+        public static bool CanSeeVoteColorsInMeeting => CustomOptionHolder.MayorTasksNeededToSeeVoteColors.GetBool();
+        public static int TasksNeededToSeeVoteColors => CustomOptionHolder.MayorTasksNeededToSeeVoteColors.GetInt();
         public static bool Retired { get; set; }
         public static bool CanRetire => CustomOptionHolder.MayorCanRetire.GetBool();
 

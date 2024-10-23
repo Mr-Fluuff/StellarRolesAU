@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using BepInEx.Unity.IL2CPP.Utils;
+using StellarRoles.Objects;
+using StellarRoles.Utilities;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace StellarRoles
@@ -29,7 +34,7 @@ namespace StellarRoles
             BombActive = false;
             HasAlerted = false;
             TimeLeft = (int)BombTimer;
-            BombedDictionary.Add(player.PlayerId, this);
+            BombedDictionary.TryAdd(player.PlayerId, this);
         }
 
         public static void ClearAndReload()
@@ -47,11 +52,53 @@ namespace StellarRoles
         {
             return IsBombed(playerId, out Bombed bombed) && bombed.BombActive;
         }
-    }
 
+        public void KillBombed()
+        {
+            if (PassedBomb || !BombActive || MeetingHud.Instance || Player.Data.IsDead) return;
+            // Perform kill if possible and reset bitten (regardless whether the kill was successful or not)
+            Helpers.CheckBombedAttemptAndKill(Bomber, Player, showAnimation: false);
+            RPCProcedure.Send(CustomRPC.GiveBomb, Player, Bomber, true);
+            RPCProcedure.GiveBomb(Player, Bomber, true);
+            Bomber.RPCAddGameInfo(InfoType.AddAbilityKill, InfoType.AddKill);
+        }
+
+        public void AlertBombed(float time)
+        {
+            HudManager.Instance.StartCoroutine(Effects.Lerp(time, new Action<float>((p) =>
+            { // Delayed action
+                if (!PassedBomb && BombActive && !MeetingHud.Instance && !Player.Data.IsDead)
+                {
+                    int timeLeft = (int)(time - (time * p));
+                    if (timeLeft <= BombTimer && TimeLeft != timeLeft)
+                    {
+                        _ = new CustomMessage($"Your Bomb will explode in {timeLeft} seconds!", 1f, true, Color.red);
+                        TimeLeft = timeLeft;
+                    }
+                    if (p == 1f)
+                    {
+                        HudManager.Instance.StartCoroutine(BombAction());
+                    }
+                }
+            })));
+        }
+
+        private static readonly WaitForSeconds delay = new WaitForSeconds(0.25f);
+        public IEnumerator BombAction()
+        {
+            while (Player.inMovingPlat || Player.onLadder)
+            {
+                yield return delay;
+            }
+            KillBombed();
+        }
+
+    }
     public static class BombedExtensions
     {
         public static bool IsBombed(this PlayerControl player, out Bombed bombed) => Bombed.IsBombed(player.PlayerId, out bombed);
+        public static bool IsBombed(this PlayerControl player) => Bombed.IsBombed(player.PlayerId, out _);
         public static bool IsBombedAndActive(this PlayerControl player) => Bombed.IsBombedAndActive(player.PlayerId);
+        public static void AlertBombed(this Bombed bombed) => bombed.AlertBombed();
     }
 }

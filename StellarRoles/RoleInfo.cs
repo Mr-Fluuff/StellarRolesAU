@@ -32,7 +32,6 @@ namespace StellarRoles
 
         // Impostor Roles
         public static readonly RoleInfo Bomber = new("Bomber", Palette.ImpostorRed, "Play extreme hot potato with crewmates!", "Play extreme hot potato with crewmates!", RoleId.Bomber, Faction.Impostor);
-        public static readonly RoleInfo BountyHunter = new("Bounty Hunter", Palette.ImpostorRed, "Hunt your bounty down", "Hunt your bounty down", RoleId.BountyHunter, Faction.Impostor);
         public static readonly RoleInfo Camouflager = new("Camouflager", Palette.ImpostorRed, "Camouflage and kill the Crewmates", "Hide among others", RoleId.Camouflager, Faction.Impostor);
         public static readonly RoleInfo Changeling = new("Changeling", Palette.ImpostorRed, "Choose Your Style and Kill", "Choose Your Style and Kill", RoleId.Changeling, Faction.Impostor);
         public static readonly RoleInfo Cultist = new("Cultist", Palette.ImpostorRed, "Recruit for your cause", "Recruit for your cause", RoleId.Cultist, Faction.Impostor);
@@ -43,6 +42,7 @@ namespace StellarRoles
         public static readonly RoleInfo Miner = new("Miner", Palette.ImpostorRed, "Make new Vents", "Create Vents", RoleId.Miner, Faction.Impostor);
         public static readonly RoleInfo Morphling = new("Morphling", Palette.ImpostorRed, "Change your look to not get caught", "Change your look", RoleId.Morphling, Faction.Impostor);
         public static readonly RoleInfo Shade = new("Shade", Palette.ImpostorRed, "Disappear and Kill", "Disappear and Kill", RoleId.Shade, Faction.Impostor);
+        public static readonly RoleInfo Parasite = new("Parasite", Palette.ImpostorRed, "Infest and Kill", "Infest and Kill", RoleId.Parasite, Faction.Impostor);
         public static readonly RoleInfo Undertaker = new("Undertaker", Palette.ImpostorRed, "Kill everyone and leave no traces", "Drag up dead bodies to hide them", RoleId.Undertaker, Faction.Impostor);
         public static readonly RoleInfo Vampire = new("Vampire", Palette.ImpostorRed, "Kill the Crewmates with your bites", "Bite your enemies", RoleId.Vampire, Faction.Impostor);
         public static readonly RoleInfo Warlock = new("Warlock", Palette.ImpostorRed, "Curse other players and kill everyone", "Curse and kill everyone", RoleId.Warlock, Faction.Impostor);
@@ -50,13 +50,13 @@ namespace StellarRoles
 
         // Rogue Impostor Roles
         public static readonly RoleInfo BomberNeutralKiller = new("Bomber", NeutralKiller.Color, "Play extreme hot potato with crewmates!", "Play extreme hot potato with crewmates!", RoleId.BomberNK, Faction.NK);
-        public static readonly RoleInfo BountyHunterNeutralKiller = new("Bounty Hunter", NeutralKiller.Color, "Hunt your bounty down", "Hunt your bounty down", RoleId.BountyHunterNK, Faction.NK);
         public static readonly RoleInfo CamouflagerNeutralKiller = new("Camouflager", NeutralKiller.Color, "Camouflage and kill the Crewmates", "Hide among others", RoleId.CamouflagerNK, Faction.NK);
         public static readonly RoleInfo JanitorNeutralKiller = new("Janitor", NeutralKiller.Color, "Kill everyone and leave no traces", "Clean up dead bodies", RoleId.JanitorNK, Faction.NK);
         public static readonly RoleInfo MinerNeutralKiller = new("Miner", NeutralKiller.Color, "Make new Vents", "Create Vents", RoleId.MinerNK, Faction.NK);
         public static readonly RoleInfo MorphlingNeutralKiller = new("Morphling", NeutralKiller.Color, "Change your look to not get caught", "Change your look", RoleId.MorphlingNK, Faction.NK);
         public static readonly RoleInfo RuthlessRomantic = new("Ruthless Romantic", Roles.RuthlessRomantic.Color, "Kill all players!", "Kill all players!", RoleId.RuthlessRomantic, Faction.NK);
         public static readonly RoleInfo ShadeNeutralKiller = new("Shade", NeutralKiller.Color, "Disappear and Kill", "Disappear and Kill", RoleId.ShadeNK, Faction.NK);
+        public static readonly RoleInfo ParasiteNeutralKiller = new("Parasite", NeutralKiller.Color, "Infest and Kill", "Infest and Kill", RoleId.ParasiteNK, Faction.NK);
         public static readonly RoleInfo UndertakerNeutralKiller = new("Undertaker", NeutralKiller.Color, "Kill everyone and leave no traces", "Drag up dead bodies to hide them", RoleId.UndertakerNK, Faction.NK);
         public static readonly RoleInfo VampireNeutralKiller = new("Vampire", NeutralKiller.Color, "Kill the Crewmates with your bites", "Bite your enemies", RoleId.VampireNK, Faction.NK);
         public static readonly RoleInfo WarlockNeutralKiller = new("Warlock", NeutralKiller.Color, "Curse other players and kill everyone", "Curse and kill everyone", RoleId.WarlockNK, Faction.NK);
@@ -110,11 +110,10 @@ namespace StellarRoles
 
         public static readonly RoleInfo WasRomantic = new("♥", Roles.Romantic.Color, "", "", RoleId.Romantic, Faction.Modifier);
 
-        public static readonly List<RoleInfo> AllRoleInfos = new()
+        public static List<RoleInfo> AllRoleInfos => new()
         {
             // Impostor Roles
             Bomber,
-            BountyHunter,
             Camouflager,
             Changeling,
             Cultist,
@@ -125,6 +124,7 @@ namespace StellarRoles
             Miner,
             Morphling,
             Shade,
+            Parasite,
             Undertaker,
             Vampire,
             Warlock,
@@ -153,25 +153,25 @@ namespace StellarRoles
             // Neutral Roles
             Arsonist,
             Executioner,
-            HeadHunter,
             Jester,
             Refugee,
             Romantic,
             Scavenger,
 
             // Neutral Killing Roles
+            HeadHunter,
             Nightmare,
             Pyromaniac,
             RuthlessRomantic,
 
             // Rogue Impostor Roles
             BomberNeutralKiller,
-            BountyHunterNeutralKiller,
             CamouflagerNeutralKiller,
             JanitorNeutralKiller,
             MinerNeutralKiller,
             MorphlingNeutralKiller,
             ShadeNeutralKiller,
+            ParasiteNeutralKiller,
             UndertakerNeutralKiller,
             VampireNeutralKiller,
             WarlockNeutralKiller,
@@ -192,6 +192,7 @@ namespace StellarRoles
         public static List<RoleInfo> GetRoleInfoForPlayer(PlayerControl player, bool showModifier = true)
         {
             List<RoleInfo> infos = new();
+
 
             // Modifier
             if (showModifier)
@@ -225,8 +226,8 @@ namespace StellarRoles
             else if (player == Roles.Wraith.Player) infos.Add(Roles.Wraith.IsNeutralKiller ? WraithNeutralKiller : Wraith);
             else if (player == Roles.Hacker.Player) infos.Add(Hacker);
             else if (player == Roles.Miner.Player) infos.Add(Roles.Miner.IsNeutralKiller ? MinerNeutralKiller : Miner);
-            else if (player == Roles.BountyHunter.Player) infos.Add(Roles.BountyHunter.IsNeutralKiller ? BountyHunterNeutralKiller : BountyHunter);
             else if (player == Roles.Shade.Player) infos.Add(Roles.Shade.IsNeutralKiller ? ShadeNeutralKiller : Shade);
+            else if (player == Roles.Parasite.Player) infos.Add(Roles.Parasite.IsNeutralKiller ? ParasiteNeutralKiller : Parasite);
             else if (player == Roles.Bomber.Player) infos.Add(Roles.Bomber.IsNeutralKiller ? BomberNeutralKiller : Bomber);
             else if (player == Roles.Changeling.Player) infos.Add(Changeling);
             else if (player == Roles.Cultist.Player) infos.Add(Cultist);

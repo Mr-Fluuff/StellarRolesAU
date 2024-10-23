@@ -4,7 +4,7 @@ namespace StellarRoles
 {
     public static class Changeling
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = Palette.ImpostorRed;
 
         private static Sprite _ButtonSprite;

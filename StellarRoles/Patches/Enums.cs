@@ -9,12 +9,12 @@ namespace StellarRoles
     public enum SabatageTypes
     {
         Comms,
-        O2,
+        LifeSupp,
         Reactor,
         OxyMask,
         Lights,
-        Charles,
-        Seismic,
+        HeliSabotage,
+        Laboratory,
         None
     }
     public enum Map
@@ -24,7 +24,8 @@ namespace StellarRoles
         Polus,
         Dleks,
         Airship,
-        Submerged
+        Fungal,
+        Submerged,
     }
     public enum Faction
     {
@@ -42,6 +43,7 @@ namespace StellarRoles
         Janitor,
         Warlock,
         Shade,
+        Parasite,
         Morphling,
         Hacker,
         Miner,
@@ -52,7 +54,6 @@ namespace StellarRoles
         Changeling,
         Follower,
         Wraith,
-        BountyHunter,
         Assassin,
         NKAssassin,
         Bomber,
@@ -91,13 +92,13 @@ namespace StellarRoles
         JanitorNK,
         WarlockNK,
         ShadeNK,
+        ParasiteNK,
         MorphlingNK,
         MinerNK,
         CamouflagerNK,
         VampireNK,
         UndertakerNK,
         WraithNK,
-        BountyHunterNK,
         BomberNK,
         Nightmare,
         Pyromaniac,
@@ -120,7 +121,7 @@ namespace StellarRoles
     {
         // Main Controls
 
-        ResetVaribles = 60,
+        ResetVaribles,
         ShareOptions,
         ForceEnd,
         LoverPairDead,
@@ -133,10 +134,10 @@ namespace StellarRoles
         SetGameStarting,
         ExitAllVents,
         ShareRandomSeed,
-
+        UpdateSurvivability,
         // Role functionality
 
-        EngineerFixLights = 101,
+        EngineerFixLights,
         EngineerFixSubmergedOxygen,
         CleanBody,
         DragBody,
@@ -147,6 +148,9 @@ namespace StellarRoles
         ParalyzePlayer,
         PyromaniacDouse,
         MorphlingMorph,
+        SetLook,
+        ControlPlayer,
+        KillInfected,
         CamouflagerCamouflage,
         TrackerMarkPlayer,
         TrackerTrackWarning,
@@ -208,12 +212,17 @@ namespace StellarRoles
         ShadeClearBlind,
         AddSpectator,
         RemoveSpectator,
+        ClearToBeSpectators,
         AvengedLover,
         Duel,
         ClearDuel,
         SendResultOfDuel,
         MayorRetire,
         PsychicAddCount,
-        SnapToRpc
+        SnapToRpc,
+        ResetAnimation,
+        ResetKillButton,
+        AddDeadPlayer,
+        MoveControlledPlayer
     }
 }

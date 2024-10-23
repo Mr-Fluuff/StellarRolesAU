@@ -33,7 +33,7 @@ namespace StellarRoles
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                 },
-                () => Wraith.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Wraith.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, WraithPhaseButton, "Dash");
@@ -75,7 +75,8 @@ namespace StellarRoles
                         Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
                         Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
 
-                        MessageWriter writer = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.PlaceLantern, SendOption.Reliable);
+                        MessageWriter writer = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable);
+                        writer.Write((byte)CustomRPC.PlaceLantern);
                         writer.WriteBytesAndSize(buff);
                         writer.EndMessage();
                         RPCProcedure.PlaceLantern(buff);
@@ -84,7 +85,10 @@ namespace StellarRoles
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);
                     }
                 },
-                () => Wraith.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Wraith.HasLantern && Lantern.CurrentLantern == null,
+                () =>
+                {
+                    return Wraith.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Wraith.HasLantern && Lantern.CurrentLantern == null;
+                },
                 () =>
                 {
                     WraithLanternPlaceButton.ActionButton.graphic.sprite = Wraith.GetLanternButtonSprite();
@@ -119,12 +123,15 @@ namespace StellarRoles
                         WraithLanternPlaceButton.Timer = WraithLanternPlaceButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
                         ;
 
-                        RPCProcedure.Send(CustomRPC.SetInvisible, Wraith.Player.PlayerId, false);
+                        RPCProcedure.Send(CustomRPC.SetInvisible, Wraith.Player, false);
                         RPCProcedure.SetInvisible(Wraith.Player, false);
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);
                     }
                 },
-                () => Wraith.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Wraith.HasLantern && Lantern.CurrentLantern != null,
+                () =>
+                {
+                    return Wraith.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Wraith.HasLantern && Lantern.CurrentLantern != null;
+                },
                 () =>
                 {
                     WraithLanternReturnButton.ActionButton.graphic.sprite = Wraith.GetReturnButtonSprite();

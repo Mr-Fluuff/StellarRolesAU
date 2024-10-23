@@ -7,7 +7,7 @@ namespace StellarRoles
     {
         public const float SpeedMultiplier = 1.75f;
 
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
 
         public static bool HasLantern => CustomOptionHolder.WraithLantern.GetBool();

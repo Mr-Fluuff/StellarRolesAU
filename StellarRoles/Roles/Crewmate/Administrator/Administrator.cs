@@ -4,7 +4,7 @@ namespace StellarRoles
 {
     public static class Administrator
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(160, 115, 215, byte.MaxValue);
 
         private static Sprite _AdminSprite;
@@ -73,6 +73,10 @@ namespace StellarRoles
                 case 5:
                     _RoundOneAdminSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.RoundOne.R1AdminSubmerged.png", 115f);
                     _AdminSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Administrator.AdminSubmerged.png", 115f);
+                    break;
+                default:
+                    _RoundOneAdminSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.RoundOne.R1AdminSkeld.png", 115f);
+                    _AdminSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Administrator.AdminSkeld.png", 115f);
                     break;
             }
         }

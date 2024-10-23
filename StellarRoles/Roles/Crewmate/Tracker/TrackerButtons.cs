@@ -18,7 +18,7 @@ namespace StellarRoles
             TrackerMarkButton = new CustomButton(
                 () =>
                 {
-                    RPCProcedure.Send(CustomRPC.TrackerMarkPlayer, Tracker.CurrentTarget.PlayerId);
+                    RPCProcedure.Send(CustomRPC.TrackerMarkPlayer, Tracker.CurrentTarget);
                     RPCProcedure.TrackerMarkPlayer(Tracker.CurrentTarget);
                     SoundEffectsManager.Play(Sounds.TrackPlayer);
                     TrackerMarkButton.Timer = TrackerMarkButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
@@ -70,17 +70,14 @@ namespace StellarRoles
                             Tracker.TrackActive = true;
                         }
                     })));
-                    HudManager.Instance.StartCoroutine(Effects.Lerp(Tracker.DelayDuration + Tracker.CalculateTrackDuration(), new Action<float>((p) =>
+                    (Tracker.DelayDuration + Tracker.CalculateTrackDuration()).DelayedAction(() => 
                     {
-                        if (p == 1f)
-                        {
-                            TrackerTrackButton.Timer = Tracker.TrackTargetCooldown;
-                            TrackerTrackButton.ActionButton.cooldownTimerText.SetFaceColor(Color.white);
-                            Tracker.TrackActive = false;
-                        }
-                    })));
+                        TrackerTrackButton.Timer = Tracker.TrackTargetCooldown;
+                        TrackerTrackButton.ActionButton.cooldownTimerText.SetFaceColor(Color.white);
+                        Tracker.TrackActive = false;
+                    });
                 },
-                () => Tracker.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Tracker.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     TrackerTrackButton.ActionButton.buttonLabelText.SetOutlineColor(Color.cyan);

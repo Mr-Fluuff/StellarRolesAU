@@ -6,6 +6,7 @@ namespace StellarRoles
     public class HelpInfo
     {
         private static Sprite menuBackground;
+        private static Sprite __HelpMenuBackground;
         private static Sprite factionBackground;
 
         public static string[] CrewmateFunnyLines = new string[] { "Sucks To Suck",
@@ -58,15 +59,16 @@ namespace StellarRoles
 
         public static Sprite getMenuBackground()
         {
-            if (menuBackground != null) return menuBackground;
-            menuBackground = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Screen.png", 110f);
-            return menuBackground;
+            return menuBackground ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Screen.png", 110f);
         }
         public static Sprite getFactionBackground()
         {
-            if (factionBackground != null) return factionBackground;
-            factionBackground = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.FactionScreen.png", 110f);
-            return factionBackground;
+            return factionBackground ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.FactionScreen.png", 110f);
+        }
+
+        public static Sprite getHelpMenuBackground()
+        {
+            return __HelpMenuBackground ??= Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.HelpScreen.png", 100f);
         }
 
         public static Sprite helpButtonGetSprite(RoleId roleId)
@@ -122,10 +124,6 @@ namespace StellarRoles
                 case RoleId.Bomber:
                 case RoleId.BomberNK:
                     helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenBomber.png", 100f);
-                    break;
-                case RoleId.BountyHunter:
-                case RoleId.BountyHunterNK:
-                    helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenBountyHunter.png", 100f);
                     break;
                 case RoleId.Camouflager:
                 case RoleId.CamouflagerNK:
@@ -241,6 +239,10 @@ namespace StellarRoles
                 case RoleId.Hacker:
                     helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenHacker.png", 100f);
                     break;
+                case RoleId.Parasite:
+                case RoleId.ParasiteNK:
+                    helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenParasite.png", 100f);
+                    break;
                 default:
                     helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.HelpScreen.png", 100f);
                     break;
@@ -252,7 +254,6 @@ namespace StellarRoles
         {
             //Imps
             Bomber.GetDescription();
-            BountyHunter.GetDescription();
             Camouflager.GetDescription();
             Changeling.GetDescription();
             Cultist.GetDescription();
@@ -262,6 +263,7 @@ namespace StellarRoles
             Miner.GetDescription();
             Morphling.GetDescription();
             Shade.GetDescription();
+            Parasite.GetDescription();
             Undertaker.GetDescription();
             Vampire.GetDescription();
             Warlock.GetDescription();

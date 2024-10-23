@@ -6,7 +6,7 @@ namespace StellarRoles
     public static class Psychic
     {
         public static readonly Color Color = new Color32(134, 55, 86, byte.MaxValue);
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static int AbilitesUsed { get; set; }
         public static bool isRoleBlocked => CustomOptionHolder.PsychicRoleBlock.GetBool() && Helpers.IsCommsActive();
         public static float PlayerRange => CustomOptionHolder.PsychicPlayerRange.GetFloat() * 6;
@@ -44,7 +44,7 @@ namespace StellarRoles
             if (CustomOptionHolder.ChangelingSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)
                 abilites.Add($"Transform ({nameof(Changeling)})");
             if (CustomOptionHolder.ShadeSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)
-                abilites.Add($"Emerge({nameof(Shade)})");
+                abilites.Add($"Emerge ({nameof(Shade)})");
             if (CustomOptionHolder.PyromaniacSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)
                 abilites.Add($"Burn ({nameof(Pyromaniac)})");
             if (CustomOptionHolder.RomanticSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)

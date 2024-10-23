@@ -8,7 +8,7 @@ namespace StellarRoles
 {
     public static class Detective
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(35, 52, 81, byte.MaxValue);
 
 
@@ -18,7 +18,7 @@ namespace StellarRoles
         public static float Duration => CustomOptionHolder.DetectiveInspectDuration.GetFloat();
         public static bool IsCrimeSceneEnabled => CustomOptionHolder.DetectiveEnableCrimeScenes.GetBool();
         public static float InspectsPerRoundDefault => CustomOptionHolder.DetectiveInspectsPerRound.GetFloat();
-        public static bool RoleBlock => CustomOptionHolder.DetectiveRoleBlock.GetBool() && CustomOptionHolder.CrewRoleBlock.GetBool();
+        public static bool RoleBlock => CustomOptionHolder.DetectiveRoleBlock.GetBool();
         private static Sprite _CrimeSceneSprite;
 
 
@@ -29,8 +29,8 @@ namespace StellarRoles
         public static DateTime MeetingStartTime { get; set; } = DateTime.UtcNow;
         public static readonly List<SpriteRenderer> CrimeScenes = new();
 
-        public static readonly List<(DeadPlayer, Vector3)> DeadBodies = new();
-        public static readonly List<(DeadPlayer, Vector3)> FeatureDeadBodies = new();
+        public static readonly List<(DeadPlayer, Vector3)> OldDeadBodies = new();
+        public static readonly List<(DeadPlayer, Vector3)> FreshDeadBodies = new();
 
         //QuestionInfo
         public static readonly Dictionary<byte, PlayerList> KillersLinkToKills = new();
@@ -100,9 +100,9 @@ namespace StellarRoles
             timeSinceDeathMeeting = (float)Math.Round(timeSinceDeathMeeting / 1000);
             float timeSinceDeath = (float)Math.Round((DateTime.UtcNow - Target.TimeOfDeath).TotalMilliseconds / 1000);
             bool isCorpse = IsCorpse(Target.Player.PlayerId);
-            bool fresh = isCorpse ? timeSinceDeath < 10 : timeSinceDeathMeeting < 10;
-            bool older = isCorpse ? timeSinceDeath > 10 && timeSinceDeath < 20 : timeSinceDeathMeeting > 10 && timeSinceDeathMeeting < 20;
-            bool dead = isCorpse ? timeSinceDeath > 20 : timeSinceDeathMeeting > 20;
+            bool fresh = isCorpse ? timeSinceDeath <= 10 : timeSinceDeathMeeting <= 10;
+            bool older = isCorpse ? timeSinceDeath >= 10 && timeSinceDeath <= 20 : timeSinceDeathMeeting >= 10 && timeSinceDeathMeeting <= 20;
+            bool dead = isCorpse ? timeSinceDeath >= 20 : timeSinceDeathMeeting >= 20;
             string name = $"({Target.Player.Data.PlayerName})";
 
             switch (questionNumber)
@@ -256,7 +256,7 @@ namespace StellarRoles
 
         public static bool IsCorpse(byte playerId)
         {
-            return FeatureDeadBodies.Any(body => body.Item1.Player.PlayerId == playerId);
+            return FreshDeadBodies.Any(body => body.Item1.Player.PlayerId == playerId);
         }
 
         public static string CorpseTime()
@@ -346,8 +346,8 @@ namespace StellarRoles
             Player = null;
             Target = null;
             InspectTarget = null;
-            DeadBodies.Clear();
-            FeatureDeadBodies.Clear();
+            OldDeadBodies.Clear();
+            FreshDeadBodies.Clear();
             CrimeScenes.Clear();
             MeetingStartTime = DateTime.UtcNow;
             KillersLinkToKills.Clear();

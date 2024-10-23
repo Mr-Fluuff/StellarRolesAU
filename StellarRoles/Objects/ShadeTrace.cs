@@ -30,16 +30,18 @@ namespace StellarRoles.Objects
 
             float fadeOutDuration = 1f;
             if (fadeOutDuration > duration) fadeOutDuration = 0.5f * duration;
-            FastDestroyableSingleton<HudManager>.Instance.StartCoroutine(Effects.Lerp(duration, new Action<float>((p) =>
+            HudManager.Instance.StartCoroutine(Effects.Lerp(duration, new Action<float>((p) =>
             {
                 float interP = 0f;
                 if (p < (duration - fadeOutDuration) / duration)
                     interP = 0f;
-                else 
+                else
                     interP = (p * duration + fadeOutDuration - duration) / fadeOutDuration;
 
-                if (traceRenderer) 
-                    traceRenderer.color = new Color(traceRenderer.color.r, traceRenderer.color.g, traceRenderer.color.b, Mathf.Clamp01(1 - interP));
+                float alpha = TraceGameObject.NearActiveMushroom() ? 0 : Mathf.Clamp01(1 - interP);
+
+                if (traceRenderer)
+                    traceRenderer.color = new Color(traceRenderer.color.r, traceRenderer.color.g, traceRenderer.color.b, alpha);
             })));
 
             TraceGameObject.SetActive(true);

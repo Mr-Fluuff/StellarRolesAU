@@ -4,13 +4,13 @@ namespace StellarRoles
 {
     public static class Morphling
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
         public static float Cooldown => CustomOptionHolder.MorphlingCooldown.GetFloat();
         public static float Duration => CustomOptionHolder.MorphlingDuration.GetFloat();
-        public static PlayerControl SampledTarget { get; set; }
-        public static PlayerControl MorphTarget { get; set; }
-        public static PlayerControl AbilityCurrentTarget { get; set; }
+        public static PlayerControl SampledTarget { get; set; } = null;
+        public static PlayerControl MorphTarget { get; set; } = null;
+        public static PlayerControl AbilityCurrentTarget { get; set; } = null;
         public static float MorphTimer { get; set; } = 0f;
 
         private static Sprite _SampleSprite;
@@ -31,7 +31,10 @@ namespace StellarRoles
             MorphTimer = 0f;
             SampledTarget = null;
             if (Player == null) return;
-            Player.SetDefaultLook();
+            if (!Player.IsMushroomMixupActive())
+            {
+                Player.SetDefaultLook();
+            }
         }
 
         public static void ClearAndReload()

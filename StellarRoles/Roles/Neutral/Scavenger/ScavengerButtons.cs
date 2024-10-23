@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using StellarRoles.Objects;
-using UnityEngine;
 
 namespace StellarRoles
 {
@@ -29,7 +28,7 @@ namespace StellarRoles
                     SoundEffectsManager.Play(Sounds.TrackCorpses);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Scavenger.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Scavenger.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, ScavengerCorpsesButton, $"SCAVENGE");
@@ -61,28 +60,18 @@ namespace StellarRoles
                     {
                         scavengerEatRange = Helpers.GetKillDistance();
                     }
-                    foreach (Collider2D collider2D in Physics2D.OverlapCircleAll(PlayerControl.LocalPlayer.GetTruePosition(), scavengerEatRange, Constants.PlayersOnlyMask))
-                        if (collider2D.tag == "DeadBody")
-                        {
-                            DeadBody component = collider2D.GetComponent<DeadBody>();
-                            if (component?.Reported == false)
-                            {
-                                Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
-                                Vector2 truePosition2 = component.TruePosition;
-                                if (Vector2.Distance(truePosition2, truePosition) <= scavengerEatRange && PlayerControl.LocalPlayer.CanMove && !PhysicsHelpers.AnythingBetween(truePosition, truePosition2, Constants.ShadowMask, false))
-                                {
-                                    RPCProcedure.Send(CustomRPC.ScavengerEat, component.ParentId);
-                                    RPCProcedure.ScavengerEat(component.ParentId);
 
-                                    ScavengerEatButton.Timer = ScavengerEatButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
-                                    SoundEffectsManager.Play(Sounds.Eat);
-                                    Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddEat);
-                                    _ = new CustomMessage($"{Scavenger.BodiesRemainingToWin()} Bodies Left To Win", 3f, true, Scavenger.Color);
-                                    RPCProcedure.Send(CustomRPC.PsychicAddCount);
-                                    break;
-                                }
-                            }
-                        }
+                    if (Helpers.BodyInRange(scavengerEatRange, out DeadBody body))
+                    {
+                        RPCProcedure.Send(CustomRPC.ScavengerEat, body);
+                        RPCProcedure.ScavengerEat(body.ParentId);
+
+                        ScavengerEatButton.Timer = ScavengerEatButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);
+                        SoundEffectsManager.Play(Sounds.Eat);
+                        PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddEat);
+                        _ = new CustomMessage($"{Scavenger.BodiesRemainingToWin()} Bodies Left To Win", 3f, true, Scavenger.Color);
+                        RPCProcedure.Send(CustomRPC.PsychicAddCount);
+                    }
 
                     if (Scavenger.EatenBodies == Scavenger.ScavengerNumberToWin)
                     {
@@ -92,24 +81,17 @@ namespace StellarRoles
                     }
 
                 },
-                () => Scavenger.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return Scavenger.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, ScavengerEatButton, $"EAT");
                     ScavengerEatButton.ActionButton.buttonLabelText.SetOutlineColor(Scavenger.Color);
-                    foreach (Collider2D collider2D in Physics2D.OverlapCircleAll(PlayerControl.LocalPlayer.GetTruePosition(), Helpers.GetKillDistance() * 0.5f, Constants.PlayersOnlyMask))
-                        if (collider2D.tag == "DeadBody")
-                        {
-                            DeadBody component = collider2D.GetComponent<DeadBody>();
-                            if (component?.Reported == false)
-                            {
-                                Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
-                                Vector2 truePosition2 = component.TruePosition;
-                                if (Vector2.Distance(truePosition2, truePosition) <= Helpers.GetKillDistance() * 0.5f && PlayerControl.LocalPlayer.CanMove)
-                                    return true;
-                            }
-                        }
-
+                    float scavengerEatRange = Helpers.GetKillDistance() * .5f;
+                    if (Ascended.IsAscended(Scavenger.Player))
+                    {
+                        scavengerEatRange = Helpers.GetKillDistance();
+                    }
+                    if (Helpers.BodyInRange(scavengerEatRange)) return true;
                     return false;
                 },
                 () => ScavengerEatButton.Timer = ScavengerEatButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer),

@@ -25,9 +25,9 @@ namespace StellarRoles
                 () =>
                 {
                     PlayerControl localplayer = PlayerControl.LocalPlayer;
-                    foreach (PlayerControl target in Helpers.FindClosestPlayers(localplayer, Nightmare.BlindRadius))
+                    foreach (PlayerControl target in localplayer.FindClosestPlayers(Nightmare.BlindRadius))
                     {
-                        RPCProcedure.Send(CustomRPC.NightMareBlind, localplayer.PlayerId, target.PlayerId);
+                        RPCProcedure.Send(CustomRPC.NightMareBlind, localplayer, target);
                         RPCProcedure.NightMareBlind(localplayer, target);
                     }
 
@@ -35,7 +35,7 @@ namespace StellarRoles
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                 },
-                () => PlayerControl.LocalPlayer.IsNightmare(out _) && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return PlayerControl.LocalPlayer.IsNightmare(out _) && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, NightmareBlindButton, "BLIND");
@@ -65,7 +65,7 @@ namespace StellarRoles
                     PlayerControl target = PlayerControl.LocalPlayer.IsNightmare(out Nightmare nightmare) ? nightmare.AbilityCurrentTarget : null;
                     if (target != null)
                     {
-                        RPCProcedure.Send(CustomRPC.ParalyzePlayer, PlayerControl.LocalPlayer.PlayerId, target.PlayerId);
+                        RPCProcedure.Send(CustomRPC.ParalyzePlayer, PlayerControl.LocalPlayer, target);
                         RPCProcedure.ParalyzePlayer(nightmare, nightmare.AbilityCurrentTarget);
                     }
                     NightmareParalyzeButton.Timer = NightmareParalyzeButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer);

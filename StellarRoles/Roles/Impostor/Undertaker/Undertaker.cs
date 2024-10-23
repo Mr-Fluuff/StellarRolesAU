@@ -4,7 +4,7 @@ namespace StellarRoles
 {
     public static class Undertaker
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static Color Color => IsNeutralKiller ? NeutralKiller.Color : Palette.ImpostorRed;
         public static float DraggingDelayAfterKill => CustomOptionHolder.UndertakerDragingDelaiAfterKill.GetFloat();
         public static float DraggingCooldown => CustomOptionHolder.UndertakerDragCooldown.GetFloat();

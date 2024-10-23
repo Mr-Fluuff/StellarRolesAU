@@ -137,6 +137,7 @@ namespace StellarRoles
                       if (!MapBehaviour.Instance || !MapBehaviour.Instance.isActiveAndEnabled)
                       {
                           HudManager.Instance.InitMap();
+                          MapBehaviour.Instance.ShowNormalMap();
                           MapBehaviour.Instance.ShowCountOverlay(allowedToMove: true, showLivePlayerPosition: true, includeDeadBodies: true);
                       }
 
@@ -199,6 +200,8 @@ namespace StellarRoles
                    if (!Hacker.VitalsActive)
                    {
                        SystemConsole e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("panel_vitals"));
+                       if (e == null)
+                           e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("VitalsConsole"));
                        if (e == null || Camera.main == null)
                            return;
                        Hacker.VitalsActive = true;
@@ -282,12 +285,14 @@ namespace StellarRoles
                 {
                     if (Hacker.HackedMinigame == null)
                     {
-                        byte mapId = GameOptionsManager.Instance.currentNormalGameOptions.MapId;
+                        var map = Helpers.CurrentMap();
                         SystemConsole e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("Surv_Panel"));
-                        if (mapId == 0 || mapId == 3)
+                        if (map == Map.Skeld || map == Map.Dleks)
                             e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("SurvConsole"));
-                        else if (mapId == 4)
+                        else if (map == Map.Airship)
                             e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("task_cams"));
+                        else if (map == Map.Fungal)
+                            e = Object.FindObjectsOfType<SystemConsole>().FirstOrDefault(x => x.gameObject.name.Contains("BinocularsSecurityConsole"));
                         if (e == null || Camera.main == null)
                             return;
                         Hacker.HackedMinigame = Object.Instantiate(e.MinigamePrefab, Camera.main.transform, false);

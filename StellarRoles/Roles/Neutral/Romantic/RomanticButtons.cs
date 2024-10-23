@@ -29,11 +29,11 @@ namespace StellarRoles
                 {
                     if (Romantic.CurrentTarget != null)
                     {
-                        RPCProcedure.Send(CustomRPC.FallInLove, Romantic.CurrentTarget.PlayerId);
+                        RPCProcedure.Send(CustomRPC.FallInLove, Romantic.CurrentTarget);
                         RPCProcedure.FallInLove(Romantic.CurrentTarget);
                     }
                 },
-                () => !Romantic.HasLover && Romantic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead,
+                () => { return !Romantic.HasLover && Romantic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
                 () =>
                 {
                     RomanticStalkButton.ActionButton.buttonLabelText.SetOutlineColor(Romantic.Color);
@@ -57,7 +57,7 @@ namespace StellarRoles
                     SoundEffectsManager.Play(Sounds.Shield);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
-                () => Romantic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Romantic.HasLover,
+                () => { return Romantic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && Romantic.HasLover; },
                 () =>
                 {
                     RomanticProtectButton.ActionButton.buttonLabelText.SetOutlineColor(Romantic.Color);
@@ -86,7 +86,7 @@ namespace StellarRoles
             VengefulRomanticKillButton = new CustomButton(
                 () =>
                 {
-                    MurderAttemptResult murderAttemptResult = Helpers.CheckMuderAttempt(VengefulRomantic.Player, VengefulRomantic.CurrentTarget);
+                    MurderAttemptResult murderAttemptResult = Helpers.CheckMurderAttempt(VengefulRomantic.Player, VengefulRomantic.CurrentTarget);
                     if (murderAttemptResult == MurderAttemptResult.SuppressKill)
                         return;
 
@@ -97,13 +97,13 @@ namespace StellarRoles
                         {
                             target = VengefulRomantic.CurrentTarget;
                             Helpers.AvengedLover();
-                            Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddCorrectShot);
+                            PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddCorrectShot);
                         }
                         else
                         {
                             target = PlayerControl.LocalPlayer;
                             Helpers.PlayerKilledByAbility(target);
-                            Helpers.AddGameInfo(PlayerControl.LocalPlayer.PlayerId, InfoType.AddMisfire);
+                            PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.AddMisfire);
                             RPCProcedure.Send(CustomRPC.PsychicAddCount);
                         }
 
@@ -113,7 +113,7 @@ namespace StellarRoles
                     VengefulRomanticKillButton.Timer = VengefulRomanticKillButton.MaxTimer;
                     VengefulRomantic.CurrentTarget = null;
                 },
-                () => VengefulRomantic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !VengefulRomantic.AvengedLover && VengefulRomantic.Target != null && !PlayerControl.LocalPlayer.IsBombedAndActive(),
+                () => { return VengefulRomantic.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead && !VengefulRomantic.AvengedLover && VengefulRomantic.Target != null && !PlayerControl.LocalPlayer.IsBombedAndActive(); },
                 () =>
                 {
                     Helpers.ShowTargetNameOnButtonExplicit(null, VengefulRomanticKillButton, "Avenge");

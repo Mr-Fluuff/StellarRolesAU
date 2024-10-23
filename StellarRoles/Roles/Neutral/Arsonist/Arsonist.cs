@@ -6,15 +6,15 @@ namespace StellarRoles
 {
     public static class Arsonist
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(238, 112, 46, byte.MaxValue);
         public static float Cooldown => CustomOptionHolder.ArsonistCooldown.GetFloat();
         public static float Duration => CustomOptionHolder.ArsonistDuration.GetFloat();
         public static float RoundCooldown => CustomOptionHolder.ArsonistDouseIgniteRoundCooldown.GetFloat();
         public static bool TriggerArsonistWin { get; set; } = false;
 
-        public static PlayerControl CurrentTarget { get; set; }
-        public static PlayerControl DouseTarget { get; set; }
+        public static PlayerControl CurrentTarget { get; set; } = null;
+        public static PlayerControl DouseTarget { get; set; } = null;
         public static readonly PlayerList DousedPlayers = new();
 
         private static Sprite _DouseSprite;

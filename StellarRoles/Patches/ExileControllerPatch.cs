@@ -12,57 +12,10 @@ namespace StellarRoles.Patches
     [HarmonyPriority(Priority.First)]
     class ExileControllerBeginPatch
     {
-        public static GameData.PlayerInfo lastExiled;
-        public static void Prefix([HarmonyArgument(0)] GameData.PlayerInfo exiled)
+        public static ExileController.InitProperties Init;
+        public static void Prefix(ExileController __instance, [HarmonyArgument(0)] ExileController.InitProperties init)
         {
-            lastExiled = exiled;
-
-            // Guardian shield
-            if (Guardian.Shielded != null && AmongUsClient.Instance.AmHost)
-            {
-                // We need to send the RPC from the host here, to make sure that the order of shifting and setting the shield is correct(for that reason the futureShifted and futureShielded are being synced)
-                RPCProcedure.Send(CustomRPC.GuardianResetShielded);
-                RPCProcedure.GuardianResetShield();
-            }
-
-            // Miner Vents
-            if (Miner.Player != null)
-            {
-                MinerVent.ConvertToVents();
-            }
-
-            if (AmongUsClient.Instance.AmHost)
-                foreach (Jailor jailor in Jailor.PlayerIdToJailor.Values)
-                {
-                    RPCProcedure.Send(CustomRPC.JailBreak, jailor.Player.PlayerId);
-                    RPCProcedure.JailBreak(jailor);
-                }
-
-            // SecurityGuard vents and cameras
-            List<SurvCamera> allCameras = MapUtilities.CachedShipStatus.AllCameras.ToList();
-            foreach (SurvCamera camera in MapOptions.CamerasToAdd)
-            {
-                camera.gameObject.SetActive(true);
-                camera.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
-                allCameras.Add(camera);
-            };
-            MapUtilities.CachedShipStatus.AllCameras = allCameras.ToArray();
-            MapOptions.CamerasToAdd.Clear();
-
-            foreach (Vent vent in MapOptions.VentsToSeal)
-            {
-                PowerTools.SpriteAnim animator = vent.GetComponent<PowerTools.SpriteAnim>();
-                animator?.Stop();
-                vent.EnterVentAnim = vent.ExitVentAnim = null;
-                vent.myRend.sprite = animator == null ? Trapper.GetStaticVentSealedSprite() : Trapper.GetAnimatedVentSealedSprite();
-                if (vent.name.StartsWith("FutureSealedVent_MinerVent_")) Trapper.GetStaticVentSealedSprite();
-                if (SubmergedCompatibility.IsSubmerged && vent.Id == 0) vent.myRend.sprite = Trapper.GetSubmergedCentralUpperSealedSprite();
-                if (SubmergedCompatibility.IsSubmerged && vent.Id == 14) vent.myRend.sprite = Trapper.GetSubmergedCentralLowerSealedSprite();
-                vent.myRend.color = Color.white;
-                vent.name = "SealedVent_" + vent.name;
-            }
-            MapOptions.VentsToSeal.Clear();
-            MapOptions.VentsInUse.Clear();
+            Init = init;
         }
     }
 
@@ -73,59 +26,183 @@ namespace StellarRoles.Patches
         [HarmonyPatch(typeof(ExileController), nameof(ExileController.WrapUp))]
         class BaseExileControllerPatch
         {
+            public static void Prefix(ExileController __instance)
+            {
+                //WrapUpPrefix(__instance.initData);
+            }
             public static void Postfix(ExileController __instance)
             {
-                WrapUpPostfix(__instance.exiled);
+                WrapUpPostfix(__instance.initData);
             }
         }
 
         [HarmonyPatch(typeof(AirshipExileController), nameof(AirshipExileController.WrapUpAndSpawn))]
         class AirshipExileControllerPatch
         {
+            public static void Prefix(ExileController __instance)
+            {
+                //WrapUpPrefix(__instance.initData);
+            }
             public static void Postfix(AirshipExileController __instance)
             {
-                WrapUpPostfix(__instance.exiled);
+                WrapUpPostfix(__instance.initData);
             }
         }
 
         // Workaround to add a "postfix" to the destroying of the exile controller (i.e. cutscene) and SpwanInMinigame of submerged
-        [HarmonyPatch(typeof(UnityEngine.Object), nameof(UnityEngine.Object.Destroy), new Type[] { typeof(GameObject) })]
-        public static void Prefix(GameObject obj)
+        [HarmonyPatch(typeof(UnityEngine.Object), nameof(UnityEngine.Object.Destroy), [typeof(GameObject)])]
+        class SubmergedExileControllerPatch
         {
-            if (!SubmergedCompatibility.IsSubmerged) return;
-            if (obj.name.Contains("ExileCutscene"))
+            //public static bool Destroyed = false;
+            //public static bool Spawn = false;
+            public static void Prefix(GameObject obj, ref (bool Destroyed, bool Spawn) __state)
             {
-                WrapUpPostfix(ExileControllerBeginPatch.lastExiled);
+                if (!SubmergedCompatibility.IsSubmerged || !Helpers.IsMap(Map.Submerged)) return;
+                try
+                {
+                    if (obj?.name?.Contains("ExileCutscene") == true)
+                    {
+                        __state.Destroyed = true;
+                        //WrapUpPrefix(ExileControllerBeginPatch.Init);
+                    }
+                    else if (obj?.name?.Contains("SpawnInMinigame") == true)
+                    {
+                        __state.Spawn = true;
+                    }
+                }
+                catch { }
             }
-            else if (obj.name.Contains("SpawnInMinigame"))
-                Sleepwalker.SetPosition();
+            public static void Postfix((bool Destroyed, bool Spawn)__state)
+            {
+                if (__state.Destroyed)
+                {
+                    try
+                    {
+                        WrapUpPostfix(ExileControllerBeginPatch.Init);
+                    }
+                    catch { }
+                }
+                else if (__state.Spawn)
+                {
+                    Sleepwalker.SetPosition();
+                    //Spawn = false;
+                }
+            }
         }
 
-        static void WrapUpPostfix(GameData.PlayerInfo exiled)
+/*        static void WrapUpPrefix(ExileController.InitProperties init)
         {
-            // I don't think exiled will be null here but just to be sure
-            if (exiled != null)
+            PlayerControl exiledPlayer = null;
+            if (init.networkedPlayer != null)
             {
-                // Jester win condition
-                if (Jester.IsJester(exiled.PlayerId, out Jester jester))
+                exiledPlayer = init.networkedPlayer.Object;
+            }
+            try
+            {
+                ExtraStats.ExileStats(exiledPlayer);
+            }
+            catch { }
+        }
+*/
+        static void WrapUpPostfix(ExileController.InitProperties init)
+        {
+            PlayerControl exiledPlayer = null;
+            Helpers.CheckImpsAlive();
+            Helpers.CheckPlayersAlive();
+            ExtraStats.UpdateSurvivability();
+
+
+            if (init.networkedPlayer != null)
+            {
+                exiledPlayer = init.networkedPlayer.Object;
+            }
+
+            if (AmongUsClient.Instance.AmHost)
+            {
+                // Guardian shield
+                if (Guardian.Shielded != null)
                 {
-                    RPCProcedure.Send(CustomRPC.SetJesterWinner, exiled.PlayerId);
-                    Jester.WinningJesterPlayer = jester.Player;
-                    Jester.TriggerJesterWin = true;
+                    // We need to send the RPC from the host here, to make sure that the order of shifting and setting the shield is correct(for that reason the futureShifted and futureShielded are being synced)
+                    RPCProcedure.Send(CustomRPC.GuardianResetShielded);
+                    RPCProcedure.GuardianResetShield();
                 }
 
-                // Executioner win condition
-                if (Executioner.Player != null && Executioner.Target.PlayerId == exiled.PlayerId && !Executioner.Player.Data.IsDead)
+                foreach (Jailor jailor in Jailor.PlayerIdToJailor.Values)
                 {
-                    RPCProcedure.Send(CustomRPC.SetExecutionerWin);
-                    Executioner.TriggerExecutionerWin = true;
+                    RPCProcedure.Send(CustomRPC.JailBreak, jailor.Player);
+                    RPCProcedure.JailBreak(jailor);
                 }
 
-                foreach (Spiteful player in Spiteful.SpitefulRoles)
-                    if (player.Player.PlayerId == exiled.PlayerId)
-                        player.IsExiled = true;
-                    else if (!player.IsExiled)
-                        player.VotedBy.Clear();
+                if (exiledPlayer != null)
+                {
+                    // Jester win condition
+                    if (Jester.IsJester(exiledPlayer.PlayerId, out Jester jester))
+                    {
+                        RPCProcedure.Send(CustomRPC.SetJesterWinner, exiledPlayer);
+                        Jester.WinningJesterPlayer = jester.Player;
+                        Jester.TriggerJesterWin = true;
+                    }
+
+                    // Executioner win condition
+                    if (Executioner.Player != null && Executioner.Target.PlayerId == exiledPlayer.PlayerId && !Executioner.Player.Data.IsDead)
+                    {
+                        RPCProcedure.Send(CustomRPC.SetExecutionerWin);
+                        Executioner.TriggerExecutionerWin = true;
+                    }
+                }
+
+                // Guardian shield
+                if (Guardian.Shielded != null)
+                {
+                    // We need to send the RPC from the host here, to make sure that the order of shifting and setting the shield is correct(for that reason the futureShifted and futureShielded are being synced)
+                    RPCProcedure.Send(CustomRPC.GuardianResetShielded);
+                    RPCProcedure.GuardianResetShield();
+                }
+            }
+
+            // Miner Vents
+            if (Miner.Player != null)
+            {
+                MinerVent.ConvertToVents();
+            }
+
+            // SecurityGuard vents and cameras
+            List<SurvCamera> allCameras = ShipStatus.Instance.AllCameras.ToList();
+            foreach (SurvCamera camera in MapOptions.CamerasToAdd)
+            {
+                camera.gameObject.SetActive(true);
+                camera.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
+                allCameras.Add(camera);
+            };
+            ShipStatus.Instance.AllCameras = allCameras.ToArray();
+            MapOptions.CamerasToAdd.Clear();
+
+            foreach (Vent vent in MapOptions.VentsToSeal)
+            {
+                PowerTools.SpriteAnim animator = vent.myAnim;
+                vent.EnterVentAnim = vent.ExitVentAnim = null;
+                vent.myRend.sprite = animator == null ? Trapper.GetStaticVentSealedSprite() : Trapper.GetAnimatedVentSealedSprite();
+                animator?.Stop();
+                if (Helpers.IsMap(Map.Fungal))
+                {
+                    vent.myRend.sprite = Trapper.GetFungalSealedSprite();
+                    vent.myRend.transform.localPosition = new Vector3(0, -.01f);
+                }
+                if (vent.name.StartsWith("FutureSealedVent_MinerVent_")) vent.myRend.sprite = Trapper.GetStaticVentSealedSprite();
+                if (SubmergedCompatibility.IsSubmerged && vent.Id == 0) vent.myRend.sprite = Trapper.GetSubmergedCentralUpperSealedSprite();
+                if (SubmergedCompatibility.IsSubmerged && vent.Id == 14) vent.myRend.sprite = Trapper.GetSubmergedCentralLowerSealedSprite();
+                vent.myRend.color = Color.white;
+                vent.name = "SealedVent_" + vent.name;
+            }
+            MapOptions.VentsToSeal.Clear();
+            MapOptions.VentsInUse.Clear();
+
+            foreach (Spiteful player in Spiteful.SpitefulRoles)
+            {
+                if (exiledPlayer != null && player.Player.PlayerId == exiledPlayer.PlayerId)
+                    player.IsExiled = true;
+                else if (!player.IsExiled)
+                    player.VotedBy.Clear();
             }
 
             Scavenger.ScavengerToRefugeeCheck();
@@ -140,9 +217,6 @@ namespace StellarRoles.Patches
             Tracker.ResetTracked();
 
             Goopy.StartAnimation();
-
-            Helpers.CheckImpsAlive();
-            Helpers.CheckPlayersAlive();
 
             RomanticAbilites.RomanticRoleUpdate(true);
             RomanticAbilites.VengefulRoleUpdate(true);
@@ -169,10 +243,6 @@ namespace StellarRoles.Patches
                 }
             }
 
-            // Force Bounty Hunter Bounty Update
-            if (BountyHunter.Player == PlayerControl.LocalPlayer)
-                BountyHunter.BountyUpdateTimer = 0f;
-
             // Medium spawn souls
             if (Detective.Player == PlayerControl.LocalPlayer)
             {
@@ -180,7 +250,7 @@ namespace StellarRoles.Patches
                     UnityEngine.Object.Destroy(sr.gameObject);
                 Detective.CrimeScenes.Clear();
 
-                foreach ((DeadPlayer deadBody, Vector3 ps) in Detective.FeatureDeadBodies)
+                foreach ((DeadPlayer deadBody, Vector3 ps) in Detective.FreshDeadBodies)
                 {
                     GameObject s = new();
                     //s.transform.position = ps;
@@ -199,27 +269,25 @@ namespace StellarRoles.Patches
                     }
 
                 }
-                Detective.DeadBodies.Clear();
-                Detective.DeadBodies.AddRange(Detective.FeatureDeadBodies);
-                Detective.FeatureDeadBodies.Clear();
+                Detective.OldDeadBodies.Clear();
+                Detective.OldDeadBodies.AddRange(Detective.FreshDeadBodies);
+                Detective.FreshDeadBodies.Clear();
             }
 
             // Sleepwalker set position
-            Sleepwalker.SetPosition();
+            if (!Helpers.IsMap(Map.Airship) && !Helpers.IsMap(Map.Submerged))
+            {
+                Sleepwalker.SetPosition();
+            }
 
-            if (PlayerControl.LocalPlayer.RoleCanUseVents())
+            if (PlayerControl.LocalPlayer.AmOwner)
             {
                 Helpers.ResetVentBug();
+                RPCProcedure.Send(CustomRPC.ResetAnimation, PlayerControl.LocalPlayer);
+                RPCProcedure.ResetAnimation(PlayerControl.LocalPlayer);
             }
-        }
-    }
 
-    [HarmonyPatch(typeof(SpawnInMinigame), nameof(SpawnInMinigame.Close))]  // Set position of AntiTp players AFTER they have selected a spawn.
-    class AirshipSpawnInPatch
-    {
-        static void Postfix()
-        {
-            Sleepwalker.SetPosition();
+            if (GameTimer.Enabletimer) GameTimer._isCountingDown = true;
         }
     }
 
@@ -230,9 +298,9 @@ namespace StellarRoles.Patches
         {
             try
             {
-                if (ExileController.Instance != null && ExileController.Instance.exiled != null)
+                if (ExileController.Instance != null && ExileController.Instance.initData.networkedPlayer != null)
                 {
-                    PlayerControl player = Helpers.PlayerById(ExileController.Instance.exiled.Object.PlayerId);
+                    PlayerControl player = Helpers.PlayerById(ExileController.Instance.initData.networkedPlayer.Object.PlayerId);
                     if (player == null) return;
 
                     bool isSpiteful = player.IsSpiteful(out Spiteful spiteful);
@@ -251,7 +319,7 @@ namespace StellarRoles.Patches
                     if (id == StringNames.ImpostorsRemainP || id == StringNames.ImpostorsRemainS)
                     {
                         if (player.IsJester(out _))
-                            __result = "";
+                            __result = "Meow";
                         __result = "\n" + __result;
                     }
                 }
@@ -269,8 +337,7 @@ namespace StellarRoles.Patches
         public static void Postfix(PlayerControl __instance)
         {
             // Collect dead player info
-            DeadPlayer deadPlayer = new(__instance, DateTime.UtcNow, DeathReason.Exile, null);
-            GameHistory.DeadPlayers.Add(deadPlayer);
+            new DeadPlayer(__instance, DateTime.UtcNow, DeathReason.Exile, null);
 
             // Remove fake tasks when player dies
             if (__instance.HasFakeTasks())

@@ -2,7 +2,6 @@
 using Hazel;
 using StellarRoles.Objects;
 using System;
-using System.Linq;
 using UnityEngine;
 
 namespace StellarRoles
@@ -24,7 +23,8 @@ namespace StellarRoles
                   Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
                   Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
 
-                  MessageWriter writer = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, (byte)CustomRPC.PlaceMinerVent, SendOption.Reliable);
+                  MessageWriter writer = AmongUsClient.Instance.StartRpc(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable);
+                  writer.Write((byte)CustomRPC.PlaceMinerVent);
                   writer.WriteBytesAndSize(buff);
                   writer.EndMessage();
                   RPCProcedure.PlaceMinerVent(buff);
@@ -38,9 +38,13 @@ namespace StellarRoles
               () =>
               {
                   Helpers.ShowTargetNameOnButtonExplicit(null, MineButton, $"Mine - {Miner.ChargesRemaining}");
-                  int hits =
-                    Physics2D.OverlapBoxAll(PlayerControl.LocalPlayer.transform.position, Miner.VentSize, 0)
-                    .Count(c => c.name.Contains("Vent") || (!c.isTrigger && c.gameObject.layer != 8 && c.gameObject.layer != 5));
+                  int hits = 0;
+
+                  foreach (var c in Physics2D.OverlapBoxAll(PlayerControl.LocalPlayer.transform.position, new Vector2(1, 1), 0))
+                  {
+                      if (c.gameObject.layer == 8 || c.gameObject.layer == 5) continue;
+                      if (c.name.Contains("Vent")) hits++;
+                  }
                   return hits == 0 && PlayerControl.LocalPlayer.CanMove && !Impostor.IsRoleAblilityBlocked();
               },
               () =>

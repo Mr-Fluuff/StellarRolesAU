@@ -1,10 +1,16 @@
 using HarmonyLib;
+using Hazel;
+using Reactor.Utilities.Extensions;
 using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
+using static StellarRoles.Patches.GameStartManagerPatch;
+using static UnityEngine.UI.Button;
 
 namespace StellarRoles.Patches
 {
@@ -45,30 +51,36 @@ namespace StellarRoles.Patches
         public class GameStartManagerUpdatePatch
         {
             public static float StartingTimer = 0;
+            private static bool update = false;
+            public static bool sendGamemode = true;
+
+            public static void Prefix(GameStartManager __instance)
+            {
+                if (!GameData.Instance) return; // No instance
+                __instance.MinPlayers = 1;
+                update = GameData.Instance.PlayerCount != __instance.LastPlayerCount;
+            }
 
             public static void Postfix(GameStartManager __instance)
             {
-                // Send version as soon as PlayerControl.LocalPlayer exists
+                // Send version as soon as CachedPlayer.LocalPlayer.PlayerControl exists
                 if (PlayerControl.LocalPlayer != null && !VersionSent)
                 {
                     VersionSent = true;
                     Helpers.ShareGameVersion();
                 }
 
-                // Check version handshake infos
 
+                // Check version handshake infos
                 bool versionMismatch = false;
                 string message = "";
                 foreach (InnerNet.ClientData client in AmongUsClient.Instance.allClients.ToArray())
                 {
                     if (client.Character == null) continue;
-                    DummyBehaviour dummyComponent = client.Character.GetComponent<DummyBehaviour>();
-                    if (dummyComponent != null && dummyComponent.enabled)
-                        continue;
                     else if (!PlayerVersions.ContainsKey(client.Id))
                     {
                         versionMismatch = true;
-                        message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has a different or no version of Stellar Roles\n</color>";
+                        message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has a different or no version of StellarRoles\n</color>";
                     }
                     else
                     {
@@ -76,35 +88,40 @@ namespace StellarRoles.Patches
                         int diff = StellarRolesPlugin.Version.CompareTo(PV.version);
                         if (diff > 0)
                         {
-                            message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has an older version of Stellar Roles (v{PlayerVersions[client.Id].version})\n</color>";
+                            message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has an older version of StellarRoles (v20{PlayerVersions[client.Id].version.ToString()})\n</color>";
                             versionMismatch = true;
                         }
                         else if (diff < 0)
                         {
-                            message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has a newer version of Stellar Roles (v{PlayerVersions[client.Id].version})\n</color>";
+                            message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has a newer version of StellarRoles (v20{PlayerVersions[client.Id].version.ToString()})\n</color>";
                             versionMismatch = true;
                         }
                         else if (!PV.GuidMatches())
                         { // version presumably matches, check if Guid matches
-                            message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has a modified version of Stellar Roles v{PlayerVersions[client.Id].version} <size=30%>({PV.guid})</size>\n</color>";
+                            message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has a modified version of SR v20{PlayerVersions[client.Id].version.ToString()} <size=30%>({PV.guid.ToString()})</size>\n</color>";
                             versionMismatch = true;
                         }
                     }
                 }
-
                 // Display message to the host
                 if (AmongUsClient.Instance.AmHost)
                 {
                     if (versionMismatch)
                     {
-                        __instance.StartButton.color = __instance.startLabelText.color = Palette.DisabledClear;
                         __instance.GameStartText.text = message;
-                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 2;
+                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 5;
+                        __instance.GameStartText.transform.localScale = new Vector3(2f, 2f, 1f);
+                        __instance.GameStartTextParent.SetActive(true);
                     }
                     else
                     {
-                        __instance.StartButton.color = __instance.startLabelText.color = (__instance.LastPlayerCount >= __instance.MinPlayers) ? Palette.EnabledColor : Palette.DisabledClear;
-                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition;
+                        __instance.GameStartText.transform.localPosition = Vector3.zero;
+                        __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
+                        if (!__instance.GameStartText.text.StartsWith("Starting"))
+                        {
+                            __instance.GameStartText.text = String.Empty;
+                            __instance.GameStartTextParent.SetActive(false);
+                        }
                     }
 
                     // Make starting info available to clients:
@@ -128,28 +145,26 @@ namespace StellarRoles.Patches
                             SceneChanger.ChangeScene("MainMenu");
                         }
 
-                        __instance.GameStartText.text = $"<color=#FF0000FF>The host has no or a different version of Stellar Roles\nYou will be kicked in {Math.Round(10 - KickingTimer)}s</color>";
-                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 2;
+                        __instance.GameStartText.text = $"<color=#FF0000FF>The host has no or a different version of StellarRoles\nYou will be kicked in {Math.Round(10 - KickingTimer)}s</color>";
+                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 5;
+                        __instance.GameStartText.transform.localScale = new Vector3(2f, 2f, 1f);
+                        __instance.GameStartTextParent.SetActive(true);
                     }
                     else if (versionMismatch)
                     {
                         __instance.GameStartText.text = $"<color=#FF0000FF>Players With Different Versions:\n</color>" + message;
-                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 2;
+                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 5;
+                        __instance.GameStartText.transform.localScale = new Vector3(2f, 2f, 1f);
+                        __instance.GameStartTextParent.SetActive(true);
                     }
                     else
                     {
-                        __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition;
-                        if (__instance.startState != GameStartManager.StartingStates.Countdown && StartingTimer <= 0)
+                        __instance.GameStartText.transform.localPosition = Vector3.zero;
+                        __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
+                        if (!__instance.GameStartText.text.StartsWith("Starting"))
                         {
-                            __instance.GameStartText.text = string.Empty;
-                        }
-                        else
-                        {
-                            __instance.GameStartText.text = $"Starting in {(int)StartingTimer + 1}";
-                            if (StartingTimer <= 0)
-                            {
-                                __instance.GameStartText.text = string.Empty;
-                            }
+                            __instance.GameStartText.text = String.Empty;
+                            __instance.GameStartTextParent.SetActive(false);
                         }
                     }
                 }
@@ -160,7 +175,7 @@ namespace StellarRoles.Patches
                 }
 
                 // Lobby timer
-                if (!GameData.Instance) return; // No instance
+                if (!GameData.Instance || !__instance.PlayerCounter) return; // No instance
                 var player = GameData.Instance.PlayerCount;
 
                 string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{CustomOptionHolder.LobbySize.GetInt()}");
@@ -173,8 +188,8 @@ namespace StellarRoles.Patches
                 string spectatorCount = spectators > 0 ? $"\nSpectators: {spectators}" : "";
 
                 __instance.PlayerCounter.text = currentText + suffix + spectatorCount;
-                __instance.PlayerCounter.alignment = TMPro.TextAlignmentOptions.Center;
-                __instance.PlayerCounter.autoSizeTextContainer = true;
+                //__instance.PlayerCounter.alignment = TMPro.TextAlignmentOptions.Center;
+                //__instance.PlayerCounter.autoSizeTextContainer = true;
             }
         }
 
@@ -212,7 +227,8 @@ namespace StellarRoles.Patches
                             Map.Skeld,
                             Map.Mira,
                             Map.Polus,
-                            Map.Airship
+                            Map.Airship,
+                            Map.Fungal
                         };
 
                         if (SubmergedCompatibility.Loaded)
@@ -273,6 +289,11 @@ namespace StellarRoles.Patches
                         if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableAirShip.GetQuantity();
                         break;
 
+                    case Map.Fungal:
+                        selection = CustomOptionHolder.DynamicMapEnableFungal.GetSelection();
+                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableFungal.GetQuantity();
+                        break;
+
                     case Map.Submerged:
                         selection = CustomOptionHolder.DynamicMapEnableSubmerged.GetSelection();
                         if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableSubmerged.GetQuantity();
@@ -297,6 +318,25 @@ namespace StellarRoles.Patches
             public bool GuidMatches()
             {
                 return Assembly.GetExecutingAssembly().ManifestModule.ModuleVersionId.Equals(guid);
+            }
+        }
+
+        [HarmonyPatch(typeof(LobbyInfoPane), nameof(LobbyInfoPane.Update))]
+        public class LobbyInfoPanePatch
+        {
+            public static void Postfix(LobbyInfoPane __instance)
+            {
+                var Preset0 = CustomOption.Options[0];
+                var Preset = Preset0.Selections[Preset0.Selection].ToString();
+
+                var GameModeText = GameObject.Find("GameModeText");
+                if (GameModeText == null)  return;
+
+                var text = GameModeText.GetComponent<TextMeshPro>().text;
+                if (text != Preset)
+                {
+                    GameModeText.GetComponent<TextMeshPro>().text = Preset;
+                }
             }
         }
     }

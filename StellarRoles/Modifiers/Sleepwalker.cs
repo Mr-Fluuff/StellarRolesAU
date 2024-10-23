@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace StellarRoles
 {
@@ -23,11 +22,13 @@ namespace StellarRoles
 
         public static void SetPosition()
         {
-            if (LastPosition != Vector3.zero && Players.Any(x => x == PlayerControl.LocalPlayer.PlayerId))
+            if (LastPosition != Vector3.zero && Players.Contains(PlayerControl.LocalPlayer))
             {
                 PlayerControl.LocalPlayer.NetTransform.RpcSnapTo(LastPosition);
                 if (SubmergedCompatibility.IsSubmerged)
                     SubmergedCompatibility.ChangeFloor(LastPosition.y > -7);
+
+                LastPosition = Vector3.zero;
             }
         }
     }

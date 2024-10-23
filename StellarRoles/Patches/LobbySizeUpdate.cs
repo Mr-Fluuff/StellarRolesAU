@@ -20,8 +20,8 @@ namespace StellarRoles.Patches
                     {
                         DynamicLobbies.LobbyLimit = LobbySize;
                         GameOptionsManager.Instance.currentNormalGameOptions.MaxPlayers = DynamicLobbies.LobbyLimit;
-                        FastDestroyableSingleton<GameStartManager>.Instance.LastPlayerCount = DynamicLobbies.LobbyLimit;
-                        PlayerControl.LocalPlayer.RpcSyncSettings(GameOptionsManager.Instance.gameOptionsFactory.ToBytes(GameOptionsManager.Instance.currentGameOptions));
+                        GameStartManager.Instance.LastPlayerCount = DynamicLobbies.LobbyLimit;
+                        PlayerControl.LocalPlayer.RpcSyncSettings(GameOptionsManager.Instance.gameOptionsFactory.ToBytes(GameOptionsManager.Instance.currentGameOptions, false));
                     }
                 }
             }

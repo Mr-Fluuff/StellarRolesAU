@@ -7,7 +7,7 @@ namespace StellarRoles
 {
     public static class Scavenger
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(139, 69, 19, byte.MaxValue);
         public static readonly List<Arrow> LocalArrows = new();
         public static float Cooldown => CustomOptionHolder.ScavengerCooldown.GetFloat();
@@ -60,30 +60,36 @@ namespace StellarRoles
 
         public static void ScavengerToRefugeeCheck()
         {
-            if (Player == null || Player.Data.IsDead || TriggerScavengerWin || AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Ended) return;
+            var localPlayer = PlayerControl.LocalPlayer;
+            if (Player == null || Player != localPlayer || Player.Data.IsDead || TriggerScavengerWin || AmongUsClient.Instance.GameState == InnerNet.InnerNetClient.GameStates.Ended) return;
             int CrewAlive = 0;
             int ImpsAlive = 0;
             int NksAlive = 0;
             int AlivePlayers = 0;
-            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
-                GameData.PlayerInfo data = player.Data;
-                if (data.IsDead || data.Disconnected || data.PlayerId == Player.PlayerId) continue;
+                if (data.IsDead || data == null || data.Disconnected || data.PlayerId == localPlayer.PlayerId) continue;
+                var player = data.Object;
                 AlivePlayers++;
 
                 if (data.Role.IsImpostor)
+                {
                     ImpsAlive++;
-
+                }
                 else if (player.IsNeutralKiller())
+                {
                     NksAlive++;
-
-                else CrewAlive++;
+                }
+                else
+                {
+                    CrewAlive++;
+                }
             }
 
             int KillersAlive = ImpsAlive + NksAlive;
-            bool KillersAlone = (ImpsAlive > 0 && NksAlive <= 0) || (NksAlive == 1 && ImpsAlive <= 0);
-            bool StillPotentialBodies = !KillersAlone && BodiesRemainingToWin() <= (AlivePlayers + BodiesRemaining() - KillersAlive);
-            bool StillPotentialBodies2 = KillersAlone && (KillersAlive <= (CrewAlive + BodiesRemaining() - KillersAlive)) && (BodiesRemainingToWin() <= (CrewAlive + BodiesRemaining() - KillersAlive));
+            bool AloneKillers = (ImpsAlive > 0 && NksAlive == 0) || (NksAlive == 1 && ImpsAlive <= 0);
+            bool StillPotentialBodies = !AloneKillers && BodiesRemainingToWin() <= (AlivePlayers + BodiesRemaining() - KillersAlive);
+            bool StillPotentialBodies2 = AloneKillers && (KillersAlive <= (CrewAlive + BodiesRemaining() - KillersAlive)) && (BodiesRemainingToWin() <= (CrewAlive + BodiesRemaining() - KillersAlive));
 
             bool shouldConvert = !StillPotentialBodies && !StillPotentialBodies2;
 

@@ -1,6 +1,8 @@
 ﻿
 using HarmonyLib;
+using StellarRoles.Objects;
 using StellarRoles.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,21 +15,23 @@ namespace StellarRoles.Patches
     public enum CustomGameOverReason
     {
         JesterWin = 10,
-        ArsonistWin = 11,
-        ScavengerWin = 12,
-        ExecutionerWin = 14,
-        HeadHunterWin = 15,
-        RogueImpostorWin = 16,
-        RefugeeOnlyWin = 17,
-        PyromaniacWin = 18,
-        PyroAndArsoWin = 19,
-        NightmareWin = 20,
-        RuthlessRomanticWin = 21,
-        ImpostorWin = 22,
-        NobodyWins = 23,
-        CrewmateWin = 24,
-        OxygenWin = 25,
-        ReactorWin = 26,
+        ArsonistWin,
+        ScavengerWin,
+        ExecutionerWin,
+        HeadHunterWin,
+        RogueImpostorWin,
+        RefugeeOnlyWin,
+        PyromaniacWin,
+        PyroAndArsoWin,
+        NightmareWin,
+        RuthlessRomanticWin,
+        ImpostorWin,
+        NobodyWins,
+        CrewmateWin,
+        OxygenWin,
+        ReactorWin,
+        TaskWin,
+        TimesUp
     }
 
     public enum WinCondition
@@ -49,7 +53,9 @@ namespace StellarRoles.Patches
         OxygenWin,
         ReactorWin,
         AdditionalAliveRefugeeWin,
-        AdditionalRomanticWin
+        AdditionalRomanticWin,
+        TaskWin,
+        TimesUp
     }
 
     public static class AdditionalTempData
@@ -58,12 +64,14 @@ namespace StellarRoles.Patches
         public static WinCondition WinCondition { get; set; } = WinCondition.Default;
         public static readonly List<WinCondition> AdditionalWinConditions = new();
         public static readonly List<PlayerRoleInfo> PlayerRoles = new();
+        public static List<PlayerEndGameStats> PlayerEndGameStats = new();
 
         public static void Clear()
         {
             PlayerRoles.Clear();
             AdditionalWinConditions.Clear();
             WinCondition = WinCondition.Default;
+            PlayerEndGameStats.Clear();
         }
 
         public class PlayerRoleInfo
@@ -72,6 +80,7 @@ namespace StellarRoles.Patches
             public List<RoleInfo> Roles { get; set; }
             public List<RoleInfo> Modifiers { get; set; }
             public bool Loved { get; set; }
+            public bool WasImp { get; set; }
             public int TasksCompleted { get; set; }
             public int TasksTotal { get; set; }
             public int Kills { get; set; }
@@ -81,6 +90,13 @@ namespace StellarRoles.Patches
             public int IncorrectGuesses { get; set; }
             public int AbilityKills { get; set; }
             public int Eats { get; set; }
+
+            public int CorrectVotes { get; set; }
+            public int IncorrectVotes { get; set; }
+            public int CorrectEjects { get; set; }
+            public int IncorrectEjects { get; set; }
+
+            public bool AliveAtLastMeeting { get; set; }
 
         }
     }
@@ -92,44 +108,87 @@ namespace StellarRoles.Patches
         private static CustomGameOverReason _GameOverReason;
         public static void Prefix([HarmonyArgument(0)] ref EndGameResult endGameResult)
         {
+            ExtraStats.UpdateSurvivability();
+
             _GameOverReason = (CustomGameOverReason)endGameResult.GameOverReason;
             if ((int)endGameResult.GameOverReason >= 10)
                 endGameResult.GameOverReason = GameOverReason.ImpostorByKill;
 
             // Reset zoomed out ghosts
             Helpers.ResetZoom();
+
+            StellarRoles.NormalOptions.KillCooldown = ShipStatusPatch.OriginalKillCD;
         }
 
         public static void Postfix()
         {
             AdditionalTempData.Clear();
+            PreviousGameHistory.PreviousGameList.Clear();
 
-            foreach (var player in GameData.Instance.AllPlayers.GetFastEnumerator())
+            foreach (var data in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
-                PlayerControl p = player.Object ?? null;
-                List<RoleInfo> roles = PlayerGameInfo.GetRoles(player);
-                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(player);
+                if (data == null) continue;
+                var player = data.Object ?? null;
+                List<RoleInfo> roles = PlayerGameInfo.GetRoles(data);
+                
+                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(data);
 
-                AdditionalTempData.PlayerRoles.Add(new AdditionalTempData.PlayerRoleInfo()
+                var playerRoles = new AdditionalTempData.PlayerRoleInfo()
                 {
-                    PlayerName = player.PlayerName,
-                    Loved = p != null && 
-                        (roles.Any(x => x.RoleId == RoleId.Beloved) ||
-                        VengefulRomantic.Lover == p ||
-                        Romantic.Lover == p ||
-                        RuthlessRomantic.IsLover(p)),
+                    PlayerName = data.PlayerName,
+                    Loved = roles.Any(x => x.RoleId == RoleId.Beloved) ||
+                        VengefulRomantic.Lover == player ||
+                        Romantic.Lover == player ||
+                        RuthlessRomantic.IsLover(player),
                     Roles = roles,
-                    Modifiers = PlayerGameInfo.GetModifiers(player.PlayerId),
+                    WasImp = data.Role.IsImpostor,
+                    Modifiers = PlayerGameInfo.GetModifiers(data.PlayerId),
                     TasksTotal = tasksTotal,
                     TasksCompleted = tasksCompleted,
-                    Kills = PlayerGameInfo.TotalKills(player.PlayerId),
-                    Misfires = PlayerGameInfo.TotalMisfires(player.PlayerId),
-                    CorrectShots = PlayerGameInfo.TotalCorrectShots(player.PlayerId),
-                    CorrectGuesses = PlayerGameInfo.TotalCorrectGuesses(player.PlayerId),
-                    IncorrectGuesses = PlayerGameInfo.TotalIncorrectGuesses(player.PlayerId),
-                    AbilityKills = PlayerGameInfo.TotalAbilityKills(player.PlayerId),
-                    Eats = roles.Any(x => x.RoleId == RoleId.Scavenger) ? PlayerGameInfo.TotalEaten(player.PlayerId) : 0
-                });
+                    Kills = PlayerGameInfo.TotalKills(data.PlayerId),
+                    Misfires = PlayerGameInfo.TotalMisfires(data.PlayerId),
+                    CorrectShots = PlayerGameInfo.TotalCorrectShots(data.PlayerId),
+                    CorrectGuesses = PlayerGameInfo.TotalCorrectGuesses(data.PlayerId),
+                    IncorrectGuesses = PlayerGameInfo.TotalIncorrectGuesses(data.PlayerId),
+                    AbilityKills = PlayerGameInfo.TotalAbilityKills(data.PlayerId),
+                    CorrectEjects = PlayerGameInfo.TotalCorrectEjects(data.PlayerId),
+                    IncorrectEjects = PlayerGameInfo.TotalIncorrectEjects(data.PlayerId),
+                    CorrectVotes = PlayerGameInfo.TotalCorrectVotes(data.PlayerId),
+                    IncorrectVotes = PlayerGameInfo.TotalIncorrectVotes(data.PlayerId),
+                    AliveAtLastMeeting = PlayerGameInfo.PlayerAliveAtLastMeeting(data.PlayerId),
+                    Eats = roles.Any(x => x.RoleId == RoleId.Scavenger) ? PlayerGameInfo.TotalEaten(data.PlayerId) : 0
+
+                };
+
+                var endGameStats = new PlayerEndGameStats()
+                {
+                    Name = data.PlayerName,
+                    Disconnected = data.Disconnected,
+                    Role = data.Role.IsImpostor ? "IMPOSTER" : "CREWMATE",
+                    CorrectEjects = PlayerGameInfo.TotalCorrectEjects(data.PlayerId),
+                    IncorrectEjects = PlayerGameInfo.TotalIncorrectEjects(data.PlayerId),
+                    CorrectVotes = PlayerGameInfo.TotalCorrectVotes(data.PlayerId),
+                    IncorrectVotes = PlayerGameInfo.TotalIncorrectVotes(data.PlayerId),
+                    AliveAtLastMeeting = PlayerGameInfo.PlayerAliveAtLastMeeting(data.PlayerId),
+                    FirstTwoVictimsRound1 = PlayerGameInfo.FirstTwoPlayersDead(data.PlayerId),
+                    TasksTotal = tasksTotal,
+                    TasksCompleted = tasksCompleted,
+                    Kills = PlayerGameInfo.TotalKills(data.PlayerId),
+                    NumberOfCrewmatesEjectedTotal = PlayerGameInfo.TotalCrewmatesEjected(data.PlayerId),
+                    CriticalMeetingError = PlayerGameInfo.WrongCriticalVote(data.PlayerId),
+                    Survivability = PlayerGameInfo.Survivability(data.PlayerId),
+                    ImposterDisconnectedWhileAlive = false,
+                    WinType = Enum.GetName(_GameOverReason),
+                };
+
+                AdditionalTempData.PlayerRoles.Add(playerRoles);
+                AdditionalTempData.PlayerEndGameStats.Add(endGameStats);
+
+                _ = new PreviousGameHistory()
+                {
+                    PlayerEndGameStats = endGameStats,
+                    PlayerRoleInfo = playerRoles
+                };
             }
 
             List<PlayerControl> notWinners = new();
@@ -152,14 +211,14 @@ namespace StellarRoles.Patches
                 player.IsRefugee(out _) || player.IsJester(out _) || player.IsPyromaniac(out _) || NeutralKiller.Players.Contains(player)
             ));
 
-            List<WinningPlayerData> winnersToRemove = new();
+            List<CachedPlayerData> winnersToRemove = new();
 
-            foreach (WinningPlayerData winner in TempData.winners.GetFastEnumerator())
+            foreach (CachedPlayerData winner in EndGameResult.CachedWinners.GetFastEnumerator())
                 if (notWinners.Any(x => x.Data.PlayerName == winner.PlayerName))
                     winnersToRemove.Add(winner);
 
-            foreach (WinningPlayerData winner in winnersToRemove)
-                TempData.winners.Remove(winner);
+            foreach (CachedPlayerData winner in winnersToRemove)
+                EndGameResult.CachedWinners.Remove(winner);
 
             bool jesterWin = _GameOverReason == CustomGameOverReason.JesterWin;
             bool arsonistWin = _GameOverReason == CustomGameOverReason.ArsonistWin;
@@ -173,184 +232,196 @@ namespace StellarRoles.Patches
             bool ruthlessRomanticWin = _GameOverReason == CustomGameOverReason.RuthlessRomanticWin;
             bool nightmareWin = _GameOverReason == CustomGameOverReason.NightmareWin;
             bool impostorWin = _GameOverReason == CustomGameOverReason.ImpostorWin;
-            bool crewmateWins = _GameOverReason == CustomGameOverReason.CrewmateWin;
+            bool crewmateWins = _GameOverReason is CustomGameOverReason.CrewmateWin or CustomGameOverReason.TaskWin;
             bool oxygenWin = _GameOverReason == CustomGameOverReason.OxygenWin;
             bool reactorWin = _GameOverReason == CustomGameOverReason.ReactorWin;
+            bool timesUp = _GameOverReason == CustomGameOverReason.TimesUp;
 
             bool isRefugeeLose = !crewmateWins && !refugeeOnlyWin;
 
             // Executioner win
             if (executionerWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
-                WinningPlayerData wpd = new(Executioner.Player.Data);
-                TempData.winners.Add(wpd);
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
+                CachedPlayerData wpd = new(Executioner.Player.Data);
+                EndGameResult.CachedWinners.Add(wpd);
                 PlayerControl additionalWinner = Helpers.RomanticWinConditionNeutral(Executioner.Player);
                 if (additionalWinner != null)
-                    TempData.winners.Add(new WinningPlayerData(additionalWinner.Data));
+                    EndGameResult.CachedWinners.Add(new CachedPlayerData(additionalWinner.Data));
                 AdditionalTempData.WinCondition = WinCondition.ExecutionerWin;
             }
 
-            else if (impostorWin)
+            else if (impostorWin || timesUp)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     if (player.Data.Role.IsImpostor)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
-                AdditionalTempData.WinCondition = WinCondition.ImpostorWin;
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
+                if (impostorWin)
+                {
+                    AdditionalTempData.WinCondition = WinCondition.ImpostorWin;
+                }
+                else if (timesUp)
+                {
+                    AdditionalTempData.WinCondition = WinCondition.TimesUp;
+                }
             }
 
             else if (oxygenWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     if (player.Data.Role.IsImpostor)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.OxygenWin;
             }
 
             else if (reactorWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     if (player.Data.Role.IsImpostor)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.ReactorWin;
             }
 
             // Arsonist win
             else if (arsonistWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
-                WinningPlayerData wpd = new(Arsonist.Player.Data);
-                TempData.winners.Add(wpd);
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
+                CachedPlayerData wpd = new(Arsonist.Player.Data);
+                EndGameResult.CachedWinners.Add(wpd);
                 PlayerControl additionalWinner = Helpers.RomanticWinConditionNeutral(Arsonist.Player);
                 if (additionalWinner != null)
-                    TempData.winners.Add(new WinningPlayerData(additionalWinner.Data));
+                    EndGameResult.CachedWinners.Add(new CachedPlayerData(additionalWinner.Data));
                 AdditionalTempData.WinCondition = WinCondition.ArsonistWin;
             }
 
             // Scavenger win
             else if (scavengerWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
-                WinningPlayerData wpd = new(Scavenger.Player.Data);
-                TempData.winners.Add(wpd);
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
+                CachedPlayerData wpd = new(Scavenger.Player.Data);
+                EndGameResult.CachedWinners.Add(wpd);
                 PlayerControl additionalWinner = Helpers.RomanticWinConditionNeutral(Scavenger.Player);
                 if (additionalWinner != null)
-                    TempData.winners.Add(new WinningPlayerData(additionalWinner.Data));
+                    EndGameResult.CachedWinners.Add(new CachedPlayerData(additionalWinner.Data));
                 AdditionalTempData.WinCondition = WinCondition.ScavengerWin;
             }
 
             else if (headHunterWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
-                TempData.winners.Add(new WinningPlayerData(HeadHunter.Player.Data));
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
+                EndGameResult.CachedWinners.Add(new CachedPlayerData(HeadHunter.Player.Data));
                 AdditionalTempData.WinCondition = WinCondition.HeadHunterWin;
             }
 
             else if (nightmareWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     //There should only ever be one winning Neutral Killer;
                     if (player.IsNightmare(out _) && !player.Data.IsDead)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.NightmareWin;
             }
 
             else if (ruthlessRomanticWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     //There should only ever be one winning Neutral Killer;
                     if (player.IsRuthlessRomantic(out _) && !player.Data.IsDead)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.RuthlessRomanticWin;
             }
 
             else if (pyroAndArsoWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     //There should only ever be one winning Neutral Killer;
                     if ((player.IsPyromaniac(out _) || (Arsonist.Player == player)) && !player.Data.IsDead)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.PyroAndArsoWin;
             }
 
             else if (pyromaniacWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     //There should only ever be one winning Neutral Killer;
                     if (Pyromaniac.PyromaniacDictionary.ContainsKey(player.PlayerId) && !player.Data.IsDead)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.PyromaniacWin;
             }
 
             else if (crewmateWins)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     //There should only ever be one winning Neutral Killer;
                     if (player.IsCrew() && !player.IsRefugee(out _))
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
-                AdditionalTempData.WinCondition = WinCondition.CrewmateWin;
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
+                if (_GameOverReason == CustomGameOverReason.TaskWin) 
+                {
+                    AdditionalTempData.WinCondition = WinCondition.TaskWin;
+                }
+                else AdditionalTempData.WinCondition = WinCondition.CrewmateWin;
             }
 
 
             else if (rogueImpWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator())
                     //There should only ever be one winning Neutral Killer;
                     if (NeutralKiller.RogueImps.Contains(player) && !player.Data.IsDead)
-                        TempData.winners.Add(new WinningPlayerData(player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
                 AdditionalTempData.WinCondition = WinCondition.RogueImpWin;
             }
 
             // Jester win
             else if (jesterWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
-                TempData.winners.Add(new WinningPlayerData(Jester.WinningJesterPlayer.Data));
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
+                EndGameResult.CachedWinners.Add(new CachedPlayerData(Jester.WinningJesterPlayer.Data));
 
                 PlayerControl additionalWinner = Helpers.RomanticWinConditionNeutral(Jester.WinningJesterPlayer);
                 if (additionalWinner != null)
-                    TempData.winners.Add(new WinningPlayerData(additionalWinner.Data));
+                    EndGameResult.CachedWinners.Add(new CachedPlayerData(additionalWinner.Data));
                 AdditionalTempData.WinCondition = WinCondition.JesterWin;
             }
 
             else if (refugeeOnlyWin)
             {
-                TempData.winners = new Il2CppSystem.Collections.Generic.List<WinningPlayerData>();
+                EndGameResult.CachedWinners = new Il2CppSystem.Collections.Generic.List<CachedPlayerData>();
                 foreach (Refugee refugee in Refugee.PlayerToRefugee.Values)
                     if (refugee.Player != null && !refugee.Player.Data.IsDead && !refugee.NotAckedExiled)
-                        TempData.winners.Add(new WinningPlayerData(refugee.Player.Data));
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(refugee.Player.Data));
                 AdditionalTempData.WinCondition = WinCondition.RefugeeOnlyWin;
             }
 
             // Possible Additional winner: Romantic
             if ((Romantic.Player != null && Romantic.Lover != null) || Romantic.IsCrewmate || Romantic.IsImpostor)
             {
-                WinningPlayerData romantic = null;
+                CachedPlayerData romantic = null;
 
                 if (Romantic.Lover != null)
-                    foreach (WinningPlayerData winner in TempData.winners.GetFastEnumerator())
+                    foreach (CachedPlayerData winner in EndGameResult.CachedWinners.GetFastEnumerator())
                     {
                         if (winner.PlayerName == Romantic.Lover.Data.PlayerName)
                             romantic = winner;
                     }
                 else
-                    foreach (WinningPlayerData winner in TempData.winners.GetFastEnumerator())
+                    foreach (CachedPlayerData winner in EndGameResult.CachedWinners.GetFastEnumerator())
                         if ((Romantic.IsCrewmate && !winner.IsImpostor) || (Romantic.IsImpostor && winner.IsImpostor))
                             romantic = winner;
 
                 if (romantic != null)
                 {
-                    if (!TempData.winners.ToArray().Any(winner => winner.PlayerName == Romantic.Player.Data.PlayerName))
-                        TempData.winners.Add(new WinningPlayerData(Romantic.Player.Data));
+                    if (!EndGameResult.CachedWinners.ToArray().Any(winner => winner.PlayerName == Romantic.Player.Data.PlayerName))
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(Romantic.Player.Data));
                     AdditionalTempData.AdditionalWinConditions.Add(WinCondition.AdditionalRomanticWin);
                 }
             }
@@ -358,20 +429,20 @@ namespace StellarRoles.Patches
             // Possible Additional winner: Vengeful Romantic
             if ((VengefulRomantic.Player != null && VengefulRomantic.Lover != null) || VengefulRomantic.IsDisconnected)
             {
-                WinningPlayerData vengefulRomantic = null;
-                foreach (WinningPlayerData winner in TempData.winners.GetFastEnumerator())
+                CachedPlayerData vengefulRomantic = null;
+                foreach (CachedPlayerData winner in EndGameResult.CachedWinners.GetFastEnumerator())
                     if (winner.PlayerName == VengefulRomantic.Lover.Data.PlayerName)
                         vengefulRomantic = winner;
 
                 if (VengefulRomantic.IsDisconnected)
-                    foreach (WinningPlayerData winner in TempData.winners.GetFastEnumerator())
+                    foreach (CachedPlayerData winner in EndGameResult.CachedWinners.GetFastEnumerator())
                         if ((VengefulRomantic.IsCrewmate && !winner.IsImpostor) || (VengefulRomantic.IsImpostor && winner.IsImpostor))
                             vengefulRomantic = winner;
 
                 if (vengefulRomantic != null)
                 {
-                    if (!TempData.winners.ToArray().Any(winner => winner.PlayerName == VengefulRomantic.Player.Data.PlayerName))
-                        TempData.winners.Add(new WinningPlayerData(VengefulRomantic.Player.Data));
+                    if (!EndGameResult.CachedWinners.ToArray().Any(winner => winner.PlayerName == VengefulRomantic.Player.Data.PlayerName))
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(VengefulRomantic.Player.Data));
                     AdditionalTempData.AdditionalWinConditions.Add(WinCondition.AdditionalRomanticWin);
                 }
             }
@@ -379,30 +450,35 @@ namespace StellarRoles.Patches
             // Possible Additional winner: Beloved
             if (Beloved.Player != null && Beloved.Romantic != null)
             {
-                WinningPlayerData winningClient = null;
-                foreach (WinningPlayerData winner in TempData.winners.GetFastEnumerator())
+                CachedPlayerData winningClient = null;
+                foreach (CachedPlayerData winner in EndGameResult.CachedWinners.GetFastEnumerator())
                     if (winner.PlayerName == Beloved.Romantic.Data.PlayerName)
                         winningClient = winner;
                 if (winningClient != null)
                 {
-                    if (!TempData.winners.ToArray().Any(winner => winner.PlayerName == Beloved.Player.Data.PlayerName))
-                        TempData.winners.Add(new WinningPlayerData(Beloved.Player.Data));
+                    if (!EndGameResult.CachedWinners.ToArray().Any(winner => winner.PlayerName == Beloved.Player.Data.PlayerName))
+                        EndGameResult.CachedWinners.Add(new CachedPlayerData(Beloved.Player.Data));
                     AdditionalTempData.AdditionalWinConditions.Add(WinCondition.AdditionalRomanticWin);
                 }
             }
 
-            if (Refugee.PlayerToRefugee?.Values.Count > 0 && !refugeeOnlyWin && !isRefugeeLose && !TempData.winners.ToArray().Any(x => x.IsImpostor))
+            if (Refugee.PlayerToRefugee?.Values.Count > 0 && !refugeeOnlyWin && !isRefugeeLose && !EndGameResult.CachedWinners.ToArray().Any(x => x.IsImpostor))
             {
                 foreach (Refugee refugee in Refugee.PlayerToRefugee.Values)
                 {
                     if (refugee.Player != null && !refugee.Player.Data.IsDead && !refugee.NotAckedExiled)
                     {
-                        if (!TempData.winners.ToArray().Any(winner => winner.PlayerName == refugee.Player.Data.PlayerName))
-                            TempData.winners.Add(new WinningPlayerData(refugee.Player.Data));
+                        if (!EndGameResult.CachedWinners.ToArray().Any(winner => winner.PlayerName == refugee.Player.Data.PlayerName))
+                            EndGameResult.CachedWinners.Add(new CachedPlayerData(refugee.Player.Data));
                         if (!AdditionalTempData.AdditionalWinConditions.Contains(WinCondition.AdditionalAliveRefugeeWin))
                             AdditionalTempData.AdditionalWinConditions.Add(WinCondition.AdditionalAliveRefugeeWin);
                     }
                 }
+            }
+
+            if (MapOptions.TournamentLogs)
+            {
+                Helpers.writeStats(AdditionalTempData.PlayerEndGameStats);
             }
 
             // Reset Settings
@@ -415,46 +491,7 @@ namespace StellarRoles.Patches
     {
         public static void Postfix(EndGameManager __instance)
         {
-            // Delete and readd PoolablePlayers always showing the name and role of the player
-            foreach (PoolablePlayer pb in __instance.transform.GetComponentsInChildren<PoolablePlayer>())
-                Object.Destroy(pb.gameObject);
-
-            int num = Mathf.CeilToInt(7.5f);
-            List<WinningPlayerData> list = TempData.winners.ToArray().OrderBy(b => b.IsYou ? 0 : -1).ToList();
-            for (int i = 0; i < list.Count; i++)
-            {
-                WinningPlayerData winner = list[i];
-                int num2 = (i % 2 == 0) ? -1 : 1;
-                int num3 = (i + 1) / 2;
-                float num4 = (float)num3 / (float)num;
-                float num5 = Mathf.Lerp(1f, 0.75f, num4);
-                float num6 = (float)((i == 0) ? -8 : -1);
-                PoolablePlayer poolablePlayer = Object.Instantiate(__instance.PlayerPrefab, __instance.transform);
-                poolablePlayer.transform.localPosition = new Vector3(1f * (float)num2 * (float)num3 * num5, FloatRange.SpreadToEdges(-1.125f, 0f, num3, num), num6 + (float)num3 * 0.01f) * 0.9f;
-
-                float num7 = Mathf.Lerp(1f, 0.65f, num4) * 0.9f;
-                Vector3 vector = new(num7, num7, 1f);
-                poolablePlayer.transform.localScale = vector;
-                if (winner.IsDead)
-                {
-                    poolablePlayer.SetBodyAsGhost();
-                    poolablePlayer.SetDeadFlipX(i % 2 == 0);
-                }
-                else
-                {
-                    poolablePlayer.SetFlipX(i % 2 == 0);
-                }
-                poolablePlayer.UpdateFromPlayerOutfit(winner, PlayerMaterial.MaskType.ComplexUI, winner.IsDead, true);
-                poolablePlayer.cosmetics.nameText.color = Color.white;
-                poolablePlayer.cosmetics.nameText.transform.localScale = new Vector3(1f / vector.x, 1f / vector.y, 1f / vector.z);
-                poolablePlayer.cosmetics.nameText.transform.localPosition = new Vector3(poolablePlayer.cosmetics.nameText.transform.localPosition.x, poolablePlayer.cosmetics.nameText.transform.localPosition.y - 1.2f, -15f);
-                poolablePlayer.cosmetics.nameText.text = winner.PlayerName;
-
-                AdditionalTempData.PlayerRoleInfo roleInfo = AdditionalTempData.PlayerRoles.FirstOrDefault(data => data.PlayerName == winner.PlayerName);
-
-                if (roleInfo != null && roleInfo.Roles.Count > 0)
-                    poolablePlayer.cosmetics.nameText.text += $"\n{roleInfo.Roles.Select(x => Helpers.ColorString(x.Color, x.Name)).Last()}";
-            }
+            List<CachedPlayerData> list = EndGameResult.CachedWinners.ToArray().OrderBy(b => b.IsYou ? 0 : -1).ToList();
 
             // Additional code
             GameObject bonusText = Object.Instantiate(__instance.WinText.gameObject);
@@ -503,14 +540,20 @@ namespace StellarRoles.Patches
                     SoundManager.instance.StopAllSound();
                     SoundEffectsManager.Forceplay(Sounds.Victory);
                     break;
+                case WinCondition.TaskWin:
+                    textRenderer.text = "Crewmate Task Win";
+                    textRenderer.color = Palette.CrewmateBlue;
+                    SoundManager.instance.StopAllSound();
+                    SoundEffectsManager.Forceplay(Sounds.Victory);
+                    break;
                 case WinCondition.PyroAndArsoWin:
                     Color burn = new(200, 68, 0);
                     textRenderer.text = $"</size=100%>The {Helpers.ColorString(Pyromaniac.Color, "Pyromaniac")} and {Helpers.ColorString(Arsonist.Color, "Arsonist")}\n Watch the World {Helpers.ColorString(burn, "BURN!")}</size>";
                     break;
                 case WinCondition.RogueImpWin:
                     {
-                        WinningPlayerData winner = list[0];
-                        WinningPlayerData winner2 = list.Count > 1 ? list[1] : null;
+                        CachedPlayerData winner = list[0];
+                        CachedPlayerData winner2 = list.Count > 1 ? list[1] : null;
                         string winnerRole = "";
                         string winnerRole2 = "";
                         foreach (AdditionalTempData.PlayerRoleInfo data in AdditionalTempData.PlayerRoles)
@@ -543,6 +586,10 @@ namespace StellarRoles.Patches
                     }
                 case WinCondition.ImpostorWin:
                     textRenderer.text = "Impostors Win";
+                    textRenderer.color = Palette.ImpostorRed;
+                    break;
+                case WinCondition.TimesUp:
+                    textRenderer.text = "Times Up\nImpostors Win";
                     textRenderer.color = Palette.ImpostorRed;
                     break;
                 case WinCondition.OxygenWin:
@@ -588,7 +635,9 @@ namespace StellarRoles.Patches
                     string scavengerEaten = data.Eats > 0 ? $" - {Helpers.ColorString(Scavenger.Color, $"Bodies Eaten: {data.Eats}")}" : "";
                     string lover = data.Loved ? $"{Helpers.ColorString(Romantic.Color, $" ♥")}" : "";
 
-                    roleSummaryText.AppendLine($"{data.PlayerName}{lover} - {modifiers}{roles}{taskInfo}{killInfo}{misfireInfo}{correctShotsInfo}{correctGuessInfo}{incorrectGuessInfo}{scavengerEaten}");
+                    roleSummaryText.AppendLine($"{data.PlayerName}{lover} - {modifiers}" +
+                        $"{roles}{taskInfo}{killInfo}{misfireInfo}{correctShotsInfo}" +
+                        $"{correctGuessInfo}{incorrectGuessInfo}{scavengerEaten}");
                 }
                 TMP_Text roleSummaryTextMesh = roleSummary.GetComponent<TMP_Text>();
                 roleSummaryTextMesh.alignment = TextAlignmentOptions.TopLeft;
@@ -632,6 +681,7 @@ namespace StellarRoles.Patches
             CheckAndEndGameForRogueImpsWin(statistics);
             CheckAndEndGameForNightmareWin(statistics);
             CheckAndEndGameForRuthlessRomanticWin(statistics);
+            CheckAndEndGameForImpostorTimeWin(statistics);
 
             return false;
         }
@@ -678,10 +728,10 @@ namespace StellarRoles.Patches
 
         private static bool CheckAndEndGameForSabotageWin()
         {
-            if (MapUtilities.Systems == null)
+            if (ShipStatus.Instance.Systems == null)
                 return false;
 
-            Il2CppSystem.Object systemType = MapUtilities.Systems.ContainsKey(SystemTypes.LifeSupp) ? MapUtilities.Systems[SystemTypes.LifeSupp] : null;
+            var systemType = ShipStatus.Instance.Systems.ContainsKey(SystemTypes.LifeSupp) ? ShipStatus.Instance.Systems[SystemTypes.LifeSupp] : null;
             if (systemType != null)
             {
                 LifeSuppSystemType lifeSuppSystemType = systemType.TryCast<LifeSuppSystemType>();
@@ -693,8 +743,9 @@ namespace StellarRoles.Patches
                 }
             }
             bool hasSystem =
-                MapUtilities.Systems.TryGetValue(SystemTypes.Reactor, out Il2CppSystem.Object systemType2) ||
-                MapUtilities.Systems.TryGetValue(SystemTypes.Laboratory, out systemType2);
+                ShipStatus.Instance.Systems.TryGetValue(SystemTypes.Reactor, out ISystemType systemType2) ||
+                ShipStatus.Instance.Systems.TryGetValue(SystemTypes.Laboratory, out systemType2) ||
+                ShipStatus.Instance.Systems.TryGetValue(SystemTypes.HeliSabotage, out systemType2);
             if (hasSystem)
             {
                 ICriticalSabotage criticalSystem = systemType2.TryCast<ICriticalSabotage>();
@@ -716,7 +767,7 @@ namespace StellarRoles.Patches
                 (!MapOptions.DeadCrewPreventTaskWin || statistics.TotalCrewAlive > 0)
             )
             {
-                GameManager.Instance.RpcEndGame(GameOverReason.HumansByTask, false);
+                GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.TaskWin, false);
                 return true;
             }
             return false;
@@ -814,6 +865,17 @@ namespace StellarRoles.Patches
             return false;
         }
 
+        private static bool CheckAndEndGameForImpostorTimeWin(PlayerStatistics statistics)
+        {
+            if (GameTimer.TriggerTimesUpEndGame)
+            {
+                GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.TimesUp, false);
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool CheckAndEndGameForRefugeeOnly(PlayerStatistics statistics)
         {
             if (statistics.RefugeesAlive > 0 && statistics.RefugeesAlive == statistics.TotalAlive)
@@ -882,12 +944,13 @@ namespace StellarRoles.Patches
             PowerCrewAlive = 0;
             TotalCrewAlive = 0;
 
-            foreach (GameData.PlayerInfo playerInfo in GameData.Instance.AllPlayers.GetFastEnumerator())
+            foreach (NetworkedPlayerInfo playerInfo in GameData.Instance.AllPlayers.GetFastEnumerator())
             {
-                if (playerInfo.Disconnected || playerInfo.IsDead)
+                if (playerInfo == null || playerInfo.Disconnected || playerInfo.IsDead)
                     continue;
-                PlayerControl player = Helpers.PlayerById(playerInfo.PlayerId);
+                PlayerControl player = playerInfo.Object;
 
+                if (player == null) continue;
                 TotalAlive++;
 
                 if (playerInfo.Role.IsImpostor)
@@ -897,7 +960,7 @@ namespace StellarRoles.Patches
 
                 if (HeadHunter.Player != null && HeadHunter.Player == player)
                     HeadHunterAlive++;
-                else if (Helpers.IsRogueImpostor(player.PlayerId))
+                else if (player.IsRogueImpostor())
                     RogueImpsAlive++;
                 else if (player.IsRefugee(out _))
                     RefugeesAlive++;
@@ -918,6 +981,7 @@ namespace StellarRoles.Patches
                 else if (VengefulRomantic.Player != null && VengefulRomantic.Player == player && VengefulRomantic.Target != null && !VengefulRomantic.Target.Data.IsDead)
                     PowerCrewAlive++;
             }
+            MapOptions.CrewAlive = TotalCrewAlive;
 
             TotalEvilAlive = TeamImpostorsAlive + HeadHunterAlive + PyromaniacAlive + RuthlessRomanticAlive + NightmareAlive + RogueImpsAlive;
 

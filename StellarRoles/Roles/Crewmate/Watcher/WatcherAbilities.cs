@@ -66,7 +66,7 @@ namespace StellarRoles
                 Watcher.IsActive = false;
 
                 if (Watcher.BatteryTime <= 0f)
-                Watcher.CameraMinigame.ForceClose();
+                    Watcher.CameraMinigame.ForceClose();
 
                 Watcher.CameraMinigame = null;
             }

@@ -12,11 +12,9 @@ namespace StellarRoles
 
     public static class Sheriff
     {
-        public static PlayerControl Player { get; set; }
+        public static PlayerControl Player { get; set; } = null;
         public static readonly Color Color = new Color32(248, 205, 70, byte.MaxValue);
 
-
-        public static bool CanKillNeutrals => CustomOptionHolder.SheriffCanKillNeutrals.GetBool();
         public static bool CanKillArsonist => CustomOptionHolder.SheriffCanKillArsonist.GetBool();
         public static bool CanKillJester => CustomOptionHolder.SheriffCanKillJester.GetBool();
         public static bool CanKillExecutioner => CustomOptionHolder.SheriffCanKillExecutioner.GetBool();
@@ -24,7 +22,7 @@ namespace StellarRoles
         public static bool SpyCanDieToSheriff => CustomOptionHolder.SpyCanDieToSheriff.GetBool();
         public static Misfire MisfireKills => (Misfire)CustomOptionHolder.SheriffMisfireKills.GetSelection();
         public static bool Haskilled { get; set; } = false;
-        public static PlayerControl CurrentTarget { get; set; }
+        public static PlayerControl CurrentTarget { get; set; } = null;
 
         private static Sprite _KillButtonSprite;
 
@@ -33,7 +31,7 @@ namespace StellarRoles
             string description =
                 $"The {nameof(Sheriff)} is a role whose goal is to directly kill non-crewmates, with the main focus being Impostors and Neutral Killers." +
                 $"\n\n{SheriffMisfire(MisfireKills)}\n\n";
-            if (SpyCanDieToSheriff || CanKillNeutrals && (CanKillArsonist || CanKillJester || CanKillExecutioner || CanKillScavenger))
+            if (SpyCanDieToSheriff || CanKillArsonist || CanKillJester || CanKillExecutioner || CanKillScavenger)
                 description += SheriffCanKillString();
 
             RoleInfo.Sheriff.SettingsDescription = Helpers.WrapText(description);
@@ -54,8 +52,6 @@ namespace StellarRoles
                 return true;
             else if (player == Spy.Player)
                 return SpyCanDieToSheriff;
-            else if (!CanKillNeutrals && Helpers.IsNeutral(player))
-                return false;
             else if (player == Arsonist.Player)
                 return CanKillArsonist;
             else if (player.IsJester(out _))
