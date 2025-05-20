@@ -29,51 +29,84 @@ Even more roles are coming soon. o.o
 
 The [Role Assignment](#role-assignment) sections explains how the roles are being distributed among the players.
 
-# Releases
+# Latest Release
 | Among Us - Version| Mod Version | Link |
-|----------|-------------|-----------------|
-|2024.11.26| v2024.12.5  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.12.5/StellarRoles.zip)
+|:-----------------:|:-----------:|:----:|
+| v16.0.0/v16.0.2   | v2025.5.12  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2025.5.12/StellarRoles.zip)
 
 <details>
   <summary>For older Releases click here</summary>
 
-| Among Us - Version  | Mod Version | Link |
-|---------------------|:-----------:|---------------------------------------------------------------------------------------------------|
-| 2024.9.4            | v2024.10.21 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.10.21/StellarRoles.zip)
-| 2024.6.4            | v2024.6.17  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.17/StellarRoles.zip)
-| 2024.6.4            | v2024.6.15  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.15/StellarRoles.zip)
-| 2024.6.4            | v2024.6.6   | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.6/StellarRoles.zip)
-| 2024.3.5            | v2024.6.2   | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.2/StellarRoles.zip)
-| 2024.3.5            | v2024.4.28  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.4.28/StellarRoles.zip)
-| 2024.2.8            | v2024.2.21  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.2.21/StellarRoles.zip)
-| 2023.11.28          | v2023.12.26 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.26/StellarRoles.zip)
-| 2023.11.28          | v2023.12.24 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.24/StellarRoles.zip)
-| 2023.11.28          | v2023.12.23 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.23/StellarRoles.zip)
-| 2023.11.28          | v2023.12.22 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.22/StellarRoles.zip)
-| 2023.11.28          | v2023.12.12 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.12/StellarRoles.zip)
-| 2023.11.28          | v2023.11.30 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.30/StellarRoles.zip)
-| 2023.11.28          | v2023.11.28 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.28/StellarRoles.zip)
-| 2023.11.7           | v2023.11.25 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.25/StellarRoles.zip)
-| 2023.11.7           | v2023.11.23 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.23/StellarRoles.zip)
-| 2023.7.12           | v2023.10.11 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.10.11/StellarRoles.zip)
-| 2023.7.12           | v2023.10.3  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.10.3/StellarRoles.zip)
-| 2023.7.12           | v2023.10.1  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.10.1/StellarRoles.zip)
-| 2023.7.12           | v1.4.4      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.4.4/StellarRoles.zip)
-| 2023.3.28           | v1.3.7      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.7)
-| 2023.3.28           | v1.3.6      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.6)
-| 2023.3.28           | v1.3.5      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.5/StellarRoles.zip)
-| 2023.3.28           | v1.3.4      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.4)
-| 2023.3.28           | v1.3.3      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.3)
-| 2023.3.28           | v1.3.2      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.2/StellarRoles.zip)
-| 2023.3.28           | v1.3.1      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.1/StellarRoles.zip)
-| 2023.3.28           | v1.3.0      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.0/StellarRoles.zip)
-| 2023.2.28           | v1.2.4 Dev H| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.2.4/StellarRoles.zip)
+| Among Us - Version   | Mod Version | Link |
+|:--------------------:|:-----------:|:----:|
+| 2024.11.26           | v2024.12.5  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.12.5/StellarRoles.zip)
+| 2024.9.4             | v2024.10.21 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.10.21/StellarRoles.zip)
+| 2024.6.4             | v2024.6.17  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.17/StellarRoles.zip)
+| 2024.6.4             | v2024.6.15  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.15/StellarRoles.zip)
+| 2024.6.4             | v2024.6.6   | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.6/StellarRoles.zip)
+| 2024.3.5             | v2024.6.2   | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.2/StellarRoles.zip)
+| 2024.3.5             | v2024.4.28  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.4.28/StellarRoles.zip)
+| 2024.2.8             | v2024.2.21  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.2.21/StellarRoles.zip)
+| 2023.11.28           | v2023.12.26 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.26/StellarRoles.zip)
+| 2023.11.28           | v2023.12.24 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.24/StellarRoles.zip)
+| 2023.11.28           | v2023.12.23 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.23/StellarRoles.zip)
+| 2023.11.28           | v2023.12.22 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.22/StellarRoles.zip)
+| 2023.11.28           | v2023.12.12 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.12.12/StellarRoles.zip)
+| 2023.11.28           | v2023.11.30 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.30/StellarRoles.zip)
+| 2023.11.28           | v2023.11.28 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.28/StellarRoles.zip)
+| 2023.11.7            | v2023.11.25 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.25/StellarRoles.zip)
+| 2023.11.7            | v2023.11.23 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.11.23/StellarRoles.zip)
+| 2023.7.12            | v2023.10.11 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.10.11/StellarRoles.zip)
+| 2023.7.12            | v2023.10.3  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.10.3/StellarRoles.zip)
+| 2023.7.12            | v2023.10.1  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2023.10.1/StellarRoles.zip)
+| 2023.7.12            | v1.4.4      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.4.4/StellarRoles.zip)
+| 2023.3.28            | v1.3.7      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.7)
+| 2023.3.28            | v1.3.6      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.6)
+| 2023.3.28            | v1.3.5      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.5/StellarRoles.zip)
+| 2023.3.28            | v1.3.4      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.4)
+| 2023.3.28            | v1.3.3      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/v1.3.3)
+| 2023.3.28            | v1.3.2      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.2/StellarRoles.zip)
+| 2023.3.28            | v1.3.1      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.1/StellarRoles.zip)
+| 2023.3.28            | v1.3.0      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.0/StellarRoles.zip)
+| 2023.2.28            | v1.2.4 Dev H| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.2.4/StellarRoles.zip)
 | 2022.6.21 & 2022.7.12| v1.0.5     | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.0.5/StellarRoles.zip)
 </details>
 
 # Changelog
 
-## Version 2024.12.5 - LATEST
+## Version 2024.5.12 - LATEST
+    
+**Patch Notes**
+
+- Updated to Among Us v16.0.2
+- Added the very popular Draft Mode!!! :D
+- Added Version Compatibility Checker (will now let you know your on the wrong Among Us Version)
+- Adjust a lot of tournament log stuff (Thank you Vanellus and Comp Players for your feedback)
+- Added a "Stop Countdown" button to the lobby
+- Added some Easter Eggs (check the trash) :D
+- Reset Region button should now fix your region file as well as your settings.amongus file to allow you to go back to a previous version easier
+- Implemented some Anti-Cheat things
+- Removed Custom Region (for now)
+
+**Bug Fixes**
+
+- Fixed Assassin crashing everyone's game when last impostors misfires
+- Fixed Sleepwalker getting stuck outside the map on Airship & Fungle
+- Fixed Watcher Spawning on Fungle
+- Fixed Undertaker Lag Dragging
+- Fixed End Game Stats being different for clients vs host when a player disconnects
+- Fixed Tournament Game Timer instantly ending the game on start
+- Fixed Imp Chat Freaking out and should now close properly instead of having to double close it manually
+- Fixed dying in meeting overlay being under the nameplates
+- Fixed a TON of null references and small bugs that you wont know the difference besides less lag and smoother gameplay. (it just mainly helps me) :D
+
+  ---
+
+<details>
+  <summary>For older Changelogs click here</summary>
+  
+ <details>
+   <summary><b>Version 2024.12.5</b></summary>
     
 **Patch Notes**
 
@@ -98,11 +131,8 @@ Updated to Among Us v2024.11.26
 - Adjusted Role assignment to hopefully be more random. (If your imp 4 times in a row that's just bad luck) :(
 - Added a New Christmas/Holidays Custom lobby and banner!!! Thank you Seagirl13!!! We love our artists
 - Added a few new custom sounds for certain roles o.o. My fav is scavenger eat. :D More of these to be added in the future with a small twist.
+ </details>
 
-  ---
-
-<details>
-  <summary>For older Changelogs click here</summary>
   
   <details>
   <summary><b>Version 2024.10.21</b></summary>
@@ -524,7 +554,7 @@ Not working? You might want to install the dependency [vc_redist](https://aka.ms
 4. Launch the game via Steam
 
 ## Custom Servers
-**A custom server is not necessary and official servers are working just fine with the mod, but in case you want to set up and host your own server, here's a guide for you to follow.**
+A custom server is not necessary and official servers are working just fine with the mod, but in case you want to set up and host your own server, here's a guide for you to follow.
 
 **Setup the Server:**
 1. Get the Impostor release (https://github.com/Impostor/Impostor)
@@ -567,78 +597,164 @@ docker run -d -p 22023:22023/udp --env IMPOSTOR_AntiCheatEnabled=false --env IMP
 [TownOfUs](https://github.com/slushiegoose/Town-Of-Us) - Idea for the Arsonist and a similar Mayor role come from **Slushiegoose**\
 [BryBry16](https://github.com/Brybry16/BetterPolus) - For the code used for Better Polus.\
 [Ottomated](https://twitter.com/ottomated_) - Idea for the Morphling, Detective, and Camouflager role come from **Ottomated**\
-[Goose-Goose-Duck](https://store.steampowered.com/app/1568590/Goose_Goose_Duck) - Idea for the Scavenger role come from **Slushiegoose**\
+[Goose-Goose-Duck](https://store.steampowered.com/app/1568590/Goose_Goose_Duck) - Idea for the Scavenger role come from **Slushiegoose**
 
-# Settings
-The mod adds a few new settings to Among Us (in addition to the role settings):
-- **Streamer Mode:** You can activate the streamer mode in the Among Us settings. It hides the lobby code, the custom server ip and the custom server port. You can set a custom lobby code replacement text, by changing the *Streamer Mode Replacement Text* in the `BepInEx\config\me.fluff.stellarroles.cfg` file.
-- **Minimum and Maxium Crewmate Roles:** The minimum and maximum number of Crewmate roles can be set inside a lobby.
-- **Minimum and Maxium Impostor Roles:** The minimum and maximum number of Impostor roles can be set inside a lobby.
-- **Minimum and Maxium Neutral Roles:** The minimum and maximum number of Neutral roles can be set inside a lobby.
-- **Minimum and Maximum of Modifiers (Cosmetic, Impostor, Misc):** The number of Modifiers can be set inside a lobby.
+---
 
-- **Enable Mod Roles and Block Vanilla Roles:** This simply stops the game from using the default roles like shapeshifter
-- **Lobby Size:** Dynamically change the lobby size in game. The number of players the game was initially created with is the maximum however.
-- **Game Start Kill Cooldown** The kill cooldown at the start of the game
+# Stellar Settings
+Stellar Roles adds a few new general settings to Among Us:
 
-- **Maximum Number Of Meetings:** You can set the maximum number of meetings that can be called in total.
-- **Shield First Killed Player From Last Game** Puts a shield on the player killed first in the last match.
-- **Mark Players Who Die First Round 1 Next Game** Marks the player visibly who died first last match
-- **Hide Obstructed Names** Hides a players name if it otherwise could be seen through a wall
+## General Options
+- **Lobby Size** - Allows the host to dynamically change the lobby size in game.
+- **Game Start Kill Cooldown** - Allows the host to set the kill cooldown at the start of the game.
+- **Game Timer (Minutes)** - Allows the host to set a game timer. If Crewmates do not get their tasks done before time runs out the Impostors will win. (Neutral Roles are not compatible with this setting).
+- **Number Of Meetings** - Allows the host to set how many times a meeting (not body report) can be called by players in total.
+- **Impostor Chat** - Enables an additional chat during meetings that only Impostors can see/type in.
+- **Minimum and Maximum # of Crewmate Roles** - The minimum and maximum number of Crewmate roles that can spawn in a game.
+- **Minimum and Maximum # of Impostor Roles** - The minimum and maximum number of Impostor roles that can spawn in a game.
+- **Minimum and Maximum # of Neutral Roles** - The minimum and maximum number of Neutral roles that can spawn in a game.
+- **Minimum and Maximum # of Neut Killing Roles** - The minimum and maximum number of Neut Killing roles that can spawn in a game.
+- **Minimum and Maximum # of Modifiers** - The minimum and maximum number of Modifiers that can spawn in a game.
 
-- **Allow Parallel MedBay Scans:** Allows players to perform their MedBay scans at the same time.
-- **Disable Medbay Animations:** Players do not walk onto the scanner.
+---
 
-- **Disable Vent Cleaning Ejections** Disables the feature in which impostors are kicked out of a vent once it is cleaned.
-- **Hide Vent Animations Out Of Vision** Players no longer see vent flap animations on Mira and Skeld.
-- **Tasks to Unlock Mira Admin** A number of tasks to be completed before unlocking Mira Admin.
-- **Tasks to Unlock Skeld Cameras** A number of tasks to be completed before unlocking Skeld Cams.
-- **No Cameras First Round** Disable the use of cams on round one.
+## Role Draft
+- **Enable Role Draft** - Enables an alternate mode for role selection, where players get to choose their role.
+- **Max Amount Of Roles To Choose From** - How many roles can a player select from.
+- **Time For Selection** - How long each player can choose for.
+- **Show Picked Roles** - Toggles if everyone can see picked roles or just teams (Impostor/Neutral/Crewmate).
+- **Hide Impostor Roles** - If **Show Picked Roles** is enabled this will hide Impostor roles
+- **Hide Neutral Roles** - If **Show Picked Roles** is enabled this will hide Neutral roles
 
-- **Better Polus** Allows you to customise Polus using the below options.
-  - **Vitals Moved to Lab** Swaps the Laboratory Temperature task and the Vitals location.
-  - **Reactor Vent Layout Change** Changes the way the top right and left vents are connected. Both now connect to the closest vent on their respective sides.
-  - **Cold Temp Moved to Death Valley** Moves Laboratory Temperature task to Death Valley (Left of Communication)
-  - **Reboot wifi and Chart Course swapped** Swaps the location of the Chart Course and Reboot WiFi Tasks.
+---
 
-- **Jousting Roles Prevent Impostor Victory**: This causes the [Sheriff](#sheriff), [Vigilante](#vigilante), [Mayor](#mayor) and [Vengeful Romantic](#vengeful-romantic) (if their target is alive) to prevent a Impostors from winning the game when they normally would with equal voting power
-- **Jousting Roles Prevent Neutral Killer Victory**: This causes the [Sheriff](#sheriff), [Vigilante](#vigilante), [Mayor](#mayor) and [Vengeful Romantic](#vengeful-romantic) (if their target is alive) to prevent a Neutral Killer from winning the game when they normally would with equal voting power
-- **Crewmate Wipe Prevents Task Win**: This prevents crewmates from winning via tasks when only Impostors and Neutrals remain alive in game.
+## First Round Options
+- **Shield Last Game First Kill** - Puts a shield on the player killed first in the last match.
+- **Mark Players Who Die First Round 1 Next Game** - Marks players who died last round first (Only visible by killers).
+- **No Cameras First Round** - Disables the use of cams on round one.
 
-- **Disabled Roles on Skeld** Allows you to disable the following roles on Skeld
+---
+
+## Flashlight Mode
+- **Enable** - Enables a mode in the game where everyone has their vision as H&S Flashlight.
+- **Crew Range** - Sets a range for Crew flashlight.
+- **Impostor/Neutral Range** - Sets a range for Imp/Neut flashlight.
+
+---
+
+## Vanilla Tweaks
+- **Hide Obstructed Player Names** - Hides a players name if it otherwise could be seen through a wall.
+- **Parallel MedBay Scans** - Allows multiple players to perform Submit Scan at the same time.
+- **Disable Medbay Animations** - Players do not walk onto the scanner.
+- **Disable Vent Cleaning Ejections** - Disables the feature in which impostors are kicked out of a vent once it is cleaned.
+- **Hide Vent Animations Out Of Vision** - Players no longer see vent pop animations on Skeld, Mira, Airship and The Fungle.
+
+---
+
+## Jousting Options
+- **Jousting Roles Prevent Impostor Victory** - This causes the [Sheriff](#sheriff), [Vigilante](#vigilante), [Mayor](#mayor) and [Vengeful Romantic](#vengeful-romantic) (if their target is alive) to prevent a Impostors from winning the game when they normally would with equal voting power
+- **Jousting Roles Prevent Neutral Killer Victory** - This causes the [Sheriff](#sheriff), [Vigilante](#vigilante), [Mayor](#mayor) and [Vengeful Romantic](#vengeful-romantic) (if their target is alive) to prevent a Neutral Killer from winning the game when they normally would with equal voting power
+- **Crewmate Wipe Prevents Task Win** - This prevents crewmates from winning via tasks when only Impostors and Neutrals remain alive in game.
+
+---
+
+## Impostor Role Block Comms
+- **Kill Abilities Role Block** - If enabled communication sabotage will block Impostor abilities that can kill other players.
+- **Abilities Role Block** - If enabled communication sabotage will block Impostor abilities that cannot kill other players.
+  
+---
+
+## Neutral Killing Role Block Comms
+- **Enabled** - If enabled communication sabotage will block all abilities of Neutral Killers.
+
+---
+
+## Neutral Role Block Comms
+- **Enabled** - If enabled communication sabotage will block all abilities of Neutral roles.
+
+---
+
+## Crewmate Role Block Comms
+- **Enabled** - If enabled communication sabotage will block all abilities of each selected Crewmate roles.
+
+---
+
+## Ghost Options
+- **Ghosts See Roles** - Toggle whether ghost players can see what role each player has.
+- **Ghosts See Tasks Done** - Toggle whether ghost players can see how many tasks each player has done.
+- **Ghosts See Modifiers** - Toggle whether ghost players can see what modifier each player has.
+- **Ghosts See Romantic Target** - Toggle whether ghost players can see the Romantic target.
+- **Toggle Roles with Shift** - Allow the player to toggle seeing roles/modifiers with shift as a ghost
+
+---
+
+## Developer Settings
+NOTE: It is recommended to not tweak any of those settings as to not break yourself the game
+- **Turn Off Romantic To Refugee** - Toggles whether the [Romantic](#romantic) will transform into [Refugee](#refugee) when the right conditions are met
+- **Ascended Spawn Chance** - Enables W.I.P modifier Ascended that enchances your current role
+- **Ascended Quantity** - Amount of players that can get Ascended modifier.
+- **Tournament Logs** - Adds additional stats about the game that can be found inside your game folder
+
+---
+
+# Map Settings
+Stellar Roles also adds a few map specific settings to Among Us:
+
+## Dynamic Map Settings
+- **Play On A Random Map** - If enabled it allows you to set a rotation of all current maps.
+- **Skeld Rotation Chance** - Chance to play on Skeld map.
+- **Mira HQ Rotation Chance** - Chance to play on Mira HQ map.
+- **Polus Rotation Chance** - Chance to play on Polus map.
+- **Airship Rotation Chance** - Chance to play on Airship map.
+- **The Fungle Rotation Chance** - Chance to play on The Fungle map.
+- **Submerged Rotation Chance** - Chance to play on Submerged map.
+
+---
+
+## Override Map Settings
+- **Override Base Settings** - Allows the host to change few settings (listed below) for each map.
+  - **Common Tasks**
+  - **Long Tasks**
+  - **Short Tasks**
+  - **Emergency Button Cooldown**
+  - **Crew Vision**
+  - **Kill Cooldown**
+
+---
+
+## Task-Locked Information
+- **Tasks To Unlock Mira Admin** - Number of tasks a Crewmate needs to completed before accessing Mira Admin.
+- **Tasks To Unlock Mira Logs** - Number of tasks a Crewmate needs to completed before accessing Mira Door Logs.
+- **Tasks To Unlock Skeld Admin** - Number of tasks a Crewmate needs to completed before accessing Skeld Admin.
+- **Tasks To Unlock Skeld Cameras** - Number of tasks a Crewmate needs to completed before accessing Skeld Cameras.
+- **Tasks To Unlock Polus Admin** - Number of tasks a Crewmate needs to completed before accessing Polus Admin.
+- **Tasks To Unlock Polus Cameras** - Number of tasks a Crewmate needs to completed before accessing Polus Cameras.
+
+---
+
+## Fungle Tweaks
+- **Tasks To Unlock Binoculars** - Number of tasks a Crewmate needs to completed before accessing Binoculars.
+- **Add Admin Table** - Adds an Admin Table under Greenhouse.
+- **Easier Doors** - Lowers the requirement of shrooms needed to be hit in order to open doors
+- **Easier Fish/Grill** - Lowers the requirement of fish you need to catch to complete the task
+
+---
+
+## Better Polus
+- **Vitals Moved To Lab** - Swaps the Laboratory Temperature task and the Vitals location.
+- **Reactor Vent Layout Change** - Changes the way the top right and left vents are connected. Both now connect to the closest vent on their respective sides.
+- **Cold Temp Moved To Death Valley** - Moves Laboratory Temperature task to Death Valley (Left of Communication)
+- **Reboot Wifi And Chart Course Swapped** - Swaps the location of the Chart Course and Reboot WiFi Tasks.
+
+---
+
+## Roles Disabled On Maps
+- **Disabled Roles on Skeld** - Allows you to disable the following roles on Skeld
   - [Arsonist](#arsonist), [Scavenger](#scavenger), [Janitor](#janitor), [Medic](#medic), [Watcher](#watcher)
-- **Disabled Roles on Mira** Allows you to disable the following roles on Skeld
+- **Disabled Roles on Mira** - Allows you to disable the following roles on Mira HQ
   - [Arsonist](#arsonist), [Scavenger](#scavenger), [Janitor](#janitor), [Medic](#medic), [Miner](#miner), [Administrator](#administrator)
-- **Disabled Roles on Fungle** Allows you to disable the following roles on Fungle
+- **Disabled Roles on Fungle** - Allows you to disable the following roles on Fungle
   - [Administrator](#administrator), [Janitor](#janitor), [Miner](#miner), [Scavenger](#scavenger)
-
-- **Roles Blocked By Comms** Allows you to block Role Abilities being used while comms is down.
-  - You can select which roles are affected by this.
-
-- **Ghost Options** Change settings for ghost players.
-  - **Ghosts See Roles** Toggle whether ghost players can see what role each player has.
-  - **Ghosts See Tasks Done** Toggle whether ghost players can see how many tasks each player has done.
-  - **Ghosts See Modifiers** Toggle whether ghost players can see what modifier each player has.
-  - **Ghosts See Romantic Target** Toggle whether ghost players can see the Romantic target.
-  - **Toggle Roles with Shift** Allow the player to toggle seeing roles/modifiers with shift as a ghost
-
-- **Play On A Random Map** If enabled it allows you to set a rotation of all current maps, except ehT dlekS (april fools skeld)
-
-### Task Count Limits per map
-You can configure:
-- Up to 4 common tasks
-- Up to 23 short tasks
-- Up to 15 long tasks
-
-Please note, that if the configured option exceeds the available number of tasks of a map, the tasks will be limited to that number of tasks. \
-Example: If you configure 4 common tasks on Airship crewmates will only receive 2 common tasks, as airship doesn't offer more than 2 common tasks.
-
-| Map     | Common | Short | Long |
-|---------|:------:|:-----:|:----:|
-| Skeld   | 2      | 19    | 8
-| Mira    | 2      | 13    | 11
-| Polus   | 4      | 14    | 15
-| Airship | 2      | 23    | 15
 
 ---
 
@@ -646,7 +762,7 @@ Example: If you configure 4 common tasks on Airship crewmates will only receive 
 ## Create and submit new hat or visor designs
 We're awaiting your creative cosmetic designs and we'll integrate all the good ones in our mod.
 - **Submission:** If you got a hat or visor design to submit, or you need to know how to create one, you can head over to our [Discord](https://discord.gg/7UcvM9CFdY).
-
+ 
 # Roles
 
 ## Role Assignment
@@ -819,8 +935,8 @@ The Morphling is an Impostor which can sample the appearance of a player.\
 After a the cooldown time has finished they can take on that appearance for a configurable amount of time.\
 \
 **NOTE:**
-- They shrink/grows to the size of the [Mini](#mini))/([Giant](#giant) when they copy its look.
-- The color of the footprints changes accordingly ([Investigator](#investigator)) (also the ones that were already on the ground).
+- They shrink/grows to the size of the [Mini](#mini)/[Giant](#giant) when they copy its look.
+- The color of the footprints changes accordingly (also the ones that were already on the ground) ([Investigator](#investigator)).
 - The other Impostor still sees that they are an Impostor (the name remains red).
 - The shield indicator changes accordingly ([Guardian](#guardian)) (the Morphling gains or loses the shield indicator).
 - Tracker arrows keep working. ([Tracker](#tracker))
