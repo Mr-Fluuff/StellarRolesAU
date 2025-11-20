@@ -21,7 +21,7 @@ namespace StellarRoles.Patches
         }
     }
 
-    [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.Validate))]
+    /*[HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.Validate))]
     class GameOptionsDataValidatePatch
     {
         public static void Postfix(GameOptionsData __instance)
@@ -29,7 +29,7 @@ namespace StellarRoles.Patches
             if (GameOptionsManager.Instance.CurrentGameOptions.GameMode != GameModes.Normal) return;
             __instance.NumImpostors = GameOptionsManager.Instance.CurrentGameOptions.NumImpostors;
         }
-    }
+    }*/
 
     [HarmonyPatch(typeof(RoleOptionsCollectionV08), nameof(RoleOptionsCollectionV08.GetNumPerGame))]
     class RoleOptionsDataGetNumPerGamePatch

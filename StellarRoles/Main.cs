@@ -13,24 +13,27 @@ using StellarRoles.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AmongUs.Data.Player;
+using Reactor;
+using Reactor.Networking;
 using UnityEngine;
 
-namespace StellarRoles
-{
-    [BepInPlugin(Id, "StellarRoles", UpdateString)]
-    [BepInDependency(SubmergedCompatibility.SUBMERGED_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+namespace StellarRoles;
+
+    [BepInAutoPlugin("me.fluff.stellarroles", "StellarRoles")]
     [BepInProcess("Among Us.exe")]
-    [ReactorModFlags(Reactor.Networking.ModFlags.RequireOnAllClients)]
-    public class StellarRolesPlugin : BasePlugin
+    [BepInDependency(ReactorPlugin.Id)]
+    [BepInDependency(SubmergedCompatibility.SUBMERGED_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [ReactorModFlags(ModFlags.RequireOnAllClients)]
+    public partial class StellarRolesPlugin : BasePlugin
     {
         public static GameObject CustomLobbyPrefab { get; set; }
-        public const string Id = "me.fluff.stellarroles";
 
-        public const string VersionString = "24.10.21";
-        public const string UpdateString = "2024.10.21";
+        public const string VersionString = "25.11.19";
+        public const string UpdateString = "2025.11.19";
         public const string BetaVersion = "";
-        public static Version Version => Version.Parse(VersionString);
-        public static Version UpdateVersion => Version.Parse(UpdateString);
+        public static Version VersionDeclared => System.Version.Parse(VersionString);
+        public static Version UpdateVersion => System.Version.Parse(UpdateString);
 
         internal static BepInEx.Logging.ManualLogSource Logger;
 
@@ -120,12 +123,15 @@ namespace StellarRoles
     }
 
     // Deactivate bans, since I always leave my local testing game and ban myself
-    [HarmonyPatch(typeof(StatsManager), nameof(StatsManager.AmBanned), MethodType.Getter)]
+
+    [HarmonyPatch(typeof(PlayerBanData), nameof(PlayerBanData.IsBanned), MethodType.Getter)]
     public static class AmBannedPatch
     {
-        public static void Postfix(out bool __result)
+        [HarmonyPrefix]
+        public static bool Prefix(ref bool __result)
         {
             __result = false;
+            return false;
         }
     }
     [HarmonyPatch(typeof(ChatController), nameof(ChatController.Awake))]
@@ -205,4 +211,3 @@ namespace StellarRoles
                 .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
     }
-}

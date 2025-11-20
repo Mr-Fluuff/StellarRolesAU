@@ -112,7 +112,7 @@ namespace StellarRoles.Patches
 
             _GameOverReason = (CustomGameOverReason)endGameResult.GameOverReason;
             if ((int)endGameResult.GameOverReason >= 10)
-                endGameResult.GameOverReason = GameOverReason.ImpostorByKill;
+                endGameResult.GameOverReason = GameOverReason.ImpostorsByKill;
 
             // Reset zoomed out ghosts
             Helpers.ResetZoom();

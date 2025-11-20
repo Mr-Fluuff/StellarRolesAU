@@ -259,9 +259,9 @@ Goose-Goose-Duck - Idea for the Scavenger role came from Slushiegoose</size>";
 
         private static void Postfix()
         {
-            CustomVisorLoader.LaunchVisorFetcher();
-            CustomHatLoader.LaunchHatFetcher();
-            CustomNameplateLoader.LaunchNameplateFetcher();
+            //CustomVisorLoader.LaunchVisorFetcher();
+            //CustomHatLoader.LaunchHatFetcher();
+            //CustomNameplateLoader.LaunchNameplateFetcher();
             CustomOptionDefaultSettings.CreatePresets();
         }
     }

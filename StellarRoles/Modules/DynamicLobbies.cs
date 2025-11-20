@@ -13,7 +13,7 @@ namespace StellarRoles.Modules
         [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.HostGame))]
         public static class InnerNetClientHostPatch
         {
-            public static void Prefix([HarmonyArgument(0)] GameOptionsData settings)
+            public static void Prefix([HarmonyArgument(0)] IGameOptions settings)
             {
                 int maxPlayers;
                 try
@@ -26,12 +26,12 @@ namespace StellarRoles.Modules
                 }
                 CustomOptionHolder.LobbySize.UpdateSelection(maxPlayers - 4);
                 LobbyLimit = maxPlayers;
-                settings.MaxPlayers = 15; // Force 15 Player Lobby on Server
+                // settings.MaxPlayers = 15; // Force 15 Player Lobby on Server
                 DataManager.Settings.Multiplayer.ChatMode = QuickChatModes.FreeChatOrQuickChat;
             }
-            public static void Postfix([HarmonyArgument(0)] GameOptionsData settings)
+            public static void Postfix([HarmonyArgument(0)] IGameOptions settings)
             {
-                settings.MaxPlayers = LobbyLimit;
+                // settings.MaxPlayers = LobbyLimit;
             }
         }
         [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.JoinGame))]

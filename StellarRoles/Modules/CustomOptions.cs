@@ -388,7 +388,7 @@ namespace StellarRoles
                 string vanillaSettingsSub = settingsSplit[2];
                 ModdedOptionsFine = DeserializeOptions(Convert.FromBase64String(ModdedSettings));
                 ShareOptionSelections();
-                if (StellarRolesPlugin.Version > versionInfo && versionInfo < Version.Parse("24.8.7"))
+                if (StellarRolesPlugin.VersionDeclared > versionInfo && versionInfo < Version.Parse("24.8.7"))
                 {
                     vanillaOptionsFine = false;
                     HudManager.Instance.Chat.AddChat(PlayerControl.LocalPlayer, "Host Info: Pasting vanilla settings failed, Modded Options applied!");
@@ -1267,7 +1267,7 @@ namespace StellarRoles
     [HarmonyPatch]
     public class AddToKillDistanceSetting
     {
-        [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.AreInvalid))]
+        /*[HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.AreInvalid))]
         [HarmonyPrefix]
 
         public static bool Prefix(GameOptionsData __instance, ref int maxExpectedPlayers, ref bool __result)
@@ -1282,17 +1282,33 @@ namespace StellarRoles
                 return false;
             }
             return true;
-        }
+        }*/
 
-        [HarmonyPatch(typeof(NormalGameOptionsV07), nameof(NormalGameOptionsV07.AreInvalid))]
+        [HarmonyPatch(typeof(NormalGameOptionsV10), nameof(NormalGameOptionsV10.AreInvalid))]
         [HarmonyPrefix]
 
-        public static bool Prefix(NormalGameOptionsV07 __instance, ref int maxExpectedPlayers, ref bool __result)
+        public static bool Prefix(NormalGameOptionsV10 __instance, ref int maxExpectedPlayers, ref bool __result)
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= GameOptionsData.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV10.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
+            {
+                __result=true;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(NormalGameOptionsV09), nameof(NormalGameOptionsV09.AreInvalid))]
+        [HarmonyPrefix]
+
+        public static bool Prefix(NormalGameOptionsV09 __instance, ref int maxExpectedPlayers, ref bool __result)
+        {
+            if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
+                                                           || __instance.NumImpostors > 3 || __instance.KillDistance < 0
+                                                           || __instance.KillDistance >= NormalGameOptionsV09.KillDistances.Count
+                                                           || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result=true;
                 return false;
@@ -1307,7 +1323,7 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= GameOptionsData.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV08.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
@@ -1338,7 +1354,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = GameOptionsData.KillDistanceStrings[index];
+                var stringname = NormalGameOptionsV10.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1353,7 +1369,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = GameOptionsData.KillDistanceStrings[index];
+                var stringname = NormalGameOptionsV10.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1378,7 +1394,7 @@ namespace StellarRoles
                 {
                     index = GameOptionsManager.Instance.currentHideNSeekGameOptions.KillDistance;
                 }
-                value = GameOptionsData.KillDistanceStrings[index];
+                value = NormalGameOptionsV10.KillDistanceStrings[index];
             }
         }
 
@@ -1410,8 +1426,8 @@ namespace StellarRoles
         }
         public static void addKillDistance()
         {
-            GameOptionsData.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
-            GameOptionsData.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
+            NormalGameOptionsV10.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
+            NormalGameOptionsV10.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
         }
     }
 

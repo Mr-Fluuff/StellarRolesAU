@@ -317,7 +317,8 @@ namespace StellarRoles
 
         public static float GetKillDistance()
         {
-            return GameOptionsData.KillDistances[GameOptionsManager.Instance.currentNormalGameOptions.KillDistance];
+            var killDistance = GameOptionsManager.Instance.currentNormalGameOptions.GetFloatArray(FloatArrayOptionNames.KillDistances);
+            return killDistance[GameOptionsManager.Instance.currentNormalGameOptions.KillDistance];
         }
 
         public static void AvengedLover()
@@ -1745,20 +1746,20 @@ namespace StellarRoles
         {
             MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable, -1);
             writer.Write((byte)CustomRPC.VersionHandshake);
-            writer.Write((byte)StellarRolesPlugin.Version.Major);
-            writer.Write((byte)StellarRolesPlugin.Version.Minor);
-            writer.Write((byte)StellarRolesPlugin.Version.Build);
+            writer.Write((byte)StellarRolesPlugin.VersionDeclared.Major);
+            writer.Write((byte)StellarRolesPlugin.VersionDeclared.Minor);
+            writer.Write((byte)StellarRolesPlugin.VersionDeclared.Build);
             writer.Write(AmongUsClient.Instance.AmHost ? GameStartManagerPatch.Timer : -1f);
             writer.WritePacked(AmongUsClient.Instance.ClientId);
-            writer.Write((byte)(StellarRolesPlugin.Version.Revision < 0 ? 0xFF : StellarRolesPlugin.Version.Revision));
+            writer.Write((byte)(StellarRolesPlugin.VersionDeclared.Revision < 0 ? 0xFF : StellarRolesPlugin.VersionDeclared.Revision));
             Guid moduleVersionId = Assembly.GetExecutingAssembly().ManifestModule.ModuleVersionId;
             writer.Write(moduleVersionId.ToByteArray());
             AmongUsClient.Instance.FinishRpcImmediately(writer);
             RPCProcedure.VersionHandshake(
-                StellarRolesPlugin.Version.Major,
-                StellarRolesPlugin.Version.Minor,
-                StellarRolesPlugin.Version.Build,
-                StellarRolesPlugin.Version.Revision,
+                StellarRolesPlugin.VersionDeclared.Major,
+                StellarRolesPlugin.VersionDeclared.Minor,
+                StellarRolesPlugin.VersionDeclared.Build,
+                StellarRolesPlugin.VersionDeclared.Revision,
                 moduleVersionId,
                 AmongUsClient.Instance.ClientId
             );

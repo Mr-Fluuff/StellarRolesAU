@@ -6,7 +6,7 @@ namespace StellarRoles
     public static class StellarRoles
     {
         public static Random rnd => new((int)DateTime.Now.Ticks);
-        public static NormalGameOptionsV08 NormalOptions => GameOptionsManager.Instance.currentNormalGameOptions;
+        public static NormalGameOptionsV10 NormalOptions => GameOptionsManager.Instance.currentNormalGameOptions;
 
 
         public static void ClearAndReloadRoles()

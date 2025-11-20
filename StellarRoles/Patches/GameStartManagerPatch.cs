@@ -85,7 +85,7 @@ namespace StellarRoles.Patches
                     else
                     {
                         PlayerVersion PV = PlayerVersions[client.Id];
-                        int diff = StellarRolesPlugin.Version.CompareTo(PV.version);
+                        int diff = StellarRolesPlugin.VersionDeclared.CompareTo(PV.version);
                         if (diff > 0)
                         {
                             message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has an older version of StellarRoles (v20{PlayerVersions[client.Id].version.ToString()})\n</color>";
@@ -135,7 +135,7 @@ namespace StellarRoles.Patches
                 // Client update with handshake infos
                 else
                 {
-                    if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.Version.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
+                    if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.VersionDeclared.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
                     {
                         KickingTimer += Time.deltaTime;
                         if (KickingTimer > 10)
@@ -212,7 +212,7 @@ namespace StellarRoles.Patches
                             return false;
 
                         PlayerVersion PV = PlayerVersions[client.Id];
-                        int diff = StellarRolesPlugin.Version.CompareTo(PV.version);
+                        int diff = StellarRolesPlugin.VersionDeclared.CompareTo(PV.version);
                         if (diff != 0 || !PV.GuidMatches())
                             return false;
                     }
