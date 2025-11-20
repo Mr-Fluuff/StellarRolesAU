@@ -239,6 +239,10 @@ namespace StellarRoles
                 case RoleId.Hacker:
                     helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenHacker.png", 100f);
                     break;
+                case RoleId.Charlatan:
+                case RoleId.CharlatanNK:
+                    helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenCharlatan.png", 100f);
+                    break;
                 case RoleId.Parasite:
                 case RoleId.ParasiteNK:
                     helpSprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.HelpMenu.Impostor.ScreenParasite.png", 100f);
@@ -256,6 +260,7 @@ namespace StellarRoles
             Bomber.GetDescription();
             Camouflager.GetDescription();
             Changeling.GetDescription();
+            Charlatan.GetDescription();
             Cultist.GetDescription();
             Follower.GetDescription();
             Hacker.GetDescription();

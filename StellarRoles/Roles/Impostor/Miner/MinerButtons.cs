@@ -28,7 +28,7 @@ namespace StellarRoles
                   writer.WriteBytesAndSize(buff);
                   writer.EndMessage();
                   RPCProcedure.PlaceMinerVent(buff);
-                  SoundEffectsManager.Play(Sounds.Hammer);
+                  SoundEffectsManager.Play(Sounds.Mine);
                   Miner.ChargesRemaining--;
                   MineButton.Timer = MineButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
                   RPCProcedure.Send(CustomRPC.PsychicAddCount);

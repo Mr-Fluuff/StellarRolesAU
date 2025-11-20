@@ -23,7 +23,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using HarmonyLib;
+/*using HarmonyLib;
 using StellarRoles.Utilities;
 using System;
 using System.Linq;
@@ -91,7 +91,7 @@ namespace StellarRoles.Patches
 
                 void onFocusLost()
                 {
-                    StellarRolesPlugin.UpdateRegions();
+                    CustomServerManager.UpdateRegions();
                     //__instance.ChooseOption(ServerManager.DefaultRegions[ServerManager.DefaultRegions.Length - 1]);
                 }
             }
@@ -136,7 +136,7 @@ namespace StellarRoles.Patches
 
                 void onFocusLost()
                 {
-                    StellarRolesPlugin.UpdateRegions();
+                    CustomServerManager.UpdateRegions();
                     //__instance.ChooseOption(ServerManager.DefaultRegions[ServerManager.DefaultRegions.Length - 1]);
                 }
             }
@@ -164,4 +164,4 @@ namespace StellarRoles.Patches
             return false;
         }
     }
-}
+}*/

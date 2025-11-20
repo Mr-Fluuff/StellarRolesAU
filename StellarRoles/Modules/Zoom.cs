@@ -6,26 +6,25 @@ namespace StellarRoles.Modules
     [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
     public static class ZoomHudUpdate
     {
-        public static bool HasAlerted = false;
         public static TMPro.TextMeshPro ZoomText;
         public static void Postfix(HudManager __instance)
         {
             try
             {
                 PlayerControl localPlayer = PlayerControl.LocalPlayer;
-                if (!localPlayer.Data.IsDead || localPlayer.Data.Role.IsImpostor || localPlayer.TasksLeft() != 0 || !Helpers.GameStarted) return;
-                if (!HasAlerted)
+                if (!localPlayer.Data.IsDead || localPlayer.Data.Role.IsImpostor || localPlayer.TasksLeft() != 0 || !Helpers.GameStarted)
                 {
-                    HasAlerted = true;
+                    ZoomText?.gameObject.SetActive(false);
+                    return;
+                }
 
-                    if (ZoomText == null)
-                    {
-                        ZoomText = Object.Instantiate(__instance.TaskPanel.taskText, __instance.transform);
-                        ZoomText.text = "Scroll To Zoom";
-                        ZoomText.color = Color.red;
-                        ZoomText.transform.localScale = Vector3.one * 2;
-                        ZoomText.transform.localPosition = new Vector3(1f, -4.5f);
-                    }
+                if (ZoomText == null)
+                {
+                    ZoomText = Object.Instantiate(__instance.TaskPanel.taskText, __instance.transform);
+                    ZoomText.text = "Scroll To Zoom";
+                    ZoomText.color = Color.red;
+                    ZoomText.transform.localScale = Vector3.one * 2;
+                    ZoomText.transform.localPosition = new Vector3(1f, -4.5f);
                 }
 
                 ZoomText.gameObject.SetActive(!MeetingHud.Instance);
@@ -40,20 +39,24 @@ namespace StellarRoles.Modules
 
                 if (Input.GetAxis("Mouse ScrollWheel") > 0)
                 {
-                    if (Camera.main.orthographicSize > 2f)
+                    if (Camera.main.orthographicSize > 3f)
                     {
-                        Camera.main.orthographicSize /= 1.25f;
-                        __instance.transform.localScale /= 1.25f;
-                        __instance.UICamera.orthographicSize /= 1.25f;
+                        Camera.main.orthographicSize -= 1f;
+                        __instance.UICamera.orthographicSize -= 1f;
+
+                        var percent = Camera.main.orthographicSize / 3;
+                        __instance.transform.localScale = Vector3.one * percent;
                     }
                 }
                 else if (Input.GetAxis("Mouse ScrollWheel") < 0)
                 {
-                    if (Camera.main.orthographicSize < 15.0f)
+                    if (Camera.main.orthographicSize < 14.0f)
                     {
-                        Camera.main.orthographicSize *= 1.25f;
-                        __instance.transform.localScale *= 1.25f;
-                        __instance.UICamera.orthographicSize *= 1.25f;
+                        Camera.main.orthographicSize += 1f;
+                        __instance.UICamera.orthographicSize += 1f;
+
+                        var percent = Camera.main.orthographicSize / 3;
+                        __instance.transform.localScale = Vector3.one * percent;
                     }
                 }
                 __instance.TaskPanel.gameObject.SetActive(Camera.main.orthographicSize == 3.0f);
@@ -67,7 +70,7 @@ namespace StellarRoles.Modules
     {
         public static void Postfix()
         {
-            Helpers.ResetZoom();
+            Helpers.DelayedAction(0.25f, Helpers.ResetZoom);
         }
     }
 }

@@ -270,9 +270,10 @@ namespace StellarRoles
                     },
                     () => { }, // noop
                     Helpers.LoadSpriteFromResources("StellarRoles.Resources.ZoomReset.png", 150f),
-                    new Vector3(0.4f, 2.9f, 0),
+                    new Vector3(0.4f, 2.85f, 0),
                     null,
-                    buttonText: "Reset\nZoom"
+                    buttonText: "Reset\nZoom",
+                    seeInMeeting: true
                     );
 
             ImpChatButton = new CustomButton(
@@ -280,16 +281,9 @@ namespace StellarRoles
                     {
                         if (HudManager.Instance.Chat.IsOpenOrOpening)
                         {
-                            if (!Impostor.ImpChatOn)
-                            {
-                                HudManager.Instance.Chat.Toggle();
-                                Impostor.ImpChatOn = true;
-                                HudManager.Instance.Chat.Toggle();
-                            }
-                            else
-                            {
-                                HudManager.Instance.Chat.Toggle();
-                            }
+                            Impostor.ImpChatOn = false;
+                            HudManager.Instance.Chat.Toggle();
+                            Impostor.ImpChatOn = false;
                         }
                         else
                         {

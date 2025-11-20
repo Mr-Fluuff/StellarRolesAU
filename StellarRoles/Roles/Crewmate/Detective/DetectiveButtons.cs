@@ -93,7 +93,7 @@ namespace StellarRoles
                         float closestDistance = float.MaxValue;
                         SpriteRenderer target = null;
 
-                        Detective.OldDeadBodies.RemoveAll((tuple) => tuple.Item1 == Detective.Target);
+                        Detective.OldDeadBodies.RemoveAll((tuple) => tuple.Data.PlayerId == Detective.Target.Data.PlayerId);
 
                         foreach (SpriteRenderer rend in Detective.CrimeScenes)
                         {

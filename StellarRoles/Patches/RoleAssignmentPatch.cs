@@ -1,6 +1,7 @@
 ﻿using AmongUs.GameOptions;
 using Cpp2IL.Core.Extensions;
 using HarmonyLib;
+using StellarRoles.Modules;
 using StellarRoles.Utilities;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,10 +22,10 @@ namespace StellarRoles.Patches
         }
     }
 
-    [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.Validate))]
+    [HarmonyPatch(typeof(LegacyGameOptions), nameof(LegacyGameOptions.Validate))]
     class GameOptionsDataValidatePatch
     {
-        public static void Postfix(GameOptionsData __instance)
+        public static void Postfix(LegacyGameOptions __instance)
         {
             if (GameOptionsManager.Instance.CurrentGameOptions.GameMode != GameModes.Normal) return;
             __instance.NumImpostors = GameOptionsManager.Instance.CurrentGameOptions.NumImpostors;
@@ -48,15 +49,16 @@ namespace StellarRoles.Patches
             RPCProcedure.Send(CustomRPC.ResetVaribles);
             RPCProcedure.ResetVariables();
 
-            if (GameOptionsManager.Instance.currentGameOptions.GameMode == GameModes.HideNSeek) return;
+            if (GameOptionsManager.Instance.currentGameOptions.GameMode == GameModes.HideNSeek || RoleDraft.isEnabled) return;
                 AssignRoles();
         }
 
         private static void AssignRoles()
         {
-            RoleAssignmentData data = GetRoleAssignmentData();
             if (Spectator.ToBecomeSpectator.Count > 0)
-                AssignSpectators(data);
+                AssignSpectators();
+
+            RoleAssignmentData data = GetRoleAssignmentData();
             AssignEnsuredRoles(data); // Assign roles that should always be in the game first
             AssignChanceRoles(data); // Assign roles that may or may not be in the game last
             AssignRoleTargets();
@@ -97,7 +99,7 @@ namespace StellarRoles.Patches
                     if (map == Map.Fungal && CustomOptionHolder.DisableAdministratorOnFungle.GetBool()) block = true;
                     break;
                 case RoleId.Watcher:
-                    if (map == Map.Skeld && CustomOptionHolder.DisableWatcherOnSkeld.GetBool()) block = true;
+                    if ((map == Map.Skeld && CustomOptionHolder.DisableWatcherOnSkeld.GetBool()) || map == Map.Fungal) block = true;
                     break;
                 case RoleId.Mayor:
                     if (!GameOptionsManager.Instance.currentNormalGameOptions.AnonymousVotes) block = true;
@@ -119,7 +121,7 @@ namespace StellarRoles.Patches
             List<PlayerControl> crewmates = new();
             List<PlayerControl> impostors = new();
 
-            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator().OrderBy(x => rnd.Next()))
+            foreach (PlayerControl player in PlayerControl.AllPlayerControls.GetFastEnumerator().Where(p => !Spectator.IsSpectator(p.PlayerId)).OrderBy(x => rnd.Next()))
                 (player.Data.Role.IsImpostor ? impostors : crewmates).Add(player);
 
             int crewmateMin = CustomOptionHolder.CrewmateRolesCountMin.GetSelection();
@@ -146,6 +148,7 @@ namespace StellarRoles.Patches
             //Impostor/Rogue
             bool BomberNeutral = CustomOptionHolder.BomberIsNeutral.GetBool();
             bool CamouflagerNeutral = CustomOptionHolder.CamouflagerIsNeutral.GetBool();
+            bool CharlatanNeutral = CustomOptionHolder.CharlatanIsNeutral.GetBool();
             bool JanitorNeutral = CustomOptionHolder.JanitorIsNeutral.GetBool();
             bool MinerNeutral = CustomOptionHolder.MinerIsNeutral.GetBool();
             bool MorphlingNeutral = CustomOptionHolder.MorphlingIsNeutral.GetBool();
@@ -160,6 +163,7 @@ namespace StellarRoles.Patches
             impSettings.Add(RoleId.Bomber, BomberNeutral ? 0 : CustomOptionHolder.BomberSpawnRate.GetSelection());
             impSettings.Add(RoleId.Camouflager, CamouflagerNeutral ? 0 : CustomOptionHolder.CamouflagerSpawnRate.GetSelection());
             impSettings.Add(RoleId.Changeling, CustomOptionHolder.ChangelingSpawnRate.GetSelection());
+            impSettings.Add(RoleId.Charlatan, CharlatanNeutral ? 0 : CustomOptionHolder.CharlatanSpawnRate.GetSelection());
             impSettings.Add(RoleId.Morphling, MorphlingNeutral ? 0 : CustomOptionHolder.MorphlingSpawnRate.GetSelection());
             impSettings.Add(RoleId.Parasite, ParasiteNeutral ? 0 : CustomOptionHolder.ParasiteSpawnRate.GetSelection());
             impSettings.Add(RoleId.Shade, ShadeNeutral ? 0 : CustomOptionHolder.ShadeSpawnRate.GetSelection());
@@ -200,6 +204,7 @@ namespace StellarRoles.Patches
             //Neutral Killer
             neutralKillerSettings.Add(RoleId.BomberNK, BomberNeutral ? CustomOptionHolder.BomberSpawnRate.GetSelection() : 0);
             neutralKillerSettings.Add(RoleId.CamouflagerNK, CamouflagerNeutral ? CustomOptionHolder.CamouflagerSpawnRate.GetSelection() : 0);
+            neutralKillerSettings.Add(RoleId.CharlatanNK, CharlatanNeutral ? CustomOptionHolder.CharlatanSpawnRate.GetSelection() : 0);
             neutralKillerSettings.Add(RoleId.HeadHunter, CustomOptionHolder.HeadHunterSpawnRate.GetSelection());
             neutralKillerSettings.Add(RoleId.MorphlingNK, MorphlingNeutral ? CustomOptionHolder.MorphlingSpawnRate.GetSelection() : 0);
             neutralKillerSettings.Add(RoleId.Nightmare, CustomOptionHolder.NightmareSpawnRate.GetSelection());
@@ -240,6 +245,8 @@ namespace StellarRoles.Patches
             if (impostors.Count > 1) // Only add Spy if more than 1 impostor as the spy role is otherwise useless
                 crewSettings.Add(RoleId.Spy, CustomOptionHolder.SpySpawnRate.GetSelection());
 
+            crewmates.Shuffle();
+
             return new RoleAssignmentData
             {
                 Crewmates = crewmates,
@@ -255,47 +262,56 @@ namespace StellarRoles.Patches
             };
         }
 
-        private static void RemoveSpectatingImpostors(RoleAssignmentData data)
+        private static void RemoveSpectatingImpostors()
         {
             foreach (var player in Spectator.ToBecomeSpectator.GetPlayerEnumerator().Where(p => p != null && p.Data.Role.IsImpostor && !p.Data.Disconnected))
             {
                 player.TurnToCrewmate();
-                data.Impostors.Remove(player);
             }
         }
 
-        private static void RemoveSpecatingCrew(RoleAssignmentData data)
+/*        private static void RemoveSpecatingCrew(RoleAssignmentData data)
         {
             data.Crewmates.RemoveAll(player => Spectator.ToBecomeSpectator.Contains(player.PlayerId));
-        }
+        }*/
 
-        private static void BalanceImpostors(RoleAssignmentData data)
+        private static void BalanceImpostors()
         {
-            List<PlayerControl> crewmates = data.Crewmates;
-            List<PlayerControl> impostors = data.Impostors;
-            int playercount = impostors.Count + crewmates.Count;
+            var allPlayers = PlayerControl.AllPlayerControls.GetFastEnumerator().Where(p => p != null && !p.Data.Disconnected);
+            int playercount = allPlayers.Count();
 
-            if ((playercount < 6 && impostors.Count > 1) || playercount < 9 && impostors.Count > 2)
+            List<PlayerControl> crewmates = new();
+            List<PlayerControl> impostors = new();
+            foreach (var p in allPlayers)
+            {
+                if (p.Data.Role.IsImpostor)
+                {
+                    impostors.Add(p);
+                }
+                else
+                {
+                    crewmates.Add(p);
+                }
+            }
+
+            while ((playercount < 6 && impostors.Count > 1) || playercount < 9 && impostors.Count > 2)
             {
                 PlayerControl nextimp = impostors.RemoveAndReturn(rnd.Next(0, impostors.Count));
                 nextimp.TurnToCrewmate();
-                crewmates.Add(nextimp);
             }
-
-            else if ((playercount >= 3 && impostors.Count < 1) || (playercount > 7 && impostors.Count < 2 && GameOptionsManager.Instance.currentNormalGameOptions.NumImpostors > 1))
+            while ((playercount >= 3 && impostors.Count < 1) || (playercount > 7 && impostors.Count < 2 && GameOptionsManager.Instance.currentNormalGameOptions.NumImpostors > 1))
             {
                 PlayerControl nextcrew = crewmates.RemoveAndReturn(rnd.Next(0, crewmates.Count));
                 RPCProcedure.Send(CustomRPC.CreateImpostor, nextcrew);
                 RPCProcedure.CreateImpostor(nextcrew);
-                impostors.Add(nextcrew);
             }
         }
 
-        private static void AssignSpectators(RoleAssignmentData data)
+        private static void AssignSpectators()
         {
-            RemoveSpectatingImpostors(data);
-            RemoveSpecatingCrew(data);
-            BalanceImpostors(data);
+            RemoveSpectatingImpostors();
+            //RemoveSpecatingCrew();
+            BalanceImpostors();
 
             foreach (byte playerId in Spectator.ToBecomeSpectator.Clone())
             {
@@ -317,6 +333,10 @@ namespace StellarRoles.Patches
             List<RoleId> ensuredNeutralKRoles = data.NeutralKillerSettings.Where(x => x.Value == 10).Select(x => x.Key).ToList();
             List<RoleId> ensuredImpostorRoles = data.ImpSettings.Where(x => x.Value == 10).Select(x => x.Key).ToList();
 
+            ensuredCrewmateRoles.Shuffle();
+            ensuredNeutralRoles.Shuffle();
+            ensuredNeutralKRoles.Shuffle();
+            ensuredImpostorRoles.Shuffle();
 
             //Assign Impostor First
             while (data.Impostors.Count > 0 && data.MaxImpostorRoles > 0 && ensuredImpostorRoles.Count > 0)
@@ -365,6 +385,11 @@ namespace StellarRoles.Patches
                         // Remove blocked roles even if the chance was 100%
                         foreach (List<RoleId> ensuredRolesList in ImpRolesToAssign.Values)
                             ensuredRolesList.RemoveAll(x => x == blockedRoleId);
+
+                        ensuredCrewmateRoles.RemoveAll(x => x == blockedRoleId);
+                        ensuredNeutralRoles.RemoveAll(x => x == blockedRoleId);
+                        ensuredNeutralKRoles.RemoveAll(x => x == blockedRoleId);
+                        ensuredImpostorRoles.RemoveAll(x => x == blockedRoleId);
                     }
                 }
                 data.MaxImpostorRoles--;
@@ -394,7 +419,7 @@ namespace StellarRoles.Patches
                 // then select one of the roles from the selected pool to a player 
                 // and remove the role (and any potentially blocked role pairings) from the pool(s)
                 RoleType roleType = CrewRolesToAssign.Keys.ElementAt(rnd.Next(0, CrewRolesToAssign.Keys.Count));
-                List<PlayerControl> players = roleType == RoleType.Crewmate || roleType == RoleType.Neutral || roleType == RoleType.NeutralKiller ? data.Crewmates : data.Impostors;
+                List<PlayerControl> players = data.Crewmates;
                 RoleId roleId = CrewRolesToAssign[roleType].RemoveAndReturn(rnd.Next(0, CrewRolesToAssign[roleType].Count));
                 SetRoleToRandomPlayer(roleId, players);
 
@@ -414,6 +439,12 @@ namespace StellarRoles.Patches
                         // Remove blocked roles even if the chance was 100%
                         foreach (List<RoleId> ensuredRolesList in CrewRolesToAssign.Values)
                             ensuredRolesList.RemoveAll(x => x == blockedRoleId);
+
+                        ensuredCrewmateRoles.RemoveAll(x => x == blockedRoleId);
+                        ensuredNeutralRoles.RemoveAll(x => x == blockedRoleId);
+                        ensuredNeutralKRoles.RemoveAll(x => x == blockedRoleId);
+                        ensuredImpostorRoles.RemoveAll(x => x == blockedRoleId);
+
                     }
                 }
 
@@ -441,6 +472,10 @@ namespace StellarRoles.Patches
             List<RoleId> neutralKTickets = data.NeutralKillerSettings.Where(x => x.Value > 0 && x.Value < 10).SelectMany(x => Enumerable.Repeat(x.Key, x.Value)).ToList();
             List<RoleId> impostorTickets = data.ImpSettings.Where(x => x.Value > 0 && x.Value < 10).SelectMany(x => Enumerable.Repeat(x.Key, x.Value)).ToList();
 
+            crewmateTickets.Shuffle();
+            neutralTickets.Shuffle();
+            neutralKTickets.Shuffle();
+            impostorTickets.Shuffle();
 
             //Assign Impostors First
             while (data.Impostors.Count > 0 && data.MaxImpostorRoles > 0 && impostorTickets.Count > 0)
@@ -471,6 +506,7 @@ namespace StellarRoles.Patches
                 else
                 {
                     ImpRolesToAssign[RoleType.Impostor].RemoveAll(x => x == RoleId.Cultist);
+                    impostorTickets.RemoveAll(x => x == RoleId.Cultist);
                 }
 
                 if (CustomOptionHolder.BlockedRolePairings.TryGetValue(roleId, out RoleId[] pairings))
@@ -542,7 +578,7 @@ namespace StellarRoles.Patches
             }
         }
 
-        private static void AssignRoleTargets()
+        public static void AssignRoleTargets()
         {
             if (Executioner.Player != null)
             {
@@ -576,7 +612,7 @@ namespace StellarRoles.Patches
             }
         }
 
-        private static void AssignAssassins()
+        public static void AssignAssassins()
         {
             List<PlayerControl> impPlayers = PlayerControl.AllPlayerControls.GetFastEnumerator().Where(player => player.Data.Role.IsImpostor).ToList();
 
@@ -586,7 +622,7 @@ namespace StellarRoles.Patches
             AssignModifiers(impPlayers, new List<RoleId> { RoleId.Assassin }, modifierCount, modifierCount); // Assign Assassin
         }
 
-        private static void AssignModifiers()
+        public static void AssignModifiers()
         {
             //Assign Cosmetic Modifiers
             AssignModifiers(

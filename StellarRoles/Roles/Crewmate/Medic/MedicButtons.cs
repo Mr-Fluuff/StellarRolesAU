@@ -28,7 +28,7 @@ namespace StellarRoles
                {
                    RPCProcedure.Send(CustomRPC.MedicSetHearMonitor, Medic.CurrentTarget);
                    RPCProcedure.MedicSetHearMonitor(Medic.CurrentTarget);
-                   SoundEffectsManager.Play(Sounds.Shield);
+                   SoundEffectsManager.Play(Sounds.Monitor);
                    MedicHeartMonitor.Timer = MedicHeartMonitor.MaxTimer;
                    RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
@@ -87,6 +87,7 @@ namespace StellarRoles
                        Medic.VitalsMinigame.Begin(null);
 
                        Helpers.SetMovement(false);
+                       SoundEffectsManager.Play(Sounds.Vitals);
                        MedicVitals.Timer = 5f;
                        RPCProcedure.Send(CustomRPC.PsychicAddCount);
                    }

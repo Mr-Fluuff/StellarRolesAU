@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
-		<Version>2024.10.21</Version>
+		<Version>2025.5.12</Version>
 		<Description>StellarRoles</Description>
 		<Authors>Mr_Fluuff,Ilyssa,Om3ga</Authors>
 		<LangVersion>latest</LangVersion>
@@ -17,10 +17,10 @@
 
 	<ItemGroup>
 		<EmbeddedResource Include="Resources\**" />
-		<PackageReference Include="AmongUs.GameLibs.Steam" Version="2024.9.4" />
-		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.692" />
+		<PackageReference Include="AmongUs.GameLibs.Steam" Version="2025.3.25" />
+		<PackageReference Include="BepInEx.Unity.IL2CPP" Version="6.0.0-be.733" />
 		<PackageReference Include="BepInEx.IL2CPP.MSBuild" Version="2.1.0-rc.1" />
-		<PackageReference Include="Reactor" Version="2.3.1" />
+		<PackageReference Include="Reactor" Version="2.4.0-ci.344" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild" Condition="Exists('$(AmongUs)/BepInEx/plugins/')">

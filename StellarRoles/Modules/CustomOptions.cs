@@ -174,19 +174,27 @@ namespace StellarRoles
 
         public static bool LoadVanillaOptions()
         {
+            bool Updated = true;
             string optionsString = VanillaSettings.Value;
             if (optionsString == "") return false;
             IGameOptions gameOptions = GameOptionsManager.Instance.gameOptionsFactory.FromBytes(Convert.FromBase64String(optionsString));
-            if (gameOptions.Version < 8)
+            if (gameOptions.Version < GameOptionsManager.Instance.currentGameOptions.Version)
             {
                 StellarRolesPlugin.Logger.LogMessage("tried to paste old settings, not doing this!");
-                return false;
+                SaveVanillaOptions();
+                Updated = false;
+            }
+
+            if (!Updated)
+            {
+                gameOptions = GameOptionsManager.Instance.gameOptionsFactory.FromBytes(Convert.FromBase64String(VanillaSettings.Value));
             }
             GameOptionsManager.Instance.GameHostOptions = gameOptions;
             GameOptionsManager.Instance.CurrentGameOptions = GameOptionsManager.Instance.GameHostOptions;
             GameManager.Instance.LogicOptions.SetGameOptions(GameOptionsManager.Instance.CurrentGameOptions);
             GameManager.Instance.LogicOptions.SyncOptions();
-            return true;
+
+            return Updated;
         }
 
         public static void ShareOptionChange(uint optionId)
@@ -608,46 +616,62 @@ namespace StellarRoles
                     categoryHeaderMasked.transform.SetParent(__instance.settingsContainer);
                     categoryHeaderMasked.transform.localScale = Vector3.one;
                     categoryHeaderMasked.transform.localPosition = new Vector3(-9.77f, num, -2f);
+                    categoryHeaderMasked.Background.sprite = GetHeaderSprite();
+                    categoryHeaderMasked.Divider.sprite = GetDividerSprite();
+                    categoryHeaderMasked.Background.transform.localPosition = new Vector3(-0.2446f, -0.1923f);
+
+                    if (option.HeaderColor != default)
+                    {
+                        categoryHeaderMasked.Background.color = option.HeaderColor;
+                        categoryHeaderMasked.Divider.color = option.HeaderColor;
+                    }
+                    else
+                    {
+                        categoryHeaderMasked.Background.color = DefaultColor;
+                        categoryHeaderMasked.Divider.color = DefaultColor;
+                    }
                     __instance.settingsInfo.Add(categoryHeaderMasked.gameObject);
                     num -= 0.85f;
                     i = 0;
                 }
 
-                ViewSettingsInfoPanel viewSettingsInfoPanel = UnityEngine.Object.Instantiate<ViewSettingsInfoPanel>(__instance.infoPanelOrigin);
-                viewSettingsInfoPanel.transform.SetParent(__instance.settingsContainer);
-                viewSettingsInfoPanel.transform.localScale = Vector3.one;
-                float num2;
-                if (i % 2 == 0)
+                if (option.Selections[0].ToString() != "HeaderOnly")
                 {
-                    lines++;
-                    num2 = -8.95f;
-                    if (i > 0)
+                    ViewSettingsInfoPanel viewSettingsInfoPanel = UnityEngine.Object.Instantiate<ViewSettingsInfoPanel>(__instance.infoPanelOrigin);
+                    viewSettingsInfoPanel.transform.SetParent(__instance.settingsContainer);
+                    viewSettingsInfoPanel.transform.localScale = Vector3.one;
+                    float num2;
+                    if (i % 2 == 0)
                     {
-                        num -= 0.59f;
+                        lines++;
+                        num2 = -8.95f;
+                        if (i > 0)
+                        {
+                            num -= 0.59f;
+                        }
                     }
+                    else
+                    {
+                        num2 = -3f;
+                    }
+                    viewSettingsInfoPanel.transform.localPosition = new Vector3(num2, num, -2f);
+                    int value = option.GetSelection();
+                    viewSettingsInfoPanel.SetInfo(StringNames.ImpostorsCategory, option.Selections[value].ToString(), 61);
+                    viewSettingsInfoPanel.titleText.text = option.name;
+                    if (option.isHeader && (int)optionType != 99 && option.heading == "" && (option.type == CustomOptionType.Neutral || option.type == CustomOptionType.NeutralK || option.type == CustomOptionType.Crewmate || option.type == CustomOptionType.Impostor || option.type == CustomOptionType.Modifier))
+                    {
+                        viewSettingsInfoPanel.titleText.text = "Spawn Chance";
+                    }
+                    if ((int)optionType == 99)
+                    {
+                        viewSettingsInfoPanel.titleText.outlineColor = Color.white;
+                        viewSettingsInfoPanel.titleText.outlineWidth = 0.2f;
+                        if (option.type == CustomOptionType.Modifier)
+                            viewSettingsInfoPanel.settingText.text = viewSettingsInfoPanel.settingText.text + GameOptionsDataPatch.buildModifierExtras(option);
+                    }
+                    __instance.settingsInfo.Add(viewSettingsInfoPanel.gameObject);
+                    i++;
                 }
-                else
-                {
-                    num2 = -3f;
-                }
-                viewSettingsInfoPanel.transform.localPosition = new Vector3(num2, num, -2f);
-                int value = option.GetSelection();
-                viewSettingsInfoPanel.SetInfo(StringNames.ImpostorsCategory, option.Selections[value].ToString(), 61);
-                viewSettingsInfoPanel.titleText.text = option.name;
-                if (option.isHeader && (int)optionType != 99 && option.heading == "" && (option.type == CustomOptionType.Neutral || option.type == CustomOptionType.NeutralK || option.type == CustomOptionType.Crewmate || option.type == CustomOptionType.Impostor || option.type == CustomOptionType.Modifier))
-                {
-                    viewSettingsInfoPanel.titleText.text = "Spawn Chance";
-                }
-                if ((int)optionType == 99)
-                {
-                    viewSettingsInfoPanel.titleText.outlineColor = Color.white;
-                    viewSettingsInfoPanel.titleText.outlineWidth = 0.2f;
-                    if (option.type == CustomOptionType.Modifier)
-                        viewSettingsInfoPanel.settingText.text = viewSettingsInfoPanel.settingText.text + GameOptionsDataPatch.buildModifierExtras(option);
-                }
-                __instance.settingsInfo.Add(viewSettingsInfoPanel.gameObject);
-
-                i++;
             }
             float actual_spacing = (headers * 0.85f + lines * 0.59f) / (headers + lines);
             __instance.scrollBar.CalculateAndSetYBounds((float)(__instance.settingsInfo.Count + singles * 2 + headers), 2f, 6f, actual_spacing);
@@ -1267,15 +1291,15 @@ namespace StellarRoles
     [HarmonyPatch]
     public class AddToKillDistanceSetting
     {
-        [HarmonyPatch(typeof(GameOptionsData), nameof(GameOptionsData.AreInvalid))]
+        [HarmonyPatch(typeof(LegacyGameOptions), nameof(LegacyGameOptions.AreInvalid))]
         [HarmonyPrefix]
 
-        public static bool Prefix(GameOptionsData __instance, ref int maxExpectedPlayers, ref bool __result)
+        public static bool Prefix(LegacyGameOptions __instance, ref int maxExpectedPlayers, ref bool __result)
         {
             //making the killdistances bound check higher since extra short is added
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= GameOptionsData.KillDistances.Count
+                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
@@ -1291,7 +1315,7 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= GameOptionsData.KillDistances.Count
+                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result=true;
@@ -1307,7 +1331,23 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= GameOptionsData.KillDistances.Count
+                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
+            {
+                __result = true;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(NormalGameOptionsV09), nameof(NormalGameOptionsV09.AreInvalid))]
+        [HarmonyPrefix]
+
+        public static bool Prefix(NormalGameOptionsV09 __instance, ref int maxExpectedPlayers, ref bool __result)
+        {
+            if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
+                    || __instance.NumImpostors > 3 || __instance.KillDistance < 0
+                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
@@ -1338,7 +1378,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = GameOptionsData.KillDistanceStrings[index];
+                var stringname = LegacyGameOptions.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1353,7 +1393,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = GameOptionsData.KillDistanceStrings[index];
+                var stringname = LegacyGameOptions.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1378,7 +1418,7 @@ namespace StellarRoles
                 {
                     index = GameOptionsManager.Instance.currentHideNSeekGameOptions.KillDistance;
                 }
-                value = GameOptionsData.KillDistanceStrings[index];
+                value = LegacyGameOptions.KillDistanceStrings[index];
             }
         }
 
@@ -1410,8 +1450,8 @@ namespace StellarRoles
         }
         public static void addKillDistance()
         {
-            GameOptionsData.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
-            GameOptionsData.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
+            LegacyGameOptions.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
+            LegacyGameOptions.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
         }
     }
 

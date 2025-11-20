@@ -41,7 +41,7 @@ namespace StellarRoles.Objects
             if (GameTime <= 0.0f)
             {
                 _isCountingDown = false;
-                if (AmongUsClient.Instance.AmHost)
+                if (AmongUsClient.Instance.AmHost && Helpers.GameStarted)
                 {
                     EndGame();
                 }
@@ -79,9 +79,18 @@ namespace StellarRoles.Objects
     {
         public static void Prefix()
         {
+            GameTimer._isCountingDown = false;
+            GameTimer.TriggerTimesUpEndGame = false;
             if (GameTimer.Enabletimer)
             {
                 GameTimer.GameTime = GameTimer.MaxGameTime;
+            }
+        }
+
+        public static void Postfix()
+        {
+            if (GameTimer.Enabletimer)
+            {
                 GameTimer._isCountingDown = true;
             }
         }

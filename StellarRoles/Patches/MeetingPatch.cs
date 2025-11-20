@@ -164,7 +164,7 @@ namespace StellarRoles.Patches
                             __instance.BloopAVoteIcon(playerById, num2, playerVoteArea.transform);
                             num2++;
                         }
-                        if (playerById?.Object == localPlayer && !localPlayer.IsImpostor() && !localPlayer.Data.IsDead
+                        if (playerById?.Object == localPlayer && !localPlayer.Data.IsDead
                             && !voterState.SkippedVote)
                         {
                             ExtraStats.playerVoted = Helpers.PlayerById(voterState.VotedForId);
@@ -183,7 +183,7 @@ namespace StellarRoles.Patches
                     }
                 }
 
-                if (ExtraStats.playerVoted != null)
+                if (ExtraStats.playerVoted != null && localPlayer.IsCrew())
                 {
                     if (ExtraStats.playerVoted.Data.Role.IsImpostor)
                     {
@@ -458,12 +458,6 @@ namespace StellarRoles.Patches
                         // Shoot player and send chat info if activated
                         RPCProcedure.Send(CustomRPC.GuesserShoot, PlayerControl.LocalPlayer, dyingTarget, target, roleInfo.RoleId);
                         RPCProcedure.GuesserShoot(PlayerControl.LocalPlayer, dyingTarget, target, roleInfo.RoleId);
-
-                        if (dyingTarget.IsJailor(out Jailor jailor) && jailor.HasJailed)
-                        {
-                            RPCProcedure.Send(CustomRPC.ReadButtons);
-                            RPCProcedure.ReadButtons();
-                        }
                     }
                 }));
                 button.OnMouseOver.AddListener((Action)(() =>
@@ -803,53 +797,9 @@ namespace StellarRoles.Patches
             }
         }
 
-        [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.SortButtons))]
-        class SortButtonsPatch
-        {
-            static void Postfix()
-            {
-                RemoveSpectatorPlate();
-            }
-            static void RemoveSpectatorPlate()
-            {
-                if (Spectator.Players.Count <= 0) return;
-                SortMeetingPlayers();
-
-                MeetingHud.Instance.playerStates.ToList().ForEach(state =>
-                {
-                    if (Spectator.Players.Contains(state.TargetPlayerId))
-                        state.gameObject.SetActive(false);
-                });
-            }
-            public static void SortMeetingPlayers()
-            {
-                var allPlayers = MeetingHud.Instance.playerStates;
-                List<Vector3> playerPositions = allPlayers.Select(area => area.transform.localPosition).ToList();
-
-                _ = allPlayers.OrderBy((pva) =>
-                {
-                    if (!pva.AmDead)
-                    {
-                        return 0;
-                    }
-                    else if (!Spectator.IsSpectator(pva.TargetPlayerId))
-                    {
-                        return 5;
-                    }
-                    return 50;
-                });
-
-                for (int i = 0; i < allPlayers.Length; i++)
-                {
-                    allPlayers[i].transform.localPosition = playerPositions[i];
-                }
-            }
-        }
-
         static void AddWatcherOverlay()
         {
-            if (Watcher.Player == null || !Watcher.TrackedPlayers.Contains(PlayerControl.LocalPlayer))
-                return;
+            if (Watcher.Player == null || !Watcher.TrackedPlayers.Contains(PlayerControl.LocalPlayer)) return;
 
             bool isRomanticCrew = PlayerControl.LocalPlayer == Romantic.Player && Romantic.IsCrewmate;
             bool isevil = PlayerControl.LocalPlayer.IsNeutral() || PlayerControl.LocalPlayer.Data.Role.IsImpostor;
@@ -895,7 +845,7 @@ namespace StellarRoles.Patches
         public static void AddGuesserButtons()
         {
             MeetingHud meetingHud = MeetingHud.Instance;
-            if (!PlayerControl.LocalPlayer.CanGuess() || PlayerControl.LocalPlayer.Data.IsDead || PlayerControl.LocalPlayer.RemainingShots() <= 0)
+            if (!meetingHud || !PlayerControl.LocalPlayer.CanGuess() || PlayerControl.LocalPlayer.Data.IsDead || PlayerControl.LocalPlayer.RemainingShots() <= 0)
                 return;
 
             for (int i = 0; i < meetingHud.playerStates.Length; i++)
@@ -918,8 +868,7 @@ namespace StellarRoles.Patches
 
         public static void AddRomanticOverlay()
         {
-            if (!Romantic.HasLover || Romantic.PairIsDead)
-                return;
+            if (!Romantic.HasLover || Romantic.PairIsDead) return;
 
             PlayerVoteArea voteArea = MeetingHud.Instance.playerStates[0];
             Transform meetingUI = Object.FindObjectsOfType<Transform>().FirstOrDefault(x => x.name == "PhoneUI");
@@ -992,22 +941,26 @@ namespace StellarRoles.Patches
         static void PopulateButtonsPostfix()
         {
             3f.DelayedAction(()=> 
-            {   //Romantic Overlay
-                AddRomanticOverlay();
-                //Vengful Romantic Overlay
-                AddBrokenRomanticHeart();
-                //Add Overlay for Compared Players
-                AddParityCopOverlay();
-                //Add Overlay for Watched Players
-                AddWatcherOverlay();
-                // Add Guesser Buttons
-                AddGuesserButtons();
-                //Add Jailor Button
-                AddJailorButton();
-                //Add Pyromanic Cheesit
-                AddPyromaniacOverlay();
-                //Add Mayore Retire Button
-                AddMayorButton();
+            {
+                if (MeetingHud.Instance != null)
+                {
+                    //Romantic Overlay
+                    AddRomanticOverlay();
+                    //Vengful Romantic Overlay
+                    AddBrokenRomanticHeart();
+                    //Add Overlay for Compared Players
+                    AddParityCopOverlay();
+                    //Add Overlay for Watched Players
+                    AddWatcherOverlay();
+                    // Add Guesser Buttons
+                    AddGuesserButtons();
+                    //Add Jailor Button
+                    AddJailorButton();
+                    //Add Pyromanic Cheesit
+                    AddPyromaniacOverlay();
+                    //Add Mayore Retire Button
+                    AddMayorButton();
+                }
             });
         }
 
@@ -1069,6 +1022,8 @@ namespace StellarRoles.Patches
                 SoundEffectsManager.StopAll();
 
                 if (HelpMenu.RolesUI != null) Object.Destroy(HelpMenu.RolesUI);
+
+                Helpers.DelayedAction(0.1f, () => { Impostor.EnableChat.ImpChatEnabled = false; });
 
             }
         }
@@ -1139,6 +1094,35 @@ namespace StellarRoles.Patches
                         RPCProcedure.Send(CustomRPC.SetMeetingChatOverlay, localPlayer, false);
                         RPCProcedure.SetChatNotificationOverlay(localPlayer.PlayerId, false);
                     }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(MeetingHud), nameof(MeetingHud.SortButtons))]
+        class MeetingHudSortButtonsPatch
+        {
+            static void Postfix(MeetingHud __instance)
+            {
+                PlayerVoteArea[] array = __instance.playerStates.OrderBy(delegate (PlayerVoteArea p)
+                {
+                    if (!p.AmDead)
+                    {
+                        return 0;
+                    }
+                    else if (!Spectator.IsSpectator(p.TargetPlayerId))
+                    {
+                        return 60;
+                    }
+                    return 50;
+                }).ThenBy((PlayerVoteArea p) => p.TargetPlayerId).ToArray<PlayerVoteArea>();
+                for (int i = 0; i < array.Length; i++)
+                {
+                    int num = i % 3;
+                    int num2 = i / 3;
+                    array[i].transform.localPosition = __instance.VoteOrigin + new Vector3(__instance.VoteButtonOffsets.x * (float)num, __instance.VoteButtonOffsets.y * (float)num2, -0.9f - (float)num2 * 0.01f);
+                    
+                    if (Spectator.Players.Contains(array[i].TargetPlayerId))
+                        array[i].gameObject.SetActive(false);
                 }
             }
         }

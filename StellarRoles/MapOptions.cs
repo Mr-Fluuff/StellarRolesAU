@@ -58,8 +58,10 @@ namespace StellarRoles
         public static bool ImposterAbiltiesRoleBlock => CustomOptionHolder.ImposterAbiltiesRoleBlock.GetBool();
         public static bool NeutralKillerRoleBlock => CustomOptionHolder.NeutralKillerRoleBlock.GetBool();
         public static bool NeutralRoleBlock => CustomOptionHolder.NeutralRoleBlock.GetBool();
-        public static int PlayersAlive { get; set; } = 0;
-        public static int CrewAlive { get; set; } = 0;
+        public static int PlayersAlive { get; set; } = 4;
+        public static int CrewAlive { get; set; } = 4;
+        public static int ImpsAlive { get; set; } = 4;
+
 
 
         public static bool TournamentLogs => CustomOptionHolder.TournamentLogs.GetBool();
@@ -103,6 +105,7 @@ namespace StellarRoles
             DeadBodiesAdminTable = false;
             PlayersAlive = PlayerControl.AllPlayerControls.Count;
             CrewAlive = PlayerControl.AllPlayerControls.Count;
+            ImpsAlive = PlayerControl.AllPlayerControls.Count;
         }
 
         public static void ReloadPluginOptions()

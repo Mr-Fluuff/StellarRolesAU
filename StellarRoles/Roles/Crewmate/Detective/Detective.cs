@@ -22,15 +22,15 @@ namespace StellarRoles
         private static Sprite _CrimeSceneSprite;
 
 
-        public static DeadPlayer Target { get; set; }
+        public static DeadPlayer Target { get; set; } = null;
         public static bool TargetIsFresh { get; set; }
         public static DeadPlayer InspectTarget { get; set; }
 
         public static DateTime MeetingStartTime { get; set; } = DateTime.UtcNow;
         public static readonly List<SpriteRenderer> CrimeScenes = new();
 
-        public static readonly List<(DeadPlayer, Vector3)> OldDeadBodies = new();
-        public static readonly List<(DeadPlayer, Vector3)> FreshDeadBodies = new();
+        public static readonly List<DeadPlayer> OldDeadBodies = new();
+        public static readonly List<DeadPlayer> FreshDeadBodies = new();
 
         //QuestionInfo
         public static readonly Dictionary<byte, PlayerList> KillersLinkToKills = new();
@@ -104,7 +104,6 @@ namespace StellarRoles
             bool older = isCorpse ? timeSinceDeath >= 10 && timeSinceDeath <= 20 : timeSinceDeathMeeting >= 10 && timeSinceDeathMeeting <= 20;
             bool dead = isCorpse ? timeSinceDeath >= 20 : timeSinceDeathMeeting >= 20;
             string name = $"({Target.Player.Data.PlayerName})";
-
             switch (questionNumber)
             {
                 case 0:
@@ -161,10 +160,16 @@ namespace StellarRoles
                 case 3:
                     return $"{WhatIsKillersAlighment(Target.Player.PlayerId)}\n{name}.";
                 case 4:
-                    return $"{FindOtherPlayerQuestion(Target.Player.PlayerId)}\n{name}.";
+                    if (IsCorpse(Target.Player.PlayerId))
+                    {
+                        return $"This body has been tampered with!\n(Decayed, Dragged, or Concealed)\n{name}";
+                    }
+                    else return $"This crime scene has been tampered with!\n(Decayed, Dragged, or Concealed)\n{name}";
                 case 5:
-                    return $"{HowManyPlayersKillerKilledQuestion(Target.Player.PlayerId)}\n{name}.";
+                    return $"{FindOtherPlayerQuestion(Target.Player.PlayerId)}\n{name}.";
                 case 6:
+                    return $"{HowManyPlayersKillerKilledQuestion(Target.Player.PlayerId)}\n{name}.";
+                case 7:
                     {
                         int rnd = StellarRoles.rnd.Next(3);
                         if (rnd == 0)
@@ -174,7 +179,7 @@ namespace StellarRoles
                         else
                             return $"It looks like the killer made an escape to {KillerEscapeDirection[Target.Player.PlayerId].GetDirection()}.\n{name}.";
                     }
-                case 7:
+                case 8:
                     return $"{DidKillerUseVent(Target.Player.PlayerId)}\n{name}.";
                 default:
                     return "The answer is 42.";
@@ -192,42 +197,46 @@ namespace StellarRoles
         public static List<int> QuestionOrderCalculation()
         {
             List<int> questionOrder = new();
-            List<int> groupA = new() { 0, 1, 2, 3 };
-            List<int> groupB = new() { 4, 5, 6, 7 };
+            List<int> groupA = new() { 0, 1, 2, 3};
+            int a = 0;
+            int b = 0;
+            if (GameHistory.DeadPlayers.Any(p => p.Data.PlayerId == Target.Data.PlayerId && p.Tampered)) 
+            {
+                groupA.Add(4);
+            }
+            List<int> groupB = new() { 5, 6, 7, 8 };
             if (TargetIsFresh || Ascended.IsAscended(Player))
             {
-                //2 from Group A
-                AddRandomElementFromGroup(questionOrder, groupA);
-                AddRandomElementFromGroup(questionOrder, groupA);
-                //20% chance of third question coming from group A
-                if (StellarRoles.rnd.Next(4) > 3)
+                while (a < 2 || b < 2)
                 {
-                    AddRandomElementFromGroup(questionOrder, groupA);
-                }
-                else
-                {
-                    AddRandomElementFromGroup(questionOrder, groupB);
-                    if (StellarRoles.rnd.Next(4) > 3)
+                    int achance = (a < 2) ? b == 2 ? 0 : 30 : 101;
+                    if (Helpers.TrueRandom(1, 100) >= achance)
+                    {
                         AddRandomElementFromGroup(questionOrder, groupA);
+                        a++;
+                    }
                     else
+                    {
                         AddRandomElementFromGroup(questionOrder, groupB);
+                        b++;
+                    }
                 }
             }
             else
             {
-                AddRandomElementFromGroup(questionOrder, groupB);
-                AddRandomElementFromGroup(questionOrder, groupB);
-                if (StellarRoles.rnd.Next(2) == 0)
+                while (a < 1 || b < 3)
                 {
-                    AddRandomElementFromGroup(questionOrder, groupA);
-                }
-                else
-                {
-                    AddRandomElementFromGroup(questionOrder, groupB);
-                    if (StellarRoles.rnd.Next(2) == 0)
+                    int bchance = (a < 1) ? b == 3 ? 0 : 70 : 101;
+                    if (Helpers.TrueRandom(1, 100) >= bchance)
+                    {
                         AddRandomElementFromGroup(questionOrder, groupA);
+                        a++;
+                    }
                     else
+                    {
                         AddRandomElementFromGroup(questionOrder, groupB);
+                        b++;
+                    }
                 }
             }
             return questionOrder;
@@ -256,7 +265,7 @@ namespace StellarRoles
 
         public static bool IsCorpse(byte playerId)
         {
-            return FreshDeadBodies.Any(body => body.Item1.Player.PlayerId == playerId);
+            return FreshDeadBodies.Any(body => body.Player.PlayerId == playerId);
         }
 
         public static string CorpseTime()
@@ -277,19 +286,26 @@ namespace StellarRoles
 
             if (name != "")
                 return rnd
-                    ? $"The wounds on this player are very similar to the wounds on {name}.\n"
-                    : $"This player died to the same killer as {name}.\n";
+                    ? $"The wounds on this player are very similar to the wounds on {name}."
+                    : $"This player died to the same killer as {name}.";
             else
                 return rnd
-                    ? "No one else seems to have been killed by this player's murderer.\n"
-                    : "This killer's handiwork is not something you have seen before.\n";
+                    ? "No one else seems to have been killed by this player's murderer."
+                    : "This killer's handiwork is not something you have seen before.";
         }
 
         public static string FindOtherPlayer(byte playerId)
         {
-            foreach (PlayerList list in KillersLinkToKills.Values)
-                if (list.Remove(playerId))
-                    return list.Count != 0 ? list.GetPlayerAt(StellarRoles.rnd.Next(list.Count)).Data.PlayerName : "";
+            PlayerList list = [];
+            foreach (PlayerList l in KillersLinkToKills.Values)
+            {
+                if (l.Contains(playerId))
+                {
+                    list.AddRange(l);
+                }
+            }
+            if (list.Remove(playerId))
+                return list.Count != 0 ? list.GetPlayerAt(StellarRoles.rnd.Next(list.Count)).Data.PlayerName : "";
 
             return "";
 
@@ -305,19 +321,27 @@ namespace StellarRoles
             }
             else if (PlayerIdToKillerCountQuestion.TryGetValue(playerId, out int killCount))
                 return rnd
-                    ? $"This murderer has killed {killCount} people prior to the end of last round.\n"
-                    : $"This player's killer has murdered {killCount} players prior to the end of last round.\n";
+                    ? $"This murderer has killed {killCount} people prior to the end of last round."
+                    : $"This player's killer has murdered {killCount} players prior to the end of last round.";
             else
                 return "The people on the death star were innocent.";
         }
 
         public static int HowManyPlayersHasKillerKilled(byte playerId)
         {
+            int count = 0;
             foreach (PlayerList list in KillersLinkToKills.Values)
+            {
                 if (list.Contains(playerId))
-                    return list.Count;
+                    count += list.Count;
+            }
 
-            return 10000;
+/*            if (PlayerIdToKillerCountQuestion.TryGetValue(playerId, out int killCount))
+            {
+                count += killCount;
+            }*/
+
+            return count;
         }
 
 

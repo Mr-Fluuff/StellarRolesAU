@@ -6,20 +6,29 @@ namespace StellarRoles.Patches
     public static class SleepwalkerPatches
     {
         // Save the position of the player prior to starting the climb / gap platform
-        [HarmonyPrefix]
         [HarmonyPatch(typeof(PlayerPhysics), nameof(PlayerPhysics.ClimbLadder))]
-        public static void ClimbLadder()
-        {
-            Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
-        }
-
-        [HarmonyPatch(typeof(PlatformConsole), nameof(PlatformConsole.Use))]
-        public static class AirShipPlatformSleepwalker
+        public static class ClimbLadderSleepwalker
         {
             [HarmonyPrefix]
-            public static void Use()
+            public static void ClimbLadder(PlayerPhysics __instance)
             {
-                Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                if (__instance.myPlayer == PlayerControl.LocalPlayer)
+                {
+                    Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(MovingPlatformBehaviour), nameof(MovingPlatformBehaviour.UsePlatform))]
+        public static class MovingPlatformBehaviourSleepwalker
+        {
+            [HarmonyPrefix]
+            public static void UsePlatform(MovingPlatformBehaviour __instance, [HarmonyArgument(0)] PlayerControl player)
+            {
+                if (player == PlayerControl.LocalPlayer)
+                {
+                    Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                }
             }
         }
 
@@ -27,29 +36,38 @@ namespace StellarRoles.Patches
         public static class FungleZiplineSleepwalker
         {
             [HarmonyPrefix]
-            public static void UseZipline()
+            public static void UseZipline(ZiplineBehaviour __instance, PlayerControl player, bool fromTop)
             {
-                Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                if (player == PlayerControl.LocalPlayer)
+                {
+                    Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                }
             }
         }
 
         [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.StartMeeting))]
-        class StartMeetingPatch
+        public class StartMeetingPatch
         {
-            public static void Prefix()
+            [HarmonyPrefix]
+            public static void StartMeeting()
             {
+                var localplayer = PlayerControl.LocalPlayer;
+               
+                if (!localplayer.AmOwner) return;
+                if (localplayer.inMovingPlat) return;
+                if (localplayer.onLadder) return;
                 // Save Sleepwalker position, if the player is able to move (i.e. not on a ladder or a gap thingy)
-                if (PlayerControl.LocalPlayer.MyPhysics.enabled && PlayerControl.LocalPlayer.moveable || PlayerControl.LocalPlayer.inVent)
-                    Sleepwalker.LastPosition = PlayerControl.LocalPlayer.transform.position;
+                if (localplayer.MyPhysics.enabled && localplayer.moveable || localplayer.inVent)
+                    Sleepwalker.LastPosition = localplayer.transform.position;
             }
         }
 
         [HarmonyPatch(typeof(SpawnInMinigame), nameof(SpawnInMinigame.Close))]  // Set position of AntiTp players AFTER they have selected a spawn.
-        class AirshipSpawnInPatch
+        public class AirshipSpawnInPatch
         {
             static void Postfix()
             {
-                Sleepwalker.SetPosition();
+                Sleepwalker.RpcSleepwalkToPosition();
             }
         }
     }

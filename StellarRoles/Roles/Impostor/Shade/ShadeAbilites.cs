@@ -26,7 +26,7 @@ namespace StellarRoles
                 RPCProcedure.Send(CustomRPC.SetInvisible, Shade.Player, true);
                 RPCProcedure.SetInvisible(Shade.Player, true);
 
-                if (Shade.EvidenceDuration > 0f)
+                if (Shade.EvidenceDuration > 0f && !Shade.Player.Data.IsDead)
                 {
                     Vector3 pos = PlayerControl.LocalPlayer.transform.position;
                     byte[] buff = new byte[sizeof(float) * 2];

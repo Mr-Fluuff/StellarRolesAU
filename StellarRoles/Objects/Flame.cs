@@ -56,7 +56,7 @@ namespace StellarRoles.Objects
         [HideFromIl2Cpp]
         public void Animation(float random)
         {
-            if (FlameBoi == null || Helpers.GameStarted) return;
+            if (FlameBoi == null || Helpers.GameStarted || !FlameBoi.active) return;
 
             HudManager.Instance.StartCoroutine(Effects.Lerp(random, new Action<float>((p) =>
             {

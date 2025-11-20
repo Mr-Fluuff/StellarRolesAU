@@ -53,6 +53,7 @@ namespace StellarRoles.Patches
             public static float StartingTimer = 0;
             private static bool update = false;
             public static bool sendGamemode = true;
+            private static GameObject StopCountdownButton;
 
             public static void Prefix(GameStartManager __instance)
             {
@@ -124,11 +125,45 @@ namespace StellarRoles.Patches
                         }
                     }
 
+                    if (__instance.startState != GameStartManager.StartingStates.Countdown)
+                        StopCountdownButton?.Destroy();
                     // Make starting info available to clients:
                     if (StartingTimer <= 0 && __instance.startState == GameStartManager.StartingStates.Countdown)
                     {
                         RPCProcedure.Send(CustomRPC.SetGameStarting);
                         RPCProcedure.SetGameStarting();
+
+                        // Activate Stop-Button
+                        StopCountdownButton = GameObject.Instantiate(__instance.StartButton.gameObject, __instance.StartButton.gameObject.transform.parent);
+                        StopCountdownButton.transform.localPosition = __instance.StartButton.transform.localPosition;
+                        StopCountdownButton.SetActive(true);
+                        var startButtonText = StopCountdownButton.GetComponentInChildren<TMPro.TextMeshPro>();
+                        startButtonText.text = "Click Again to Cancel";
+                        startButtonText.fontSize *= 0.8f;
+                        startButtonText.fontSizeMax = startButtonText.fontSize;
+                        startButtonText.fontStyle = FontStyles.UpperCase;
+                        startButtonText.gameObject.transform.localPosition = new Vector3(0, -0.5f, 0);
+                        PassiveButton startButtonPassiveButton = StopCountdownButton.GetComponent<PassiveButton>();
+                        void StopStartFunc()
+                        {
+                            __instance.ResetStartState();
+                            StopCountdownButton.Destroy();
+                            StartingTimer = 0;
+                        }
+                        void Red()
+                        {
+                            __instance.StartCoroutine(Effects.Lerp(.05f, new System.Action<float>((p) => {
+                                startButtonText.color = Color.red;
+                            })));
+                        }
+                        startButtonPassiveButton.OnClick.AddListener((Action)(() => StopStartFunc()));
+                        startButtonPassiveButton.OnMouseOver.AddListener((Action)(() => Red()));
+                        startButtonPassiveButton.OnMouseOut.AddListener((Action)(() => Red()));
+                        __instance.StartCoroutine(Effects.Lerp(.1f, new System.Action<float>((p) => {
+                            startButtonText.text = "^Click Again to Cancel^";
+                            startButtonText.fontStyle = FontStyles.UpperCase;
+                            Red();
+                        })));
                     }
                 }
 

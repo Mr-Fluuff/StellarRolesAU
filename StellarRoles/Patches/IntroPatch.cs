@@ -58,7 +58,7 @@ namespace StellarRoles.Patches
                 Goopy.CreateGoopy();
 
             // Force Reload of SoundEffectHolder
-            SoundEffectsManager.Load();
+            //SoundEffectsManager.Load();
 
             // First kill
             if (AmongUsClient.Instance.AmHost)
@@ -83,15 +83,17 @@ namespace StellarRoles.Patches
                     }
                 MapOptions.FirstKillName = "";
                 MapOptions.FirstKillPlayersNames.Clear();
+
+                string GameID = Helpers.RandomId();
+                RPCProcedure.Send(CustomRPC.SetRandomID, GameID);
+                RPCProcedure.SetRandomId(GameID);
             }
 
             MapOptions.ReloadPluginOptions();
-            Helpers.CheckImpsAlive();
-            Helpers.CheckPlayersAlive();
             Helpers.MoveTrash();
             Helpers.AdjustFungalLadder();
-            ZoomHudUpdate.HasAlerted = false;
-            ExtraStats.UpdateSurvivability();
+            Helpers.CheckPlayersAlive();
+            //ExtraStats.UpdateSurvivability();
 
 
             if (Ascended.IsAscended(PlayerControl.LocalPlayer))
@@ -130,6 +132,7 @@ namespace StellarRoles.Patches
 
             Helpers.SetStartOfRoundCooldowns();
             Helpers.GameStartKillCD();
+
         }
     }
 
@@ -138,53 +141,72 @@ namespace StellarRoles.Patches
     {
         public static void SetupIntroTeamIcons(ref Il2CppSystem.Collections.Generic.List<PlayerControl> yourTeam)
         {
-            // Intro solo teams
-            if (Helpers.IsNeutral(PlayerControl.LocalPlayer))
+            if (RoleDraft.isEnabled)
             {
                 Il2CppSystem.Collections.Generic.List<PlayerControl> soloTeam = new();
                 soloTeam.Add(PlayerControl.LocalPlayer);
                 yourTeam = soloTeam;
             }
-
-            // Intro Exe and Target
-            if (PlayerControl.LocalPlayer == Executioner.Player)
+            else
             {
-                Il2CppSystem.Collections.Generic.List<PlayerControl> soloTeam = new();
-                soloTeam.Add(PlayerControl.LocalPlayer);
-                soloTeam.Add(Executioner.Target);
-                yourTeam = soloTeam;
-            }
-
-            // Add the Spy to the Impostor team (for the Impostors)
-            if (Spy.Player != null && PlayerControl.LocalPlayer.Data.Role.IsImpostor)
-            {
-                List<PlayerControl> players = PlayerControl.AllPlayerControls.GetFastEnumerator().ToList().OrderBy(x => Guid.NewGuid()).ToList();
-                Il2CppSystem.Collections.Generic.List<PlayerControl> fakeImpostorTeam = new(); // The local player always has to be the first one in the list (to be displayed in the center)
-                fakeImpostorTeam.Add(PlayerControl.LocalPlayer);
-                foreach (PlayerControl p in players)
+                // Intro solo teams
+                if (Helpers.IsNeutral(PlayerControl.LocalPlayer))
                 {
-                    if (PlayerControl.LocalPlayer != p && (p == Spy.Player || p.Data.Role.IsImpostor))
-                        fakeImpostorTeam.Add(p);
+                    Il2CppSystem.Collections.Generic.List<PlayerControl> soloTeam = new();
+                    soloTeam.Add(PlayerControl.LocalPlayer);
+                    yourTeam = soloTeam;
                 }
-                yourTeam = fakeImpostorTeam;
+
+                // Intro Exe and Target
+                if (PlayerControl.LocalPlayer == Executioner.Player)
+                {
+                    Il2CppSystem.Collections.Generic.List<PlayerControl> soloTeam = new();
+                    soloTeam.Add(PlayerControl.LocalPlayer);
+                    soloTeam.Add(Executioner.Target);
+                    yourTeam = soloTeam;
+                }
+
+                // Add the Spy to the Impostor team (for the Impostors)
+                if (Spy.Player != null && PlayerControl.LocalPlayer.Data.Role.IsImpostor)
+                {
+                    List<PlayerControl> players = PlayerControl.AllPlayerControls.GetFastEnumerator().ToList().OrderBy(x => Guid.NewGuid()).ToList();
+                    Il2CppSystem.Collections.Generic.List<PlayerControl> fakeImpostorTeam = new(); // The local player always has to be the first one in the list (to be displayed in the center)
+                    fakeImpostorTeam.Add(PlayerControl.LocalPlayer);
+                    foreach (PlayerControl p in players)
+                    {
+                        if (PlayerControl.LocalPlayer != p && (p == Spy.Player || p.Data.Role.IsImpostor))
+                            fakeImpostorTeam.Add(p);
+                    }
+                    yourTeam = fakeImpostorTeam;
+                }
             }
         }
 
         public static void SetupIntroTeam(IntroCutscene __instance)
         {
-            List<RoleInfo> infos = RoleInfo.GetRoleInfoForPlayer(PlayerControl.LocalPlayer);
-            RoleInfo roleInfo = infos.Where(info => info.FactionId != Faction.Modifier).FirstOrDefault();
-            if (roleInfo == null) return;
-            if (roleInfo == RoleInfo.Spectator)
+            if (RoleDraft.isEnabled)
             {
-                __instance.TeamTitle.text = "Spectator";
+                __instance.TeamTitle.text = "";
+                __instance.BackgroundBar.material.color = Color.clear;
+                __instance.ImpostorText.text = "";
+                __instance.TeamTitle.color = Palette.CrewmateBlue;
             }
-            else if (roleInfo.FactionId == Faction.Neutral || (roleInfo.FactionId == Faction.NK))
+            else
             {
-                __instance.TeamTitle.text = "Neutral";
+                List<RoleInfo> infos = RoleInfo.GetRoleInfoForPlayer(PlayerControl.LocalPlayer);
+                RoleInfo roleInfo = infos.Where(info => info.FactionId != Faction.Modifier).FirstOrDefault();
+                if (roleInfo == null) return;
+                if (roleInfo == RoleInfo.Spectator)
+                {
+                    __instance.TeamTitle.text = "Spectator";
+                }
+                else if (roleInfo.FactionId == Faction.Neutral || (roleInfo.FactionId == Faction.NK))
+                {
+                    __instance.TeamTitle.text = "Neutral";
+                }
+                __instance.TeamTitle.color = roleInfo.Color;
+                __instance.BackgroundBar.material.color = roleInfo.Color;
             }
-            __instance.TeamTitle.color = roleInfo.Color;
-            __instance.BackgroundBar.material.color = roleInfo.Color;
         }
 
         public static IEnumerator<WaitForSeconds> EndShowRole(IntroCutscene __instance)
@@ -202,6 +224,10 @@ namespace StellarRoles.Patches
         {
             public static void Postfix(bool impostorPositioning, ref PoolablePlayer __result)
             {
+                if (RoleDraft.isEnabled) 
+                {
+                    __result.ToggleName(false);
+                }
                 if (impostorPositioning) __result.SetNameColor(Palette.ImpostorRed);
             }
         }

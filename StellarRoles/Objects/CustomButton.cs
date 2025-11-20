@@ -197,6 +197,11 @@ namespace StellarRoles.Objects
                 SetActive(false);
                 return;
             }
+            if (localPlayer == Parasite.Controlled && BomberButtons.bombedKillButton.ActionButton != ActionButton)
+            {
+                SetActive(false);
+                return;
+            }
             HudManager hudManager = HudManager.Instance;
 
             SetActive(hudManager.UseButton?.isActiveAndEnabled == true || hudManager.PetButton?.isActiveAndEnabled == true || (MeetingHud.Instance != null && SeeInMeeting));

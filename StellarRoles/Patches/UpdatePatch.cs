@@ -49,8 +49,10 @@ namespace StellarRoles.Patches
             var player = PlayerControl.LocalPlayer;
             List<string> taskTexts = new();
 
-            if (MapOptions.DeadCrewPreventTaskWin && player.IsCrew() && player.Data.Role.IsDead && MapOptions.CrewAlive <= 0)
+            if (MapOptions.DeadCrewPreventTaskWin && player.IsCrew() && MapOptions.CrewAlive == 0)
+            {
                 taskTexts.Add(Helpers.ColorString(Palette.ImpostorRed, "Tasks will no longer save your kind!"));
+            }
 
             foreach (RoleInfo roleInfo in RoleInfo.GetRoleInfoForPlayer(player))
                 if (roleInfo != RoleInfo.WasRomantic)
@@ -66,9 +68,13 @@ namespace StellarRoles.Patches
                 string currentText = textTask.Text;
 
                 if (taskTexts.Contains(currentText))
+                {
                     taskTexts.Remove(currentText); // TextTask for this RoleInfo does not have to be added, as it already exists
+                }
                 else
+                {
                     toRemove.Add(t); // TextTask does not have a corresponding RoleInfo and will hence be deleted
+                }
             }
 
             foreach (PlayerTask t in toRemove)
@@ -200,10 +206,12 @@ namespace StellarRoles.Patches
                 PetBehaviour pet = player.GetPet();
 
                 bool isMorphed = player.IsMorphed() && MapOptions.PlayerPetsToHide.Contains(Morphling.MorphTarget.PlayerId);
+                bool isInfested = player.IsInfested() && MapOptions.PlayerPetsToHide.Contains(Parasite.Player.PlayerId);
                 bool optedOut = MapOptions.PlayerPetsToHide.Contains(player.PlayerId);
                 bool cantsee = !PlayerControl.LocalPlayer.Data.IsDead
                     && !player.petting
                     && (isMorphed
+                    || isInfested
                     || optedOut
                     || player.Data.IsDead
                     || player.inVent);
@@ -695,27 +703,67 @@ namespace StellarRoles.Patches
             var localPlayer = PlayerControl.LocalPlayer;
             if (localPlayer.Data.IsDead) return;
 
-            foreach (var collider2D in Physics2D.OverlapCircleAll(localPlayer.GetTruePosition(), localPlayer.MaxReportDistance, Constants.PlayersOnlyMask))
+            var truepostion = localPlayer.GetTruePosition();
+            Vector2 offset = new Vector2(-0.2f, -0.25f);
+            float concealRange = localPlayer.MaxReportDistance * Charlatan.ConcealReportRange;
+
+            if (Minigame.Instance)
             {
-                if (collider2D.tag == "DeadBody")
+                __instance.ReportButton.SetActive(false);
+                return;
+            }
+
+            bool Reportable = false;
+
+            foreach (var collider2D in Physics2D.OverlapCircleAll(truepostion, localPlayer.MaxReportDistance, Constants.PlayersOnlyMask))
+            {
+                if (collider2D.tag != "DeadBody") continue;
+
+                if (!Reportable)
                 {
                     var component = collider2D.GetComponent<DeadBody>();
-                    if (component?.Reported == false)
+                    var pos = component.TruePosition + offset;
+                    float distance = Vector2.Distance(pos, truepostion);
+                    bool concealed = Charlatan.ConcealedBodies.Any(x => x == component.ParentId);
+                    bool blocked = PhysicsHelpers.AnythingBetween(truepostion, component.TruePosition, Constants.ShipAndObjectsMask, false);
+
+                    if (distance < 0.5f)
                     {
-                        if (!PhysicsHelpers.AnythingBetween(localPlayer.GetTruePosition(), component.TruePosition, Constants.ShipAndAllObjectsMask, false) && !Minigame.Instance)
-                        {
-                            __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.EnabledColor;
-                            __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 0f);
-                        }
-                        else
-                        {
-                            __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.DisabledClear;
-                            __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 1f);
-                        }
-                        if (component.Reported) break;
+                        Reportable = true;
                     }
+                    else if (!blocked)
+                    {
+                        if (concealed && distance < concealRange)
+                        {
+                            Reportable = true;
+                        }
+
+                        if (!concealed && distance < localPlayer.MaxReportDistance)
+                        {
+                            Reportable = true;
+                        }
+                    }
+
+/*                    if (component?.Reported == false)
+                    {
+                        *//*                    if (Reportable)
+                                            {
+                                                __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.EnabledColor;
+                                                __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 0f);
+
+                                                __instance.ReportButton.SetActive(true);
+                                            }
+                                            else
+                                            {
+                                                __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.DisabledClear;
+                                                __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 1f);
+                                            }*//*
+                        if (component.Reported) break;
+                    }*/
                 }
             }
+
+            __instance.ReportButton.SetActive(Reportable);
         }
 
 

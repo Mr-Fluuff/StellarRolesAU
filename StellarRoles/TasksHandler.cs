@@ -6,11 +6,28 @@ namespace StellarRoles
     [HarmonyPatch]
     public static class TasksHandler
     {
-        public static (int, int) TaskInfo(NetworkedPlayerInfo playerInfo)
+        public static (int, int) TaskInfo(NetworkedPlayerInfo playerInfo, bool endgame = false)
         {
             int total = 0;
             int completed = 0;
-            if (!playerInfo.Disconnected && playerInfo.Tasks != null &&
+
+            if (endgame)
+            {
+                if ((playerInfo.Object && playerInfo.Object.HasFakeTasks()) || playerInfo.Role.IsImpostor)
+                {
+                    total = 0;
+                    completed = 0;
+                }
+                else
+                {
+                    foreach (var playerInfoTask in playerInfo.Tasks.GetFastEnumerator())
+                    {
+                        if (playerInfoTask.Complete) completed++;
+                        total++;
+                    }
+                }
+            }
+            else if (!playerInfo.Disconnected && playerInfo.Tasks != null &&
                 playerInfo.Object &&
                 playerInfo.Role && playerInfo.Role.TasksCountTowardProgress &&
                 !playerInfo.Object.HasFakeTasks() && !playerInfo.Role.IsImpostor

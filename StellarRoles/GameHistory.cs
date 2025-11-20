@@ -19,7 +19,10 @@ namespace StellarRoles
         public NetworkedPlayerInfo Data;
         public string Name;
         public DateTime TimeOfDeath;
+        public Vector3 DeathPos;
+        public Vector3 CurrentBodyPos;
         public DeathReason DeathReason;
+        public bool Tampered;
         public PlayerControl KillerIfExisting;
 
         public DeadPlayer(PlayerControl player, DateTime timeOfDeath, DeathReason deathReason, PlayerControl killerIfExisting)
@@ -30,6 +33,9 @@ namespace StellarRoles
             DeathReason = deathReason;
             KillerIfExisting = killerIfExisting;
             Name = player.Data.PlayerName;
+            DeathPos = player.transform.position;
+            Tampered = false;
+            CurrentBodyPos = player.transform.position;
             GameHistory.DeadPlayers.Add(this);
         }
     }
@@ -53,8 +59,10 @@ namespace StellarRoles
         public static Sprite _LeftArrow;
         public static Sprite _RightArrow;
 
+
         public PlayerEndGameStats PlayerEndGameStats;
         public PlayerRoleInfo PlayerRoleInfo;
+        public string UniqueID;
 
         public PreviousGameHistory()
         {

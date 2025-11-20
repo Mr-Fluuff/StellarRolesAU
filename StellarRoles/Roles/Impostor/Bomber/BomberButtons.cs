@@ -36,6 +36,7 @@ namespace StellarRoles
 
                     BomberBombButton.Timer = BomberBombButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
                     Bomber.AbilityCurrentTarget = null;
+                    SoundEffectsManager.Play(Sounds.Plant);
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
                 },
                 () => { return Bomber.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },

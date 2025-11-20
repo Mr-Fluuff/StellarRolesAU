@@ -3,8 +3,6 @@ using AmongUs.GameOptions;
 using Cpp2IL.Core.Extensions;
 using HarmonyLib;
 using Hazel;
-using Reactor.Utilities;
-using Rewired.Utils.Platforms.Windows;
 using StellarRoles.Modules;
 using StellarRoles.Objects;
 using StellarRoles.Patches;
@@ -13,13 +11,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static Hazel.Udp.UdpConnection;
 using static StellarRoles.GameHistory;
 using static StellarRoles.HudManagerStartPatch;
 using static StellarRoles.MapOptions;
 using static StellarRoles.Patches.FunglePatches;
 using static StellarRoles.StellarRoles;
-using static UnityEngine.GraphicsBuffer;
 
 namespace StellarRoles
 {
@@ -134,7 +130,8 @@ namespace StellarRoles
 
         public static void AddDeadPlayer(PlayerControl player, PlayerControl Killer, DeathReason reason)
         {
-            new DeadPlayer(player, DateTime.UtcNow, reason, Killer);
+            var deadPlayer = new DeadPlayer(player, DateTime.UtcNow, reason, Killer);
+            Detective.FreshDeadBodies.Add(deadPlayer);
         }
 
         public static void SetRole(RoleId roleId, PlayerControl player)
@@ -216,6 +213,11 @@ namespace StellarRoles
                 case RoleId.Camouflager:
                     Camouflager.Player = player;
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Camouflager);
+                    break;
+
+                case RoleId.Charlatan:
+                    Charlatan.Player = player;
+                    PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.Charlatan);
                     break;
 
                 case RoleId.Tracker:
@@ -383,6 +385,13 @@ namespace StellarRoles
                     PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.CamouflagerNeutralKiller);
                     break;
 
+                case RoleId.CharlatanNK:
+                    Charlatan.Player = player;
+                    NeutralKiller.Players.Add(player);
+                    NeutralKiller.RogueImps.Add(player);
+                    PlayerGameInfo.AddRole(player.PlayerId, RoleInfo.CharlatanNeutralKiller);
+                    break;
+
                 case RoleId.MinerNK:
                     Miner.Player = player;
                     NeutralKiller.Players.Add(player);
@@ -493,6 +502,11 @@ namespace StellarRoles
             HudManager.Instance.Chat.AddChat(player, message);
         }
 
+        public static void SetRandomId(string message)
+        {
+            AdditionalTempData.UniqueGameID = message;
+        }
+
         public static void Duel(PlayerControl sender, string message)
         {
             if (message.Length == 0)
@@ -573,6 +587,34 @@ namespace StellarRoles
                 RockPaperScissorsGame.Games.Remove(game);
         }
 
+        public static void ConcealBody(byte bodyId)
+        {
+            Charlatan.ConcealedBodies.Add(bodyId);
+            foreach (var dp in GameHistory.DeadPlayers)
+            {
+                if (dp.Data.PlayerId == bodyId)
+                {
+                    dp.Tampered = true;
+                }
+            }
+        }
+
+        public static void UpdatePlayerCount(byte team, int count)
+        {
+            switch (team)
+            {
+                case (byte)PlayerCount.AllPlayers:
+                    MapOptions.PlayersAlive = count;
+                    break;
+                case (byte)PlayerCount.ImpsAlive:
+                    MapOptions.ImpsAlive = count;
+                    break;
+                case (byte)PlayerCount.CrewAlive:
+                    MapOptions.CrewAlive = count;
+                    break;
+
+            }
+        }
 
         public static void VersionHandshake(int major, int minor, int build, int revision, Guid guid, int clientId)
         {
@@ -586,12 +628,14 @@ namespace StellarRoles
 
         public static void AddSpectator(PlayerControl player)
         {
+            if (player == null) return;
             Spectator.ToBecomeSpectator.Add(player.PlayerId);
             player.cosmetics.nameText.color = Color.gray;
         }
 
         public static void RemoveSpectator(PlayerControl player)
         {
+            if (player == null) return;
             Spectator.ToBecomeSpectator.Remove(player);
             player.cosmetics.nameText.color = Color.white;
         }
@@ -662,6 +706,14 @@ namespace StellarRoles
             gameInfo.survivability = MapOptions.PlayersAlive;
         }
 
+        public static void UpdateTasks(PlayerControl player)
+        {
+            Helpers.Log($"Surviveability {player.name} : {MapOptions.PlayersAlive}");
+            if (!PlayerGameInfo.Mapping.TryGetValue(player.PlayerId, out PlayerGameInfo gameInfo))
+                PlayerGameInfo.Mapping.Add(player.PlayerId, gameInfo = new());
+            gameInfo.survivability = MapOptions.PlayersAlive;
+        }
+
         public static void UncheckedMurderPlayer(PlayerControl source, PlayerControl target, bool showAnimation, bool bombkill)
         {
             if (!Helpers.GameStarted)
@@ -683,6 +735,7 @@ namespace StellarRoles
         {
             if (target.AmOwner)
             {
+                Helpers.ResetVentBug();
                 Helpers.SetMovement(false);
                 Helpers.ShowFlash(Color.black, 1.5f);
                 _ = new CustomMessage("The Nightmare Paralyzed You!", Nightmare.ParalyzeRootTime, true, Nightmare.Color);
@@ -762,6 +815,13 @@ namespace StellarRoles
             DeadBody body = UnityEngine.Object.FindObjectsOfType<DeadBody>().FirstOrDefault(body => body.ParentId == playerId);
             if (body != null)
                 Undertaker.DeadBodyDragged = body;
+            foreach (var dp in GameHistory.DeadPlayers)
+            {
+                if (dp.Data.PlayerId == Undertaker.DeadBodyDragged.ParentId)
+                {
+                    dp.Tampered = true;
+                }
+            }
         }
 
         public static void CultistCreateImposter(PlayerControl player)
@@ -911,12 +971,13 @@ namespace StellarRoles
         {
             Parasite.ControlTimer = Parasite.ControlDuration;
             ParasiteAbilites.timer = 0;
+            Parasite.Position = target.transform.position;
             Parasite.Controlled = target;
             if (Parasite.Controlled.inVent)
             {
                 Parasite.Controlled.MyPhysics.ExitAllVents();
             }
-            if (Camouflager.CamouflageTimer <= 0)
+            if (Camouflager.CamouflageTimer <= 0 && !PlayerControl.LocalPlayer.IsMushroomMixupActive())
             {
                 SetLook(Parasite.Controlled, Parasite.Player);
             }
@@ -936,11 +997,19 @@ namespace StellarRoles
             }
             if (kill)
             {
+                var bodyid = Parasite.Controlled.PlayerId;
                 UncheckedMurderPlayer(Parasite.Player, Parasite.Controlled, false, false);
                 if (Parasite.Player.AmOwner)
                 {
                     Helpers.RPCAddGameInfo(PlayerControl.LocalPlayer, InfoType.AddAbilityKill, InfoType.AddKill);
                     Helpers.PlayerKilledByAbility(Parasite.Controlled);
+                }
+                foreach (var dp in GameHistory.DeadPlayers)
+                {
+                    if (dp.Data.PlayerId == bodyid)
+                    {
+                        dp.Tampered = true;
+                    }
                 }
             }
             Parasite.Controlled.SetDefaultLook();
@@ -1242,8 +1311,7 @@ namespace StellarRoles
         {
             if (reset)
             {
-                target.cosmetics.currentBodySprite.BodySprite.color = Color.white;
-                target.cosmetics.colorBlindText.gameObject.SetActive(DataManager.Settings.Accessibility.ColorBlindMode);
+                target.SetPlayerAlpha(1);
                 if (Camouflager.CamouflageTimer <= 0)
                 {
                     if (target == Parasite.Controlled && Parasite.Player != null)
@@ -1268,11 +1336,11 @@ namespace StellarRoles
                 return;
             }
 
-            target.SetLook("", 6, "", "", "", "");
-            Color color = Color.clear;
-            if (PlayerControl.LocalPlayer.Data.IsDead || target.AmOwner) color.a = 0.1f;
-            target.cosmetics.currentBodySprite.BodySprite.color = color;
-            target.cosmetics.colorBlindText.gameObject.SetActive(false);
+            //target.SetLook(target.Data.PlayerName, target.Data.DefaultOutfit.ColorId, "", "", target.Data.DefaultOutfit.SkinId, target.Data.DefaultOutfit.PetId);
+
+            float alpha = 0f;
+            if (PlayerControl.LocalPlayer.Data.IsDead || target.AmOwner) alpha = 0.5f;
+            target.SetPlayerAlpha(alpha);
             if (target == Wraith.Player)
             {
                 if (!fungle)
@@ -1312,7 +1380,7 @@ namespace StellarRoles
             if (Wraith.Player != null && Wraith.IsInvisible)
                 SetInvisible(Wraith.Player, true);
 
-            10f.DelayedAction(() => 
+            10f.DelayedAction(() =>
             {
                 foreach (DeadBody deadBody in UnityEngine.Object.FindObjectsOfType<DeadBody>())
                 {
@@ -1399,7 +1467,7 @@ namespace StellarRoles
 
             if (player.AmOwner && !player.IsCrew() && Watcher.NonCrewFlash)
             {
-                Watcher.NonCrewFlashDelay.DelayedAction(() => 
+                Watcher.NonCrewFlashDelay.DelayedAction(() =>
                 {
                     Helpers.ShowFlash(Watcher.Color, 1.5f);
                     _ = new CustomMessage($"You Tripped A Watcher Sensor {Watcher.NonCrewFlashDelay} Seconds Ago", 3f, true, Watcher.Color);
@@ -1425,7 +1493,7 @@ namespace StellarRoles
         public static void HackerJamToggle()
         {
             Hacker.LockedOut = true;
-            Hacker.JamDuration.DelayedAction(() => 
+            Hacker.JamDuration.DelayedAction(() =>
             {
                 Hacker.LockedOut = false;
             });
@@ -1698,6 +1766,8 @@ namespace StellarRoles
 
         public static void GuesserShoot(PlayerControl guesser, PlayerControl dyingTarget, PlayerControl guessedTarget, RoleId guessedRoleId)
         {
+            if (guesser == null || dyingTarget == null || guessedTarget == null) return;
+
             var meetingHud = MeetingHud.Instance;
 
             if (guesser.AmOwner)
@@ -1711,44 +1781,16 @@ namespace StellarRoles
                 VengefulRomantic.Target = guesser;
             }
 
-            // Check and see if dying target is a jailor, if they are, break free the prisioners
-            if (dyingTarget.IsJailor(out Jailor jailor))
-                JailBreak(jailor);
-
-            dyingTarget.Exiled();
-
             guesser.RemainingShots(true);
             if (Constants.ShouldPlaySfx())
                 SoundManager.Instance.PlaySound(dyingTarget.KillSfx, false, 0.8f);
 
-            foreach (PlayerVoteArea voteArea in meetingHud.playerStates)
-            {
-                if (voteArea.TargetPlayerId == dyingTarget.PlayerId)
-                {
-                    voteArea.SetDead(voteArea.DidReport, true);
-                    voteArea.Overlay.gameObject.SetActive(true);
-                }
-
-                //Give players back their vote if target is shot dead
-                if (voteArea.VotedFor != dyingTarget.PlayerId) continue;
-                voteArea.UnsetVote();
-                if (voteArea.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId)
-                    meetingHud.ClearVote();
-            }
-
-            if (AmongUsClient.Instance.AmHost)
-                meetingHud.CheckForEndVoting();
+            dyingTarget.Exiled();
 
             if (dyingTarget.AmOwner)
             {
-                Helpers.TogglePlayerVoteAreas(meetingHud, false);
                 var KillOverlay = HudManager.Instance.KillOverlay;
-                KillOverlay.transform.localPosition = new Vector3(0, 0, -920f);
                 KillOverlay.ShowKillAnimation(guesser.Data, dyingTarget.Data);
-                Helpers.DelayedAction(2.5f, void () =>
-                {
-                    Helpers.TogglePlayerVoteAreas(meetingHud, true);
-                });
             }
 
             foreach (PlayerVoteArea voteArea in meetingHud.playerStates)
@@ -1775,6 +1817,34 @@ namespace StellarRoles
 
             if (dyingTarget == Executioner.Target)
                 Executioner.ExecutionerCheckPromotion();
+
+            // Check and see if dying target is a jailor, if they are, break free the prisioners
+            if (dyingTarget.IsJailor(out Jailor jailor) && jailor.HasJailed)
+            {
+                JailBreak(jailor);
+                ReaddButtons();
+            }
+
+            Helpers.DelayedAction(0.1f, () =>
+            {
+                foreach (PlayerVoteArea voteArea in meetingHud.playerStates)
+                {
+                    if (voteArea.TargetPlayerId == dyingTarget.PlayerId)
+                    {
+                        voteArea.SetDead(voteArea.DidReport, true);
+                        voteArea.Overlay.gameObject.SetActive(true);
+                    }
+
+                    //Give players back their vote if target is shot dead
+                    if (voteArea.VotedFor != dyingTarget.PlayerId) continue;
+                    voteArea.UnsetVote();
+                    if (voteArea.TargetPlayerId == PlayerControl.LocalPlayer.PlayerId)
+                        meetingHud.ClearVote();
+                }
+
+                if (AmongUsClient.Instance.AmHost)
+                    meetingHud.CheckForEndVoting();
+            });
         }
 
         public static void JailBreak(Jailor jailor)
@@ -1789,7 +1859,20 @@ namespace StellarRoles
             jailor.Bars.Clear();
         }
 
-        public static void ReadButtons()
+        public static void DropBody()
+        {
+            foreach (var body in GameHistory.DeadPlayers)
+            {
+                if (body.Data.PlayerId == Undertaker.DeadBodyDragged.ParentId)
+                {
+                    body.CurrentBodyPos = Undertaker.DeadBodyDragged.TruePosition;
+                    body.Tampered = true;
+                }
+            }
+            Undertaker.DeadBodyDragged = null;
+        }
+
+        public static void ReaddButtons()
         {
             if (PlayerControl.LocalPlayer.CanGuess())
                 MeetingHudPatch.AddGuesserButtons();
@@ -1815,7 +1898,7 @@ namespace StellarRoles
                 }
                 rend.gameObject.SetActive(true);
 
-                2f.DelayedAction(() => 
+                2f.DelayedAction(() =>
                 {
                     rend.gameObject.SetActive(false);
                     UnityEngine.Object.Destroy(rend.gameObject);
@@ -1916,7 +1999,7 @@ namespace StellarRoles
                     RPCProcedure.DragBody(reader.ReadByte());
                     break;
                 case CustomRPC.DropBody:
-                    Undertaker.DeadBodyDragged = null;
+                    RPCProcedure.DropBody();
                     break;
                 case CustomRPC.GuardianSetShielded:
                     RPCProcedure.GuardianSetShielded(reader.ReadPlayer());
@@ -2062,7 +2145,11 @@ namespace StellarRoles
                     RPCProcedure.ArsonistWin();
                     break;
                 case CustomRPC.GuesserShoot:
-                    RPCProcedure.GuesserShoot(reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadRoleID());
+                    PlayerControl guesser = reader.ReadPlayer();
+                    PlayerControl dyingplayer = reader.ReadPlayer();
+                    PlayerControl guessedTarget = reader.ReadPlayer();
+                    RoleId roleId = reader.ReadRoleID();
+                    RPCProcedure.GuesserShoot(guesser, dyingplayer, guessedTarget, roleId);
                     break;
                 case CustomRPC.ScavengerWin:
                     Scavenger.TriggerScavengerWin = true;
@@ -2142,7 +2229,7 @@ namespace StellarRoles
                     RPCProcedure.ExilePlayer(reader.ReadPlayer());
                     break;
                 case CustomRPC.ReadButtons:
-                    RPCProcedure.ReadButtons();
+                    RPCProcedure.ReaddButtons();
                     break;
                 case CustomRPC.ShadeClearBlind:
                     Shade.BlindedPlayers.Clear();
@@ -2164,6 +2251,9 @@ namespace StellarRoles
                     break;
                 case CustomRPC.Duel:
                     RPCProcedure.Duel(reader.ReadPlayer(), reader.ReadString());
+                    break;
+                case CustomRPC.SetRandomID:
+                    RPCProcedure.SetRandomId(reader.ReadString());
                     break;
                 case CustomRPC.SendResultOfDuel:
                     RPCProcedure.DuelResults();
@@ -2195,15 +2285,31 @@ namespace StellarRoles
                 case CustomRPC.ClearToBeSpectators:
                     Spectator.ToBecomeSpectator.Clear();
                     break;
+                case CustomRPC.ConcealBody:
+                    RPCProcedure.ConcealBody(reader.ReadByte());
+                    break;
+                case CustomRPC.UpdatePlayerCount:
+                    var team = reader.ReadByte();
+                    var players = reader.ReadInt32();
+                    RPCProcedure.UpdatePlayerCount(team, players);
+                    break;
+                case CustomRPC.DraftModePickOrder:
+                    RoleDraft.receivePickOrder(reader.ReadByte(), reader);
+                    break;
+                case CustomRPC.DraftModePick:
+                    RoleDraft.receivePick(reader.ReadByte(), reader.ReadByte(), reader.ReadBoolean());
+                    break;
+
                 case CustomRPC.MoveControlledPlayer:
                     //byte moveId = reader.ReadByte();
                     Vector2 newVel = new Vector2(reader.ReadSingle(), reader.ReadSingle());
-                    //Vector3 newPos = new Vector3(reader.ReadSingle(), reader.ReadSingle());
+                    Vector3 newPos = new Vector3(reader.ReadSingle(), reader.ReadSingle());
 
                     if (Parasite.Controlled != null && Parasite.Controlled.AmOwner)
                     {
-                        //Parasite.Controlled.transform.position = newPos;
-                        //Parasite.Controlled.MyPhysics.body.position = newPos;
+                        Parasite.Position = newPos;
+                        Parasite.Controlled.transform.position = newPos;
+                        Parasite.Controlled.MyPhysics.body.position = newPos;
                         Parasite.Controlled.MyPhysics.body.velocity = newVel;
                         //Parasite.Controlled.MyPhysics.SetNormalizedVelocity(newVel);
                     }
@@ -2214,11 +2320,13 @@ namespace StellarRoles
 
         private static PlayerControl ReadPlayer(this MessageReader reader)
         {
-            return Helpers.PlayerById(reader.ReadByte());
+            byte player = reader.ReadByte();
+            return Helpers.PlayerById(player);
         }
         private static RoleId ReadRoleID(this MessageReader reader)
         {
-            return (RoleId)reader.ReadByte();
+            byte role = reader.ReadByte();
+            return (RoleId)role;
         }
     }
 }

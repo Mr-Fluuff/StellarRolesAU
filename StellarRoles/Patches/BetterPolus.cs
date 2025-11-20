@@ -137,7 +137,7 @@ namespace StellarRoles
 
             if (DropShip == null)
             {
-                DropShip = Object.FindObjectsOfType<GameObject>().ToList().Find(o => o.name == "Dropship");
+                DropShip = Object.FindObjectsOfType<GameObject>().ToList().FindLast(o => o.name == "Dropship");
             }
 
             if (Outside == null)
@@ -285,6 +285,49 @@ namespace StellarRoles
             {
                 var BoxRenderer = SnowMan.GetComponent<SpriteRenderer>();
                 BoxRenderer.sprite = PenguSprite;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
+
+    public class TaskTextUpdates
+    {
+        public static PlayerTask ColdTemp;
+
+        public static void Prefix(HudManager __instance)
+        {
+            if (ShipStatusPatch.IsObjectsFetched && ShipStatusPatch.IsAdjustmentsDone)
+            {
+                foreach (var task in PlayerControl.LocalPlayer.myTasks)
+                {
+                    if (CustomOptionHolder.ColdTempDeathValley.GetBool())
+                    {
+                        if (task.TaskType == TaskTypes.RecordTemperature && task.StartAt != SystemTypes.Outside)
+                        {
+                            task.StartAt = SystemTypes.Outside;
+                            ColdTemp = task;
+                        }
+                    }
+                    if (CustomOptionHolder.WifiChartCourseSwap.GetBool())
+                    {
+                        if (task.TaskType == TaskTypes.RebootWifi && task.StartAt != SystemTypes.Dropship) task.StartAt = SystemTypes.Dropship;
+                        else if (task.TaskType == TaskTypes.ChartCourse && task.StartAt != SystemTypes.Comms) task.StartAt = SystemTypes.Comms;
+                    }
+                }
+            }
+        }
+        public static void Postfix(HudManager __instance)
+        {
+            if (ShipStatusPatch.IsObjectsFetched && ShipStatusPatch.IsAdjustmentsDone)
+            {
+                foreach (var task in PlayerControl.LocalPlayer.myTasks)
+                {
+                    if (CustomOptionHolder.ColdTempDeathValley.GetBool())
+                    {
+                        if (task == ColdTemp) task.StartAt = SystemTypes.Laboratory;
+                    }
+                }
             }
         }
     }

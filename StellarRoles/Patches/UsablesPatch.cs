@@ -1,5 +1,11 @@
+using Cpp2IL.Core.Extensions;
 using HarmonyLib;
+using Reactor.Utilities.Extensions;
+using StellarRoles.Utilities;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using static StellarRoles.MapOptions;
 
@@ -58,12 +64,38 @@ namespace StellarRoles.Patches
         }
     }
 
+    [HarmonyPatch(typeof(KillOverlay), nameof(KillOverlay.ShowKillAnimation), new Type[] { typeof(OverlayKillAnimation), typeof(KillOverlayInitData) })]
+    public static class KillOverlayMeetingPatch
+    {
+        public static bool Prefix(KillOverlay __instance, OverlayKillAnimation killAnimation, KillOverlayInitData initData)
+        {
+            if (!MeetingHud.Instance) return true;
+
+            __instance.queue.Enqueue((Il2CppSystem.Func<Il2CppSystem.Collections.IEnumerator>)delegate
+            {
+                {
+                    OverlayKillAnimation overlayKillAnimation = UnityEngine.Object.Instantiate<OverlayKillAnimation>(killAnimation, MeetingHud.Instance.transform);
+                    overlayKillAnimation.transform.SetLocalZ(-20f);
+                    overlayKillAnimation.Initialize(initData);
+                    overlayKillAnimation.gameObject.SetActive(false);
+                    return __instance.CoShowOne(overlayKillAnimation);
+                }
+            });
+            if (__instance.showAll == null)
+            {
+                __instance.showAll = __instance.StartCoroutine(__instance.ShowAll());
+            }
+            return false;
+        }
+    }
+
     [HarmonyPatch(typeof(DeadBody), nameof(DeadBody.OnClick))]
     public static class DeadBodyOnClickPatch
     {
         public static bool Prefix(DeadBody __instance)
         {
             var localPlayer = PlayerControl.LocalPlayer;
+            Vector2 localPosition = localPlayer.GetTruePosition();
 
             if (__instance.Reported || !GameManager.Instance.CanReportBodies())
             {
@@ -74,10 +106,40 @@ namespace StellarRoles.Patches
                 return false;
             }
 
+            if (Minigame.Instance)
+            {
+                return false;
+            }
+
             bool canReport = localPlayer.CanMove || localPlayer.inMovingPlat || localPlayer.onLadder;
-            Vector2 localPosition = localPlayer.GetTruePosition();
-            Vector2 bodyPosition = __instance.TruePosition;
-            if (Vector2.Distance(bodyPosition, localPosition) <= localPlayer.MaxReportDistance && canReport && !PhysicsHelpers.AnythingBetween(localPosition, bodyPosition, Constants.ShipAndObjectsMask, false))
+            Vector2 offset = new Vector2(-0.2f, -0.25f);
+            Vector2 bodyPosition = __instance.TruePosition + offset;
+            float distance = Vector2.Distance(bodyPosition, localPosition);
+            var dist = localPlayer.MaxReportDistance;
+            bool Reportable = false;
+
+            bool concealed = Charlatan.ConcealedBodies.Any(x => x == __instance.ParentId);
+            float concealRange = localPlayer.MaxReportDistance * Charlatan.ConcealReportRange;
+            bool blocked = PhysicsHelpers.AnythingBetween(localPosition, __instance.TruePosition, Constants.ShipAndObjectsMask, false);
+
+            if (distance < 0.5f)
+            {
+                Reportable = true;
+            }
+            else if (!blocked)
+            {
+                if (concealed && distance < concealRange)
+                {
+                    Reportable = true;
+                }
+
+                if (!concealed && distance < localPlayer.MaxReportDistance)
+                {
+                    Reportable = true;
+                }
+            }
+
+            if (Reportable)
             {
                 __instance.Reported = true;
                 NetworkedPlayerInfo playerById = GameData.Instance.GetPlayerById(__instance.ParentId);
@@ -126,6 +188,63 @@ namespace StellarRoles.Patches
             }
         }
     }
+
+    [HarmonyPatch(typeof(EmptyGarbageMinigame), nameof(EmptyGarbageMinigame.Begin))]
+    class EmptyGarbageMinigameBeginPatch
+    {
+        static List<Sprite> _sprites = new();
+        static void Postfix(EmptyGarbageMinigame __instance)
+        {
+            if (_sprites.Count <= 0)
+            {
+                for (int a = 0; a < 6; a++)
+                {
+                    _sprites.Add(Helpers.LoadSpriteFromResources($"StellarRoles.Resources.Leaves{a + 1}.png", 115f));
+                    //Helpers.Log($"Added Leaves{a + 1}");
+                }
+            }
+            var garbage = __instance.Objects;
+            int i = 0;
+
+            List<int> choices = [0, 1, 2, 3, 4, 5];
+            choices.Shuffle();
+            List<int> list = [choices.RemoveAndReturn(0)];
+            var chance50 = Helpers.TrueRandom(1, 100);
+            var chance10 = Helpers.TrueRandom(1, 100);
+            var chance1 = Helpers.TrueRandom(1, 100);
+
+            //Helpers.Log($"{chance50}, {chance10}, {chance1}");
+
+
+            if (chance1 == 72)
+            {
+                while (i < garbage.Count)
+                {
+                    garbage[i].sprite = _sprites.Random();
+                    i++;
+                }
+            }
+            else
+            {
+                int b = chance10 <= 10 ? 4 : chance50 > 50 ? 2 : 0;
+
+                if (b > 0)
+                {
+                    for (int a = 0; a < b; a++)
+                    {
+                        list.Add(choices.RemoveAndReturn(0));
+                    }
+                }
+
+                while (i < list.Count)
+                {
+                    garbage[i].sprite = _sprites[list[i]];
+                    i++;
+                }
+            }
+        }
+    }
+
 
 
     [HarmonyPatch(typeof(Console), nameof(Console.CanUse))]
@@ -352,24 +471,40 @@ namespace StellarRoles.Patches
     {
         static void Prefix()
         {
-            var hudManager = HudManager.Instance;
-            if (hudManager.FullScreen == null)
-                return;
-            var renderer = hudManager.FullScreen;
+/*            var renderer = HudManager.Instance?.FullScreen;
+
+            if (renderer == null) return;
             renderer.gameObject.SetActive(true);
             renderer.enabled = true;
             //renderer.color = Color.black;
             var color = Color.black;
 
-            HudManager.Instance.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) =>
+            HudManager.Instance.StartCoroutine(Effects.Lerp(0.75f, new Action<float>((p) =>
             { // Delayed action
                 var alpha = Mathf.Clamp01(p < 0.25f ? 1 : (1 - p));
-                renderer.color = new Color(color.r, color.g, color.b, Mathf.Clamp01(1 - p));
+                renderer.color = new Color(color.r, color.g, color.b, alpha);
                 if (p == 1)
                 {
                     renderer.enabled = false;
                 }
-            })));
+            })));*/
+
+
+            foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator())
+            {
+                if (p == PlayerControl.LocalPlayer) continue;
+
+                p.SetPlayerAlpha(0);
+            }
+            Helpers.DelayedAction(3f, () => 
+            {
+                foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator())
+                {
+                    if (p == PlayerControl.LocalPlayer) continue;
+
+                    p.SetPlayerAlpha(1);
+                }
+            });
         }
     }
 

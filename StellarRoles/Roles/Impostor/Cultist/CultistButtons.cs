@@ -18,6 +18,8 @@ namespace StellarRoles
                     {
                         RPCProcedure.Send(CustomRPC.CultistCreateImposter, Cultist.CurrentFollower);
                         RPCProcedure.CultistCreateImposter(Cultist.CurrentFollower);
+                        SoundEffectsManager.Play(Sounds.Convert);
+
                     }
                 },
                 () => { return Cultist.NeedsFollower && Cultist.Player == PlayerControl.LocalPlayer && !PlayerControl.LocalPlayer.Data.IsDead; },
