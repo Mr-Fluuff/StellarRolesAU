@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace StellarRoles.Patches
 {
-    [HarmonyPatch(typeof(ExileController), nameof(ExileController.Begin))]
+    [HarmonyPatch(typeof(ExileController), nameof(ExileController.BeginForGameplay))]
     [HarmonyPriority(Priority.First)]
     class ExileControllerBeginPatch
     {
@@ -84,7 +84,7 @@ namespace StellarRoles.Patches
                 }
                 else if (__state.Spawn)
                 {
-                    Sleepwalker.SetPosition();
+                    Sleepwalker.RpcSleepwalkToPosition();
                     //Spawn = false;
                 }
             }
@@ -107,10 +107,7 @@ namespace StellarRoles.Patches
         static void WrapUpPostfix(ExileController.InitProperties init)
         {
             PlayerControl exiledPlayer = null;
-            Helpers.CheckImpsAlive();
             Helpers.CheckPlayersAlive();
-            ExtraStats.UpdateSurvivability();
-
 
             if (init.networkedPlayer != null)
             {
@@ -243,17 +240,18 @@ namespace StellarRoles.Patches
                 }
             }
 
-            // Medium spawn souls
+            // Detective spawn souls
             if (Detective.Player == PlayerControl.LocalPlayer)
             {
                 foreach (SpriteRenderer sr in Detective.CrimeScenes)
                     UnityEngine.Object.Destroy(sr.gameObject);
                 Detective.CrimeScenes.Clear();
 
-                foreach ((DeadPlayer deadBody, Vector3 ps) in Detective.FreshDeadBodies)
+                foreach (DeadPlayer deadBody in Detective.FreshDeadBodies)
                 {
                     GameObject s = new();
                     //s.transform.position = ps;
+                    var ps = deadBody.DeathPos;
                     s.transform.position = new Vector3(ps.x, ps.y, ps.y / 1000 + 0.001f);
                     s.layer = 2;
                     SpriteRenderer rend = s.AddComponent<SpriteRenderer>();
@@ -277,7 +275,7 @@ namespace StellarRoles.Patches
             // Sleepwalker set position
             if (!Helpers.IsMap(Map.Airship) && !Helpers.IsMap(Map.Submerged))
             {
-                Sleepwalker.SetPosition();
+                Sleepwalker.RpcSleepwalkToPosition();
             }
 
             if (PlayerControl.LocalPlayer.AmOwner)

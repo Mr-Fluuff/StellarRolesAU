@@ -30,6 +30,8 @@ namespace StellarRoles
                 {
                     RPCProcedure.Send(CustomRPC.WraithPhase, true);
                     Wraith.PhaseOn = true;
+                    SoundEffectsManager.Play(Sounds.Dash);
+
                     RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                 },
@@ -57,6 +59,8 @@ namespace StellarRoles
                 {
                     RPCProcedure.Send(CustomRPC.WraithPhase, false);
                     Wraith.PhaseOn = false;
+                    SoundEffectsManager.Play(Sounds.Dash);
+
                     WraithPhaseButton.Timer = WraithPhaseButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
                     ;
                 }

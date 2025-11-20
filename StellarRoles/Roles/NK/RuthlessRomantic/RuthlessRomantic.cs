@@ -49,7 +49,14 @@ namespace StellarRoles
 
         public static bool IsLover(PlayerControl p)
         {
-            return PlayerToRuthlessRomantic.Values.Any(x => x.DeadLover == p);
+            if (PlayerToRuthlessRomantic.Count == 0) return false;
+
+            foreach(var player in PlayerToRuthlessRomantic.Values)
+            {
+                if (player.DeadLover == null) continue;
+                if (player.DeadLover == p) return true;
+            }
+            return false;
         }
 
         public static void ClearAndReload()

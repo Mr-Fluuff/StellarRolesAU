@@ -4,6 +4,7 @@ global using Il2CppInterop.Runtime.Injection;
 global using Il2CppInterop.Runtime.InteropTypes;
 global using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using AmongUs.Data;
+using AmongUs.Data.Player;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
@@ -13,27 +14,28 @@ using StellarRoles.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using AmongUs.Data.Player;
-using Reactor;
-using Reactor.Networking;
 using UnityEngine;
 
-namespace StellarRoles;
-
-    [BepInAutoPlugin("me.fluff.stellarroles", "StellarRoles")]
-    [BepInProcess("Among Us.exe")]
-    [BepInDependency(ReactorPlugin.Id)]
+namespace StellarRoles
+{
+    [BepInPlugin(Id, "StellarRoles", UpdateString)]
     [BepInDependency(SubmergedCompatibility.SUBMERGED_GUID, BepInDependency.DependencyFlags.SoftDependency)]
-    [ReactorModFlags(ModFlags.RequireOnAllClients)]
-    public partial class StellarRolesPlugin : BasePlugin
+    [BepInProcess("Among Us.exe")]
+    [ReactorModFlags(Reactor.Networking.ModFlags.RequireOnAllClients)]
+    public class StellarRolesPlugin : BasePlugin
     {
         public static GameObject CustomLobbyPrefab { get; set; }
+        public const string Id = "me.fluff.stellarroles";
 
-        public const string VersionString = "25.11.19";
-        public const string UpdateString = "2025.11.19";
+        public const string VersionString = "25.5.12";
+        public const string UpdateString = "2025.5.12";
         public const string BetaVersion = "";
-        public static Version VersionDeclared => System.Version.Parse(VersionString);
-        public static Version UpdateVersion => System.Version.Parse(UpdateString);
+
+        public const string SupportedAUVersion = "2025.3.31";
+        public const string SupportedAUVersionNumber = "16.0.2";
+
+        public static Version Version => Version.Parse(VersionString);
+        public static Version UpdateVersion => Version.Parse(UpdateString);
 
         internal static BepInEx.Logging.ManualLogSource Logger;
 
@@ -49,49 +51,10 @@ namespace StellarRoles;
         public static ConfigEntry<bool> EnableSoundEffects { get; set; }
         public static ConfigEntry<bool> HidePetFromOthers { get; set; }
 
-        public static ConfigEntry<string> Ip { get; set; }
-        public static ConfigEntry<ushort> Port { get; set; }
         public static ConfigEntry<string> ShowPopUpVersion { get; set; }
 
         public static IRegionInfo[] DefaultRegions;
 
-        // This is part of the Mini.RegionInstaller, Licensed under GPLv3
-        // file="RegionInstallPlugin.cs" company="miniduikboot">
-        public static void UpdateRegions()
-        {
-            ServerManager serverManager = ServerManager.Instance;
-            IRegionInfo[] regions = new IRegionInfo[] {
-                new StaticHttpRegionInfo("Om3ga Server", StringNames.NoTranslation,"om3gaserver.eastus.cloudapp.azure.com", new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "http://om3gaserver.eastus.cloudapp.azure.com",  22000, false) })).CastFast<IRegionInfo>(),
-                new StaticHttpRegionInfo("Modded NA (MNA)", StringNames.NoTranslation,"www.aumods.org", new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://www.aumods.org",  443, false) })).CastFast<IRegionInfo>(),
-                new StaticHttpRegionInfo("Modded EU (MEU)", StringNames.NoTranslation,"au-eu.duikbo.at", new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au-eu.duikbo.at",  443, false) })).CastFast<IRegionInfo>(),
-                new StaticHttpRegionInfo("Modded Asia (MAS)", StringNames.NoTranslation,"au-as.duikbo.at", new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Http-1", "https://au-as.duikbo.at",  443, false) })).CastFast<IRegionInfo>(),
-                new StaticHttpRegionInfo("Custom", StringNames.NoTranslation, Ip.Value, new Il2CppReferenceArray<ServerInfo>(new ServerInfo[1] { new ServerInfo("Custom", Ip.Value, Port.Value, false) })).CastFast<IRegionInfo>()
-            };
-
-            IRegionInfo currentRegion = serverManager.CurrentRegion;
-
-/*            var regionJsonPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).Replace("Local", "LocalLow"), "InnerSloth\\Among Us\\regionInfo.json");
-            if (File.Exists(regionJsonPath))
-            {
-                Helpers.Log(LogLevel.Debug, "Deleting Region");
-                File.Delete(regionJsonPath);
-            }*/
-
-            Helpers.Log(LogLevel.Debug, $"Adding {regions.Length} regions");
-            foreach (IRegionInfo region in regions)
-            {
-                if (currentRegion != null && region.Name.Equals(currentRegion.Name, StringComparison.OrdinalIgnoreCase))
-                    currentRegion = region;
-                serverManager.AddOrUpdateRegion(region);
-            }
-
-            // AU remembers the previous region that was set, so we need to restore it
-            if (currentRegion != null)
-            {
-                Helpers.Log(LogLevel.Debug, "Resetting previous region");
-                serverManager.SetRegion(currentRegion);
-            }
-        }
 
         public override void Load()
         {
@@ -105,11 +68,9 @@ namespace StellarRoles;
             ShowPopUpVersion = Config.Bind("Custom", "Show PopUp", "0");
             HidePetFromOthers = Config.Bind("Custom", "Hide Pet From Others", true);
 
-            Ip = Config.Bind("Custom", "Custom Server IP", "127.0.0.1");
-            Port = Config.Bind("Custom", "Custom Server Port", (ushort)22023);
             DefaultRegions = ServerManager.DefaultRegions;
 
-            UpdateRegions();
+            CustomServerManager.UpdateRegions();
 
             AssetLoader.LoadAssets();
 
@@ -122,18 +83,15 @@ namespace StellarRoles;
         }
     }
 
-    // Deactivate bans, since I always leave my local testing game and ban myself
-
     [HarmonyPatch(typeof(PlayerBanData), nameof(PlayerBanData.IsBanned), MethodType.Getter)]
     public static class AmBannedPatch
     {
-        [HarmonyPrefix]
-        public static bool Prefix(ref bool __result)
+        public static void Postfix(out bool __result)
         {
             __result = false;
-            return false;
         }
     }
+
     [HarmonyPatch(typeof(ChatController), nameof(ChatController.Awake))]
     public static class ChatControllerAwakePatch
     {
@@ -211,3 +169,4 @@ namespace StellarRoles;
                 .Select(s => s[Random.Next(s.Length)]).ToArray());
         }
     }
+}

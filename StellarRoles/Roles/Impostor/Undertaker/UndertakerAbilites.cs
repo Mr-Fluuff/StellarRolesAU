@@ -22,16 +22,46 @@ namespace StellarRoles
                 }
 
                 Vector2 currentPosition = __instance.GetTruePosition();
-                Vector2 velocity = __instance.gameObject.GetComponent<Rigidbody2D>().velocity.normalized;
-                Vector3 newPos = ((Vector2)__instance.transform.position) - (velocity / 3) + body.myCollider.offset;
-                newPos.z = currentPosition.y / 1000 + 0.0005f;
 
-                if (!PhysicsHelpers.AnythingBetween(
-                    currentPosition,
-                    newPos,
-                    Constants.ShipAndObjectsMask,
-                    false
-                )) body.transform.localPosition = newPos;
+                if (__instance.inVent)
+                {
+                    currentPosition.x += 0.1f;
+                    currentPosition.y += 0.1f;
+                    Vector3 ventpostion = new Vector3(currentPosition.x, currentPosition.y, currentPosition.y / 1000f + 0.0005f);
+                    body.transform.position = ventpostion;
+                    return;
+                }
+
+                Vector2 velocity = __instance.gameObject.GetComponent<Rigidbody2D>().velocity.normalized;
+
+                Vector3 newPos = ((Vector2)__instance.transform.position) - (velocity / 2.5f)/* + body.myCollider.offset*/;
+                if (velocity != Vector2.zero)
+                {
+                    newPos.x += 0.1f;
+                    newPos.y -= 0.1f;
+                }
+
+                var distance = Vector2.Distance(currentPosition, body.transform.position);
+
+                if (distance > 0.2f)
+                {
+
+                    if (distance > 1f)
+                    {
+                        if (!PhysicsHelpers.AnythingBetween(currentPosition, newPos, Constants.ShipAndAllObjectsMask, false))
+                        {
+                            body.transform.position = newPos;
+                            return;
+                        }
+                    }
+                    Vector3 nextPos = Vector2.MoveTowards(body.TruePosition, newPos, 0.1f);
+                    nextPos.z = nextPos.y / 1000f + 0.0005f;
+
+                    if (!PhysicsHelpers.AnythingBetween(currentPosition, nextPos, Constants.ShipAndAllObjectsMask, false))
+                    {
+                        body.transform.position = nextPos;
+                    }
+                }
             }
         }
 
@@ -41,7 +71,7 @@ namespace StellarRoles
             public static void Postfix()
             {
                 if (!Helpers.GameStarted || PlayerControl.LocalPlayer != Undertaker.Player || Undertaker.DeadBodyDragged != null) return;
-                Undertaker.DeadBodyCurrentTarget = Helpers.SetBodyTarget();
+                Undertaker.DeadBodyCurrentTarget = Helpers.SetBodyTarget(Helpers.GetKillDistance() * 0.75f);
             }
         }
     }

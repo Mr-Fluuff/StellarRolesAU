@@ -97,7 +97,7 @@ namespace StellarRoles
                             Hacker.JamCharges--;
                         }
 
-                        SoundEffectsManager.Play(Sounds.Click);
+                        SoundEffectsManager.Play(Sounds.Jam);
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                     },
@@ -122,7 +122,7 @@ namespace StellarRoles
                     () =>
                     {
                         JamButton.Timer = JamButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);
-                        SoundEffectsManager.Play(Sounds.Click);
+                        SoundEffectsManager.Play(Sounds.Jam);
                     }
                 );
         }
@@ -144,6 +144,8 @@ namespace StellarRoles
                       Hacker.AdminActive = true;
                       Helpers.SetMovement(false);
                       AdminButton.Timer = 5f;
+                      SoundEffectsManager.Play(Sounds.Admin);
+
                       RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                   }
@@ -216,6 +218,8 @@ namespace StellarRoles
 
                        Helpers.SetMovement(false);
                        VitalsButton.Timer = 5f;
+                       SoundEffectsManager.Play(Sounds.Vitals);
+
                        RPCProcedure.Send(CustomRPC.PsychicAddCount);
 
                    }

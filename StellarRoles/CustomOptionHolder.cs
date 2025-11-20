@@ -92,6 +92,16 @@ namespace StellarRoles
         public static CustomOption CamouflagerDuration { get; set; }
         public static CustomOption CamouflagerChargesPerKill { get; set; }
 
+        public static CustomOption CharlatanSpawnRate { get; set; }
+        public static CustomOption CharlatanDeceiveBaseDuration { get; set; }
+        public static CustomOption CharlatanDeceiveDurationPerKill { get; set; }
+        public static CustomOption CharlatanConcealChargesPerKill { get; set; }
+        public static CustomOption CharlatanConcealBaseCharges { get; set; }
+        public static CustomOption CharlatanConcealChannelDuration { get; set; }
+        public static CustomOption CharlatanConcealReportRange { get; set; }
+
+
+
         public static CustomOption VampireSpawnRate { get; set; }
         public static CustomOption VampireKillDelay { get; set; }
         public static CustomOption VampireCooldown { get; set; }
@@ -269,6 +279,7 @@ namespace StellarRoles
         public static CustomOption UndertakerIsNeutral { get; set; }
         public static CustomOption WarlockIsNeutral { get; set; }
         public static CustomOption CamouflagerIsNeutral { get; set; }
+        public static CustomOption CharlatanIsNeutral { get; set; }
         public static CustomOption WraithIsNeutral { get; set; }
         public static CustomOption ShadeIsNeutral { get; set; }
         public static CustomOption ParasiteIsNeutral { get; set; }
@@ -339,6 +350,13 @@ namespace StellarRoles
         public static CustomOption VentInFog { get; set; }
         public static CustomOption ToggleRoles { get; set; }
         public static CustomOption GameStartKillCD { get; set; }
+
+        public static CustomOption isDraftMode;
+        public static CustomOption draftModeAmountOfChoices;
+        public static CustomOption draftModeTimeToChoose;
+        public static CustomOption draftModeShowRoles;
+        public static CustomOption draftModeHideImpRoles;
+        public static CustomOption draftModeHideNeutralRoles;
 
         public static CustomOption EnableImpChat { get; set; }
 
@@ -491,9 +509,12 @@ namespace StellarRoles
             { RoleId.Warlock, new[] { RoleId.Vampire, RoleId.Shade, RoleId.Bomber } },
             { RoleId.Shade, new[] { RoleId.Warlock, RoleId.Vampire, RoleId.Bomber } },
             { RoleId.Bomber, new[] { RoleId.Warlock, RoleId.Shade, RoleId.Vampire } },
-            { RoleId.Scavenger, new[] { RoleId.Janitor, RoleId.JanitorNK } },
-            { RoleId.Janitor, new[] { RoleId.Scavenger } },
-            { RoleId.JanitorNK, new[] { RoleId.Scavenger } },
+            { RoleId.Scavenger, new[] { RoleId.Janitor, RoleId.JanitorNK, RoleId.CharlatanNK, RoleId.Charlatan } },
+            { RoleId.Janitor, new[] { RoleId.Scavenger, RoleId.Charlatan, RoleId.CharlatanNK } },
+            { RoleId.JanitorNK, new[] { RoleId.Scavenger, RoleId.Charlatan, RoleId.CharlatanNK } },
+            { RoleId.Charlatan, new[] { RoleId.Scavenger, RoleId.Janitor, RoleId.JanitorNK } },
+            { RoleId.CharlatanNK, new[] { RoleId.Scavenger, RoleId.Janitor, RoleId.JanitorNK } },
+
             { RoleId.Cultist, new[] { RoleId.Spy, RoleId.Romantic, RoleId.Executioner, RoleId.HeadHunter } },
             { RoleId.Spy, new[] { RoleId.Cultist } },
             { RoleId.Romantic, new[] { RoleId.Cultist } },
@@ -565,6 +586,15 @@ namespace StellarRoles
 
             //Changling
             ChangelingSpawnRate = CustomOption.Create(350, Types.Impostor, "Changeling", RoleRates, null, true, headerColor: Palette.ImpostorRed);
+
+            //Charlatan
+            CharlatanSpawnRate = CustomOption.Create(355, Types.Impostor, "Charlatan", RoleRates, null, true, headerColor: Palette.ImpostorRed);
+            CharlatanDeceiveBaseDuration = CustomOption.Create(356, Types.Impostor, "Deceive Base Duration", 5f, 0f, 10f, 2.5f, CharlatanSpawnRate);
+            CharlatanDeceiveDurationPerKill = CustomOption.Create(357, Types.Impostor, "Deceive Duration Increase per Kill", 2f, 0f, 5f, 1f, CharlatanSpawnRate);
+            CharlatanConcealBaseCharges = CustomOption.Create(358, Types.Impostor, "Conceal Uses", 1f, 0f, 5f, 1f, CharlatanSpawnRate);
+            CharlatanConcealChargesPerKill = CustomOption.Create(359, Types.Impostor, "Conceal Charges per Kill", 1f, 1f, 5f, 1f, CharlatanSpawnRate);
+            CharlatanConcealReportRange = CustomOption.Create(353, Types.Impostor, "Conceal Report Range", ["Very Short", "Short"], CharlatanSpawnRate);
+            CharlatanConcealChannelDuration = CustomOption.Create(354, Types.Impostor, "Conceal Channel Duration", 1f, 1f, 5f, 0.25f, CharlatanSpawnRate);
 
             //Cultist
             CultistSpawnRate = CustomOption.Create(600, Types.Impostor, "Cultist", RoleRates, null, true, headerColor: Palette.ImpostorRed);
@@ -659,6 +689,7 @@ namespace StellarRoles
             EnableRogueImpostors = CustomOption.CreateHeader(1602, Types.NeutralK, "Rogue Impostors", headerColor: Color.grey);
             BomberIsNeutral = CustomOption.Create(1613, Types.NeutralK, "Bomber", false, EnableRogueImpostors);
             CamouflagerIsNeutral = CustomOption.Create(1607, Types.NeutralK, "Camouflager", false, EnableRogueImpostors);
+            CharlatanIsNeutral = CustomOption.Create(1614, Types.NeutralK, "Charlatan", false, EnableRogueImpostors);
             JanitorIsNeutral = CustomOption.Create(1612, Types.NeutralK, "Janitor", false, EnableRogueImpostors);
             MinerIsNeutral = CustomOption.Create(1611, Types.NeutralK, "Miner", false, EnableRogueImpostors);
             MorphlingIsNeutral = CustomOption.Create(1603, Types.NeutralK, "Morphling", false, EnableRogueImpostors);
@@ -1006,6 +1037,13 @@ namespace StellarRoles
             GameTimer = CustomOption.Create(5903, Types.General, "Game Timer (Minutes)", Timer, GeneralHeader);
 
             MaxNumberOfMeetings = CustomOption.Create(6000, Types.General, "Number Of Meetings", 10, 0, 15, 1, GeneralHeader);
+
+            isDraftMode = CustomOption.Create(6080, Types.General, cs(Color.red, "Enable Role Draft"), false, null, true, null, "Role Draft");
+            draftModeAmountOfChoices = CustomOption.Create(6081, Types.General, "Max Amount Of Roles\nTo Choose From", 5f, 2f, 15f, 1f, isDraftMode, false);
+            draftModeTimeToChoose = CustomOption.Create(6082, Types.General,"Time For Selection", 5f, 5f, 25f, 1f, isDraftMode, false);
+            draftModeShowRoles = CustomOption.Create(6083, Types.General, "Show Picked Roles", false, isDraftMode, false);
+            draftModeHideImpRoles = CustomOption.Create(6084, Types.General, "Hide Impostor Roles", false, draftModeShowRoles, false);
+            draftModeHideNeutralRoles = CustomOption.Create(6085, Types.General, "Hide Neutral Roles", false, draftModeShowRoles, false);
 
             //Imp Chat
             EnableImpChat = CustomOption.Create(8009, Types.General, "Enabled", false, null, true, null, "Impostor Chat");

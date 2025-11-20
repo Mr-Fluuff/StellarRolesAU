@@ -49,6 +49,7 @@ namespace StellarRoles
                 if (Tracker.TimeUntilUpdate <= 0f && Tracker.TrackedPlayers.Count > 0)
                 {
                     foreach (PlayerControl player in Tracker.TrackedPlayers.GetPlayerEnumerator())
+                    {
                         if (Tracker.TrackedPlayerLocalArrows.TryGetValue(player.PlayerId, out Arrow arrow))
                         {
                             arrow.Object.SetActive(true);
@@ -57,14 +58,18 @@ namespace StellarRoles
                                 arrow.Update(player.transform.position);
                             }
                             else
-                                foreach ((DeadPlayer deadPlayer, Vector3 position) in Detective.FreshDeadBodies)
+                            {
+                                foreach (DeadPlayer deadPlayer in Detective.FreshDeadBodies)
+                                {
                                     if (deadPlayer.Player == player)
                                     {
-                                        Tracker.TrackedPlayerLocalArrows[player.PlayerId].Update(position);
+                                        Tracker.TrackedPlayerLocalArrows[player.PlayerId].Update(deadPlayer.DeathPos);
                                         break;
                                     }
+                                }
+                            }
                         }
-
+                    }
                     Tracker.TimeUntilUpdate = 2.5f;
                 }
             }

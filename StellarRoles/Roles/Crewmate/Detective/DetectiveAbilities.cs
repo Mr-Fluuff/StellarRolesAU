@@ -2,16 +2,18 @@
 using StellarRoles.Utilities;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
 using UnityEngine;
 
 namespace StellarRoles
 {
     [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
+    [HarmonyPriority(Priority.First)]
     public static class DetectiveAbilities
     {
         public static void Postfix(HudManager __instance)
         {
-            if (!Helpers.GameStarted || PlayerControl.LocalPlayer != Detective.Player) return;
+            if (!Helpers.GameStarted || PlayerControl.LocalPlayer != Detective.Player || PlayerControl.LocalPlayer.Data.IsDead) return;
 
             DetectiveSetTarget();
             DetectiveVentTimer();
@@ -39,44 +41,39 @@ namespace StellarRoles
 
         public static void DetectiveSetTarget()
         {
-            if (Detective.OldDeadBodies == null && Detective.FreshDeadBodies == null) return;
+            if (MeetingHud.Instance) return;
 
-            List<(DeadPlayer, Vector3)> allDeadBodies = new();
+            List<DeadPlayer> allDeadBodies = new();
+            Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
+            float usableDistance = ShipStatus.Instance.AllVents.FirstOrDefault().UsableDistance;
+
             if (Detective.IsCrimeSceneEnabled)
-                allDeadBodies.AddRange(Detective.OldDeadBodies);
-
-            var deadbodies = Object.FindObjectsOfType<DeadBody>();
-
-            if (Detective.FreshDeadBodies.Count > 0)
             {
-                for (int i = 0; i < Detective.FreshDeadBodies.Count; i++)
+                foreach (var dp in Detective.OldDeadBodies)
                 {
-                    var DeadPlayer = Detective.FreshDeadBodies[i].Item1;
-
-                    var freshbody = deadbodies.Where(x => x.ParentId == DeadPlayer.Data.PlayerId).First();
-                    if (freshbody != null)
+                    if (Vector2.Distance(dp.DeathPos, truePosition) <= usableDistance)
                     {
-                        allDeadBodies.Add((DeadPlayer, freshbody.transform.position));
+                        allDeadBodies.Add(dp);
                     }
                 }
             }
 
-
-            DeadPlayer target = null;
-            Vector2 truePosition = PlayerControl.LocalPlayer.GetTruePosition();
-            float closestDistance = float.MaxValue;
-            float usableDistance = ShipStatus.Instance.AllVents.FirstOrDefault().UsableDistance;
-            foreach ((DeadPlayer dp, Vector3 ps) in allDeadBodies)
+            foreach (var dp in Detective.FreshDeadBodies)
             {
-                float distance = Vector2.Distance(ps, truePosition);
-                if (distance <= usableDistance && distance < closestDistance)
+                if (Vector2.Distance(dp.CurrentBodyPos, truePosition) <= usableDistance)
                 {
-                    closestDistance = distance;
-                    target = dp;
+                    allDeadBodies.Add(dp);
                 }
             }
+
+            DeadPlayer target = null;
+            if (allDeadBodies.Count > 0)
+            {
+                target = allDeadBodies.FirstOrDefault();
+            }
+
             Detective.Target = target;
-            Detective.TargetIsFresh = target != null && Detective.FreshDeadBodies.Any(t => t.Item1.Player.PlayerId == target.Player.PlayerId);
+            Detective.TargetIsFresh = target != null && Detective.FreshDeadBodies.Any(t => t.Player.PlayerId == target.Player.PlayerId);
         }
     }
 }

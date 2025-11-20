@@ -6,6 +6,13 @@ namespace StellarRoles
         PerformKill,
         SuppressKill,
     }
+    public enum PlayerCount
+    {
+        AllPlayers,
+        ImpsAlive,
+        CrewAlive
+    }
+
     public enum SabatageTypes
     {
         Comms,
@@ -57,6 +64,7 @@ namespace StellarRoles
         Assassin,
         NKAssassin,
         Bomber,
+        Charlatan,
 
         // Crewmate Roles
         Administrator,
@@ -102,6 +110,7 @@ namespace StellarRoles
         BomberNK,
         Nightmare,
         Pyromaniac,
+        CharlatanNK,
         // Default Roles
         Crewmate,
         Impostor,
@@ -223,6 +232,11 @@ namespace StellarRoles
         ResetAnimation,
         ResetKillButton,
         AddDeadPlayer,
-        MoveControlledPlayer
+        ConcealBody,
+        UpdatePlayerCount,
+        MoveControlledPlayer,
+        DraftModePickOrder,
+        DraftModePick,
+        SetRandomID
     }
 }

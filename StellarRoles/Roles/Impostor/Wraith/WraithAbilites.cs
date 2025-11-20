@@ -22,6 +22,8 @@ namespace StellarRoles
             {
                 RPCProcedure.Send(CustomRPC.WraithLanternBreak);
                 Lantern.BreakLantern();
+                SoundEffectsManager.Play(Sounds.Break);
+
                 WraithButtons.WraithLanternPlaceButton.Timer = Wraith.LanternTimer;
             }
 

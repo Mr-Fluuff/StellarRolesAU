@@ -172,29 +172,73 @@ namespace StellarRoles
 
     public static class ParasiteMovementPatches
     {
-        public static Vector2 parasiteVector = Vector2.zero;
+        public static Vector2 parasitedirection = Vector2.zero;
 
         [HarmonyPatch(typeof(PlayerPhysics), nameof(PlayerPhysics.FixedUpdate))]
         class InfectedPlayerPhysics_FixedUpdate
         {
             static bool Prefix(PlayerPhysics __instance)
             {
-                if (Parasite.Controlled?.AmOwner == true && __instance.myPlayer.AmOwner)
-                {
-                    __instance.HandleAnimation(PlayerControl.LocalPlayer.Data.IsDead);
-                    return false;
-                }
+                NetworkedPlayerInfo data = __instance.myPlayer.Data;
+                bool amDead = data != null && data.IsDead;
 
-                if (PlayerControl.LocalPlayer != Parasite.Player || Parasite.Controlled == null) return true;
-                if (__instance.myPlayer == Parasite.Controlled)
+                if (Parasite.Controlled == null || Parasite.Player == null) return true;
+                if (__instance.myPlayer == Parasite.Controlled && PlayerControl.LocalPlayer == Parasite.Player)
                 {
-                    __instance.HandleAnimation(__instance.myPlayer.Data.IsDead);
+                    __instance.HandleAnimation(amDead);
+                    __instance.SetNormalizedVelocity(parasitedirection);
+                    var vel = parasitedirection * __instance.TrueSpeed;
+                    var pos = Parasite.Controlled.transform.position;
+                    RPCProcedure.Send(CustomRPC.MoveControlledPlayer, vel.x, vel.y, pos.x, pos.y);
                     return false;
                 }
                 return true;
             }
 
         }
+
+        [HarmonyPatch(typeof(PlayerPhysics), nameof(PlayerPhysics.SetNormalizedVelocity))]
+        class InfectedPlayerPhysics_SetNormalizedVelocity
+        {
+            static bool Prefix(PlayerPhysics __instance)
+            {
+                if (__instance.AmOwner && __instance.myPlayer == Parasite.Controlled && Parasite.Controlled != null)
+                return false;
+
+                return true;
+            }
+
+        }
+
+        [HarmonyPatch(typeof(CustomNetworkTransform), nameof(CustomNetworkTransform.FixedUpdate))]
+        class InfectedCustomNetworkTransform_FixedUpdate
+        {
+            static bool Prefix(CustomNetworkTransform __instance)
+            {
+                if (Parasite.Controlled == null) return true;
+
+                if (__instance.isPaused)
+                {
+                    return false;
+                }
+                if (!__instance.myPlayer)
+                {
+                    return false;
+                }
+                if (__instance.myPlayer == Parasite.Controlled)
+                {
+                    if (Parasite.Player.AmOwner) return false;
+                    if (Parasite.Controlled.AmOwner)
+                    {
+                        __instance.sendQueue.Enqueue(Parasite.Position);
+                        __instance.SetDirtyBit(2U);
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
         [HarmonyPatch(typeof(KeyboardJoystick), nameof(KeyboardJoystick.Update))]
         class InfectedPlayerKeyboardUpdate
         {
@@ -202,37 +246,27 @@ namespace StellarRoles
             {
                 if (PlayerControl.LocalPlayer != Parasite.Player) return;
 
-                parasiteVector.x = parasiteVector.y = 0f;
-                if (parasiteVector == Vector2.zero)
+                parasitedirection.x = parasitedirection.y = 0f;
+                if (parasitedirection == Vector2.zero)
                 {
                     if (KeyboardJoystick.player.GetButton("ParasiteRight"))
                     {
-                        parasiteVector.x = parasiteVector.x + 1;
+                        parasitedirection.x = parasitedirection.x + 1;
                     }
                     if (KeyboardJoystick.player.GetButton("ParasiteLeft"))
                     {
-                        parasiteVector.x = parasiteVector.x - 1;
+                        parasitedirection.x = parasitedirection.x - 1;
                     }
                     if (KeyboardJoystick.player.GetButton("ParasiteUp"))
                     {
-                        parasiteVector.y = parasiteVector.y + 1;
+                        parasitedirection.y = parasitedirection.y + 1;
                     }
                     if (KeyboardJoystick.player.GetButton("ParasiteDown"))
                     {
-                        parasiteVector.y = parasiteVector.y - 1;
+                        parasitedirection.y = parasitedirection.y - 1;
                     }
                 }
-                parasiteVector.Normalize();
-
-                if (Parasite.Controlled != null)
-                {
-                    var vel = parasiteVector * Parasite.Controlled.MyPhysics.TrueSpeed;
-                    Parasite.Controlled.MyPhysics.body.velocity = vel;
-                    var pos = Parasite.Controlled.transform.position;
-                    RPCProcedure.Send(CustomRPC.MoveControlledPlayer, vel.x, vel.y);
-                    //RPCProcedure.Send(CustomRPC.MoveControlledPlayer, pos.x, pos.y);
-                }
-
+                parasitedirection.Normalize();
             }
         }
     }

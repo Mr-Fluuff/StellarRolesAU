@@ -1,8 +1,10 @@
 using AmongUs.Data;
 using AmongUs.GameOptions;
+using BepInEx.Unity.IL2CPP.Utils.Collections;
 using HarmonyLib;
 using Hazel;
 using InnerNet;
+using System.Collections;
 
 namespace StellarRoles.Modules
 {
@@ -13,7 +15,7 @@ namespace StellarRoles.Modules
         [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.HostGame))]
         public static class InnerNetClientHostPatch
         {
-            public static void Prefix([HarmonyArgument(0)] IGameOptions settings)
+            public static void Prefix()
             {
                 int maxPlayers;
                 try
@@ -26,13 +28,13 @@ namespace StellarRoles.Modules
                 }
                 CustomOptionHolder.LobbySize.UpdateSelection(maxPlayers - 4);
                 LobbyLimit = maxPlayers;
-                // settings.MaxPlayers = 15; // Force 15 Player Lobby on Server
+                //settings.MaxPlayers = 15; // Force 15 Player Lobby on Server
                 DataManager.Settings.Multiplayer.ChatMode = QuickChatModes.FreeChatOrQuickChat;
             }
-            public static void Postfix([HarmonyArgument(0)] IGameOptions settings)
+/*            public static void Postfix([HarmonyArgument(0)] GameOptionsData settings)
             {
-                // settings.MaxPlayers = LobbyLimit;
-            }
+                settings.MaxPlayers = LobbyLimit;
+            }*/
         }
         [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.JoinGame))]
         public static class InnerNetClientJoinPatch
@@ -42,6 +44,30 @@ namespace StellarRoles.Modules
                 DataManager.Settings.Multiplayer.ChatMode = QuickChatModes.FreeChatOrQuickChat;
             }
         }
+        [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.Start))]
+        public static class PlayerControStartPatch
+        {
+            [HarmonyPostfix]
+            public static void Postfix(PlayerControl __instance, ref Il2CppSystem.Collections.IEnumerator __result)
+            {
+                var newEnumerator = new Helpers.PatchedEnumerator()
+                {
+                    enumerator = __result.WrapToManaged(),
+                    Postfix = ResetVariable(__instance)
+                };
+                __result = newEnumerator.GetEnumerator().WrapToIl2Cpp();
+            }
+
+            public static IEnumerator ResetVariable(PlayerControl __instance)
+            {
+                if (__instance == PlayerControl.LocalPlayer)
+                {
+                    RPCProcedure.ResetVariables();
+                }
+                yield return null;
+            }
+        }
+
         [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
         public static class AmongUsClientOnPlayerJoined
         {

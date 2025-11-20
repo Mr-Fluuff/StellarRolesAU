@@ -35,6 +35,7 @@ namespace StellarRoles
         public static readonly RoleInfo Camouflager = new("Camouflager", Palette.ImpostorRed, "Camouflage and kill the Crewmates", "Hide among others", RoleId.Camouflager, Faction.Impostor);
         public static readonly RoleInfo Changeling = new("Changeling", Palette.ImpostorRed, "Choose Your Style and Kill", "Choose Your Style and Kill", RoleId.Changeling, Faction.Impostor);
         public static readonly RoleInfo Cultist = new("Cultist", Palette.ImpostorRed, "Recruit for your cause", "Recruit for your cause", RoleId.Cultist, Faction.Impostor);
+        public static readonly RoleInfo Charlatan = new("Charlatan", Palette.ImpostorRed, "Conceal the truth!", "Conceal the truth!", RoleId.Charlatan, Faction.Impostor);
         public static readonly RoleInfo Follower = new("Follower", Palette.ImpostorRed, "", "Follow your leader", RoleId.Follower, Faction.Impostor);
         public static readonly RoleInfo Hacker = new("Hacker", Palette.ImpostorRed, "Download and disrupt system information", "Download and disrupt system information", RoleId.Hacker, Faction.Impostor);
         public static readonly RoleInfo Impostor = new("Impostor", Palette.ImpostorRed, Helpers.ColorString(Palette.ImpostorRed, "Sabotage and kill everyone"), "Sabotage and kill everyone", RoleId.Impostor, Faction.Impostor, "Oof Normal Imp.....");
@@ -51,6 +52,7 @@ namespace StellarRoles
         // Rogue Impostor Roles
         public static readonly RoleInfo BomberNeutralKiller = new("Bomber", NeutralKiller.Color, "Play extreme hot potato with crewmates!", "Play extreme hot potato with crewmates!", RoleId.BomberNK, Faction.NK);
         public static readonly RoleInfo CamouflagerNeutralKiller = new("Camouflager", NeutralKiller.Color, "Camouflage and kill the Crewmates", "Hide among others", RoleId.CamouflagerNK, Faction.NK);
+        public static readonly RoleInfo CharlatanNeutralKiller = new("Charlatan", Palette.ImpostorRed, "Conceal the truth!", "Conceal the truth!", RoleId.CharlatanNK, Faction.NK);
         public static readonly RoleInfo JanitorNeutralKiller = new("Janitor", NeutralKiller.Color, "Kill everyone and leave no traces", "Clean up dead bodies", RoleId.JanitorNK, Faction.NK);
         public static readonly RoleInfo MinerNeutralKiller = new("Miner", NeutralKiller.Color, "Make new Vents", "Create Vents", RoleId.MinerNK, Faction.NK);
         public static readonly RoleInfo MorphlingNeutralKiller = new("Morphling", NeutralKiller.Color, "Change your look to not get caught", "Change your look", RoleId.MorphlingNK, Faction.NK);
@@ -116,6 +118,7 @@ namespace StellarRoles
             Bomber,
             Camouflager,
             Changeling,
+            Charlatan,
             Cultist,
             Follower,
             Hacker,
@@ -167,6 +170,7 @@ namespace StellarRoles
             // Rogue Impostor Roles
             BomberNeutralKiller,
             CamouflagerNeutralKiller,
+            CharlatanNeutralKiller,
             JanitorNeutralKiller,
             MinerNeutralKiller,
             MorphlingNeutralKiller,
@@ -219,6 +223,8 @@ namespace StellarRoles
             // Impostor roles
             if (player == Roles.Morphling.Player) infos.Add(Roles.Morphling.IsNeutralKiller ? MorphlingNeutralKiller : Morphling);
             else if (player == Roles.Camouflager.Player) infos.Add(Roles.Camouflager.IsNeutralKiller ? CamouflagerNeutralKiller : Camouflager);
+            else if (player == Roles.Charlatan.Player) infos.Add(Roles.Charlatan.IsNeutralKiller ? CharlatanNeutralKiller : Charlatan);
+
             else if (player == Roles.Vampire.Player) infos.Add(Roles.Vampire.IsNeutralKiller ? VampireNeutralKiller : Vampire);
             else if (player == Roles.Janitor.Player) infos.Add(Roles.Janitor.IsNeutralKiller ? JanitorNeutralKiller : Janitor);
             else if (player == Roles.Warlock.Player) infos.Add(Roles.Warlock.IsNeutralKiller ? WarlockNeutralKiller : Warlock);

@@ -12,19 +12,28 @@ namespace StellarRoles.Patches
     public static class VentCanUsePatch
     {
         [HarmonyPrefix, HarmonyPatch(nameof(Vent.SetButtons))]
-        public static void SetButtonsPrefix([HarmonyArgument(0)] ref bool visible)
+        public static bool SetButtonsPrefix(Vent __instance, [HarmonyArgument(0)] ref bool enabled)
         {
-            if (visible)
-            {
-                PlayerControl player = PlayerControl.LocalPlayer;
+            bool canSwitch = true;
 
-                if (player.IsJester(out _) || Spy.Player == player)
-                    visible = false;
-                if (Ascended.AscendedJester(player))
-                {
-                    visible = true;
-                }
+            PlayerControl player = PlayerControl.LocalPlayer;
+
+            if (player.IsJester(out _) || Spy.Player == player)
+                canSwitch = false;
+            if (Ascended.AscendedJester(player))
+            {
+                canSwitch = true;
             }
+
+            if (enabled && !canSwitch)
+            {
+                for (int i = 0; i < __instance.Buttons.Length; i++)
+                {
+                    __instance.Buttons[i].gameObject.SetActive(false);
+                }
+                return false;
+            }
+            return true;
         }
 
         [HarmonyPrefix, HarmonyPatch(nameof(Vent.CanUse))]

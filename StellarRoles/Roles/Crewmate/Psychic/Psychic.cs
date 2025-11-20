@@ -55,6 +55,11 @@ namespace StellarRoles
                 abilites.Add($"Fake Out (Parity Cop)");
             if (CustomOptionHolder.SheriffSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)
                 abilites.Add($"Successful Shoot ({nameof(Sheriff)})");
+            if (CustomOptionHolder.ParasiteSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)
+                abilites.Add($"Decay ({nameof(Parasite)})");
+            if (CustomOptionHolder.CharlatanSpawnRate.GetSelection() > 0 || !Helpers.GameStarted)
+                abilites.Add($"Deceive ({nameof(Charlatan)})");
+
 
             string description = abilites.Count > 0
                 ? $"The following abilities are NOT included in the abilities counter: {string.Join(", ", abilites)}."

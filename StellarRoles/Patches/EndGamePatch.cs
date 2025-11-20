@@ -65,6 +65,7 @@ namespace StellarRoles.Patches
         public static readonly List<WinCondition> AdditionalWinConditions = new();
         public static readonly List<PlayerRoleInfo> PlayerRoles = new();
         public static List<PlayerEndGameStats> PlayerEndGameStats = new();
+        public static string UniqueGameID = "";
 
         public static void Clear()
         {
@@ -108,9 +109,14 @@ namespace StellarRoles.Patches
         private static CustomGameOverReason _GameOverReason;
         public static void Prefix([HarmonyArgument(0)] ref EndGameResult endGameResult)
         {
-            ExtraStats.UpdateSurvivability();
+            //ExtraStats.UpdateSurvivability();
 
             _GameOverReason = (CustomGameOverReason)endGameResult.GameOverReason;
+
+            if (_GameOverReason is CustomGameOverReason.TaskWin or CustomGameOverReason.CrewmateWin)
+            {
+                PlayerControl.LocalPlayer.RPCAddGameInfo(InfoType.CritcalMeetingErrorReverse);
+            }
             if ((int)endGameResult.GameOverReason >= 10)
                 endGameResult.GameOverReason = GameOverReason.ImpostorsByKill;
 
@@ -131,15 +137,15 @@ namespace StellarRoles.Patches
                 var player = data.Object ?? null;
                 List<RoleInfo> roles = PlayerGameInfo.GetRoles(data);
                 
-                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(data);
+                (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(data, true);
 
                 var playerRoles = new AdditionalTempData.PlayerRoleInfo()
                 {
                     PlayerName = data.PlayerName,
-                    Loved = roles.Any(x => x.RoleId == RoleId.Beloved) ||
+                    Loved = player != null && (roles.Any(x => x.RoleId == RoleId.Beloved) ||
                         VengefulRomantic.Lover == player ||
                         Romantic.Lover == player ||
-                        RuthlessRomantic.IsLover(player),
+                        RuthlessRomantic.IsLover(player)),
                     Roles = roles,
                     WasImp = data.Role.IsImpostor,
                     Modifiers = PlayerGameInfo.GetModifiers(data.PlayerId),
@@ -163,7 +169,7 @@ namespace StellarRoles.Patches
                 var endGameStats = new PlayerEndGameStats()
                 {
                     Name = data.PlayerName,
-                    Disconnected = data.Disconnected,
+                    Disconnected = data.Disconnected && !data.IsDead,
                     Role = data.Role.IsImpostor ? "IMPOSTER" : "CREWMATE",
                     CorrectEjects = PlayerGameInfo.TotalCorrectEjects(data.PlayerId),
                     IncorrectEjects = PlayerGameInfo.TotalIncorrectEjects(data.PlayerId),
@@ -186,6 +192,7 @@ namespace StellarRoles.Patches
 
                 _ = new PreviousGameHistory()
                 {
+                    UniqueID = AdditionalTempData.UniqueGameID,
                     PlayerEndGameStats = endGameStats,
                     PlayerRoleInfo = playerRoles
                 };
@@ -865,15 +872,13 @@ namespace StellarRoles.Patches
             return false;
         }
 
-        private static bool CheckAndEndGameForImpostorTimeWin(PlayerStatistics statistics)
+        private static void CheckAndEndGameForImpostorTimeWin(PlayerStatistics statistics)
         {
             if (GameTimer.TriggerTimesUpEndGame)
             {
                 GameManager.Instance.RpcEndGame((GameOverReason)CustomGameOverReason.TimesUp, false);
-                return true;
+                GameTimer.TriggerTimesUpEndGame = false;
             }
-
-            return false;
         }
 
         private static bool CheckAndEndGameForRefugeeOnly(PlayerStatistics statistics)
@@ -981,7 +986,6 @@ namespace StellarRoles.Patches
                 else if (VengefulRomantic.Player != null && VengefulRomantic.Player == player && VengefulRomantic.Target != null && !VengefulRomantic.Target.Data.IsDead)
                     PowerCrewAlive++;
             }
-            MapOptions.CrewAlive = TotalCrewAlive;
 
             TotalEvilAlive = TeamImpostorsAlive + HeadHunterAlive + PyromaniacAlive + RuthlessRomanticAlive + NightmareAlive + RogueImpsAlive;
 

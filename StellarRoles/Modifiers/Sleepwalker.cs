@@ -20,7 +20,7 @@ namespace StellarRoles
             LastPosition = Vector3.zero;
         }
 
-        public static void SetPosition()
+        public static void RpcSleepwalkToPosition()
         {
             if (LastPosition != Vector3.zero && Players.Contains(PlayerControl.LocalPlayer))
             {

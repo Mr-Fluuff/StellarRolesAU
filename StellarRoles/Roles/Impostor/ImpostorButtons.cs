@@ -10,6 +10,7 @@ namespace StellarRoles
         public static Color color = Palette.ImpostorRed;
         public static PlayerControl CurrentTarget = null;
         public static bool ImpChatOn = false;
+
         public static Sprite __ImpChatSprite = null;
         public static bool ChatEnabled => CustomOptionHolder.EnableImpChat.GetBool();
 
@@ -17,13 +18,10 @@ namespace StellarRoles
         {
             CurrentTarget = null;
             ImpChatOn = false;
-            if (HudManager.Instance != null)
+            if (HudManager.Instance != null && HudManager.Instance.Chat != null)
             {
                 HudManager.Instance.Chat.chatButton.transform.FindChild("Inactive").GetComponent<SpriteRenderer>().color = Color.white;
                 HudManager.Instance.Chat.chatButton.transform.FindChild("Active").GetComponent<SpriteRenderer>().color = Color.white;
-                /*                var ChatScreenContainer = GameObject.Find("ChatScreenContainer");
-                                var Background = ChatScreenContainer.transform.FindChild("Background");
-                                Background.GetComponent<SpriteRenderer>().color = Color.white;*/
             }
         }
 
@@ -37,44 +35,75 @@ namespace StellarRoles
             return Helpers.IsCommsActive() && MapOptions.ImposterAbiltiesRoleBlock;
         }
 
-        [HarmonyPatch(typeof(ChatController), nameof(ChatController.Toggle))]
         public static class ImpChatScreen
         {
-            public static void Postfix(ChatController __instance)
+            [HarmonyPatch(typeof(ChatController), nameof(ChatController.Update))]
+            public static class ImpChatScreenClose
             {
-                try
+                public static void Postfix(ChatController __instance)
                 {
-                    if (__instance.IsOpenOrOpening)
+                    if (__instance.state == ChatControllerState.Closing)
                     {
-                        var ChatScreenContainer = GameObject.Find("ChatScreenContainer");
-                        var Background = ChatScreenContainer.transform.FindChild("Background");
+                        CloseImpChat();
+                    }
+                }
+            }
 
-                        if (ImpChatOn)
+            [HarmonyPatch(typeof(ChatController), nameof(ChatController.Toggle))]
+            public static class ImpChatScreenToggle
+            {
+                public static void Prefix(ChatController __instance)
+                {
+                    if (!__instance.IsOpenOrOpening)
+                    {
+                        Helpers.DelayedAction(0.04f, () => { StartImpChat(__instance); });
+                    }
+                }
+
+                public static void StartImpChat(ChatController __instance)
+                {
+                    var ChatScreenContainer = GameObject.Find("ChatScreenContainer");
+
+                    var Background = ChatScreenContainer.transform.FindChild("Background");
+
+                    if (ImpChatOn)
+                    {
+                        var color = Palette.ImpostorRed;
+
+                        color.a = 0.6f;
+                        Background.GetComponent<SpriteRenderer>().color = color;
+                        if (MeetingHud.Instance)
                         {
-                            var color = Palette.ImpostorRed;
-                            color.a = 0.6f;
-                            Background.GetComponent<SpriteRenderer>().color = color;
-                            if (MeetingHud.Instance)
-                            {
-                                ChatScreenContainer.transform.localPosition = new Vector3(-4.19f, -2.236f, 0);
-                            }
-                            else
-                            {
-                                ChatScreenContainer.transform.localPosition = new Vector3(-3.49f, -2.236f, 0);
-                            }
+                            ChatScreenContainer.transform.localPosition = new Vector3(-4.19f, -2.236f, 0);
                         }
                         else
                         {
-                            Background.GetComponent<SpriteRenderer>().color = Color.white;
                             ChatScreenContainer.transform.localPosition = new Vector3(-3.49f, -2.236f, 0);
                         }
                     }
                     else
                     {
-                        ImpChatOn = false;
+                        Background.GetComponent<SpriteRenderer>().color = Color.white;
+                        ChatScreenContainer.transform.localPosition = new Vector3(-3.49f, -2.236f, 0);
+                    }
+
+                    if (!PlayerControl.LocalPlayer.Data.Role.IsImpostor) return;
+
+                    var activeChildren = __instance.scroller.transform.GetChild(0).GetComponentsInChildren<ChatBubble>();
+                    for (int i = 0; i < activeChildren.Count; i++)
+                    {
+                        ChatBubble chatBubble = activeChildren[i];
+                        if (chatBubble != null && chatBubble.TextArea.text.StartsWith("[ImpChat]"))
+                        {
+                            var color = chatBubble.Background.color = ImpChatOn ? Color.white : Palette.ImpostorRed;
+                            color.a = ImpChatOn ? 1f : 0.5f;
+                        }
                     }
                 }
-                catch { }
+            }
+            public static void CloseImpChat()
+            {
+                ImpChatOn = false;
             }
         }
 
@@ -94,36 +123,6 @@ namespace StellarRoles
             }
         }
 
-        [HarmonyPatch(typeof(ChatController), nameof(ChatController.Toggle))]
-        public static class ImpChatRedBubbles
-        {
-            public static void Postfix(ChatController __instance)
-            {
-                if (!PlayerControl.LocalPlayer.Data.Role.IsImpostor) return;
-
-                try
-                {
-                    __instance.StartCoroutine(Effects.Lerp(0.6f, new Action<float>((p) =>
-                    {
-                        if (__instance.IsOpenOrOpening)
-                        {
-                            var activeChildren = __instance.scroller.transform.GetChild(0).GetComponentsInChildren<ChatBubble>();
-                            for (int i = 0; i < activeChildren.Count; i++)
-                            {
-                                ChatBubble chatBubble = activeChildren[i];
-                                if (chatBubble != null && chatBubble.TextArea.text.StartsWith("[ImpChat]"))
-                                {
-                                    var color = chatBubble.Background.color = ImpChatOn ? Color.white : Palette.ImpostorRed;
-                                    color.a = ImpChatOn ? 1f : 0.5f;
-                                }
-                            }
-                        }
-                    })));
-                }
-                catch { }
-            }
-        }
-
         [HarmonyPatch(typeof(PlayerControl), nameof(PlayerControl.RpcSendChat))]
         public static class SendChat
         {
@@ -138,9 +137,9 @@ namespace StellarRoles
         }
 
         [HarmonyPatch(typeof(HudManager), nameof(HudManager.Update))]
-        private static class EnableChat
+        public static class EnableChat
         {
-            private static bool changed = false;
+            public static bool ImpChatEnabled = false;
             private static void Postfix(HudManager __instance)
             {
                 if (!Helpers.GameStarted || !PlayerControl.LocalPlayer.Data.Role.IsImpostor)
@@ -159,20 +158,18 @@ namespace StellarRoles
                         {
                             if (__instance.Chat.isActiveAndEnabled)
                             {
-                                if (!MeetingHud.Instance && !PlayerControl.LocalPlayer.Data.IsDead && changed)
+                                if (!MeetingHud.Instance && !PlayerControl.LocalPlayer.Data.IsDead)
                                 {
                                     ImpChatOn = true;
-                                    changed = false;
+                                    ImpChatEnabled = true;
                                     __instance.Chat.chatButton.transform.FindChild("Inactive").GetComponent<SpriteRenderer>().color = Palette.ImpostorRed;
                                     __instance.Chat.chatButton.transform.FindChild("Active").GetComponent<SpriteRenderer>().color = Palette.ImpostorRed;
 
                                 }
-                                else if (!changed)
+                                else if (!ImpChatEnabled)
                                 {
                                     __instance.Chat.chatButton.transform.FindChild("Active").GetComponent<SpriteRenderer>().color = Color.white;
                                     __instance.Chat.chatButton.transform.FindChild("Inactive").GetComponent<SpriteRenderer>().color = Color.white;
-                                    changed = true;
-                                    ImpChatOn = false;
                                 }
                             }
                         }

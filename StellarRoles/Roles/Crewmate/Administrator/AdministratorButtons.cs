@@ -28,6 +28,8 @@ namespace StellarRoles
 
                       Helpers.SetMovement(false);
                       AdminButton.Timer = 5f;
+                      SoundEffectsManager.Play(Sounds.Admin);
+
                       RPCProcedure.Send(CustomRPC.PsychicAddCount);
                   }
 

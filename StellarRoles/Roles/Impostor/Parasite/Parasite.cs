@@ -10,6 +10,7 @@ namespace StellarRoles
         public static PlayerControl Player { get; set; } = null;
         public static PlayerControl CurrentTarget { get; set; } = null;
         public static PlayerControl Controlled { get; set; } = null;
+        public static Vector2 Position { get; set; } = new Vector2();
 
 
         public static float InfestCooldown => CustomOptionHolder.ParasiteInfestCooldown.GetFloat();

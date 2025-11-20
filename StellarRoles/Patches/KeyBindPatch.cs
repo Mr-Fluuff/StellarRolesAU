@@ -37,7 +37,7 @@ namespace StellarRoles.Patches
             {
                 if (HelpMenu.RolesUI != null)
                 {
-                    Object.Destroy(HelpMenu.RolesUI.gameObject);
+                    Object.Destroy(HelpMenu.RolesUI);
                     HelpMenu.RolesUI = null;
                 }
 
@@ -47,14 +47,14 @@ namespace StellarRoles.Patches
                     ChangelingUtils.ChangelingUI = null;
                 }
 
-                if (PreviousGameHistory.HistoryUI?.active == true)
+                if (PreviousGameHistory.HistoryUI != null)
                 {
                     PreviousGameHistory.HistoryUI.SetActive(false);
                 }
             }
-            if (Input.GetKeyDown(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.R) && LobbyBehaviour.Instance)
+            if (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.R) && LobbyBehaviour.Instance)
             {
-                PlayerControl.LocalPlayer.NetTransform.Halt();
+                PlayerControl.LocalPlayer.MyPhysics.RpcCancelPet();
             }
         }
     }

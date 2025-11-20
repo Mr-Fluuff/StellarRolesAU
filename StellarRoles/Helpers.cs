@@ -1,3 +1,4 @@
+using AmongUs.Data;
 using AmongUs.GameOptions;
 using HarmonyLib;
 using Hazel;
@@ -7,6 +8,7 @@ using StellarRoles.Objects;
 using StellarRoles.Patches;
 using StellarRoles.Utilities;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -42,14 +44,16 @@ namespace StellarRoles
         public static void writeStats(List<PlayerEndGameStats> playerGameInfos)
         {
             var datetime = DateTime.Now;
+            string gameid = AdditionalTempData.UniqueGameID;
             var stamp = GetDatestamp(datetime);
             var timestamp = GetTimestamp(datetime);
-            var id = PlayerControl.LocalPlayer.PlayerId;
-            var filename = id + "." + timestamp;
+            //var id = PlayerControl.LocalPlayer.PlayerId;
+            //var filename = id + "." + timestamp;
             var dir = Directory.CreateDirectory("TournamentStatistics"); //this will create a directory only if it doesn't already exist
             dir.CreateSubdirectory(stamp);
             StringBuilder output = new();
-            String header = "Name, " +
+            String header = "GameID, " +
+                "Name, " +
                 "Role, " +
                 "Disconnected, " +
                 "Correct Votes, " +
@@ -68,7 +72,8 @@ namespace StellarRoles
 
 
             output.AppendLine(header);
-            Helpers.LogConsole("count " + playerGameInfos.Count);
+            string WinType = "";
+            //Helpers.LogConsole("count " + playerGameInfos.Count);
             List<string> imps = [];
             bool playerdisconnected = playerGameInfos.Any(x => x.Disconnected);
 
@@ -78,7 +83,8 @@ namespace StellarRoles
                 {
                     imps.Add(playerEndGame.Name);
                 }
-                string newLine = $"{playerEndGame.Name}, " +
+                string newLine = $"{gameid}, " +
+                    $"{playerEndGame.Name}, " +
                     $"{playerEndGame.Role}, " +
                     $"{playerEndGame.Disconnected}, " +
                     $"{playerEndGame.CorrectVotes}, " +
@@ -95,12 +101,16 @@ namespace StellarRoles
                     $"{playerEndGame.Survivability}, " +
                     $"{playerEndGame.WinType}";
                 output.AppendLine(newLine);
+                WinType = playerEndGame.WinType;
             }
 
-            var impnames = "." + String.Join(".", imps);
-            string disconnect = playerdisconnected ? ".Disconnect." : "";
-            var filepath = $"TournamentStatistics\\{stamp}\\{filename}{disconnect}{impnames}.csv";
-            File.AppendAllText(filepath, output.ToString());
+            var impnames = String.Join(", ", imps);
+            string disconnect = playerdisconnected ? "Disconnect, " : "";
+            var filepath = $"TournamentStatistics\\{stamp}\\{gameid}, {timestamp}, {disconnect}{impnames}, {WinType}.csv";
+            if (!File.Exists(filepath))
+            {
+                File.AppendAllText(filepath, output.ToString());
+            }
         }
 
         public static bool isCriticalMeetingError(PlayerControl exiled)
@@ -119,23 +129,25 @@ namespace StellarRoles
                 votedImposter = playerVoted.Data.Role.IsImpostor;
             }
 
-            if ((TotalPlayersLeft is 3 or 4 && ImpsRemaining == 1) || (TotalPlayersLeft is 5 or 6 && ImpsRemaining == 2))
+            if (DidExile && exiled.Data.Role.IsImpostor) return false;
+
+            if ((ImpsRemaining is 1 && TotalPlayersLeft is 3) || (ImpsRemaining is 2 && TotalPlayersLeft is 5 or 6))
             {
-                if (DidExile && exiled.Data.Role.IsImpostor) return false;
-                else return !votedImposter;
+                return !votedImposter;
             }
 
-            if (TotalPlayersLeft == 7 && ImpsRemaining == 2)
+            if ((ImpsRemaining is 1 && TotalPlayersLeft is 4) || (ImpsRemaining is 2 && TotalPlayersLeft is 7))
             {
-                if (DidExile) return !votedImposter;
-                else return false;
+                if (playerSkipped) return false;
+                return !votedImposter;
             }
+
             return false;
         }
 
         public static String GetTimestamp(DateTime value)
         {
-            return value.ToString("yyyy.MMM.dd.HH.mm.ss");
+            return value.ToString("MMM.dd.HH.mm");
         }
 
         public static String GetDatestamp(DateTime value)
@@ -183,6 +195,41 @@ namespace StellarRoles
 
         }
 
+        public static void Shuffle<T>(this IList<T> list)
+        {
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = StellarRoles.rnd.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
+        public static int TrueRandom(int min, int max) 
+        {
+            var rnd = StellarRoles.rnd.Next();
+
+            return new System.Random(rnd).Next(min, max);
+        }
+
+        public static string RandomId()
+        {
+            StringBuilder builder = new StringBuilder();
+            Enumerable
+               .Range(65, 26)
+                .Select(e => ((char)e).ToString())
+                .Concat(Enumerable.Range(97, 26).Select(e => ((char)e).ToString()))
+                .Concat(Enumerable.Range(0, 10).Select(e => e.ToString()))
+                .OrderBy(e => Guid.NewGuid())
+                .Take(11)
+                .ToList().ForEach(e => builder.Append(e));
+            string id = builder.ToString();
+            return id;
+        }
+
         public static bool IsInvisible(this PlayerControl player)
         {
             return (Shade.Player == player && Shade.IsInvisble) || (Wraith.Player == player && Wraith.IsInvisible);
@@ -190,9 +237,45 @@ namespace StellarRoles
 
         public static void CheckPlayersAlive()
         {
-            var aliveplayers = PlayerControl.AllPlayerControls.GetFastEnumerator().Where(player => !player.Data.IsDead);
-            MapOptions.PlayersAlive = aliveplayers.Count();
-            MapOptions.CrewAlive = aliveplayers.Where(x => x.IsCrew()).Count();
+            int AllAlive = 0;
+            int CrewAlive = 0;
+            int ImpsAlive = 0;
+            for (int i = 0; i < GameData.Instance.PlayerCount; i++)
+            {
+                NetworkedPlayerInfo playerInfo = GameData.Instance.AllPlayers[i];
+
+                if (playerInfo == null || playerInfo.Disconnected || playerInfo.IsDead)
+                    continue;
+
+                AllAlive++;
+
+                if (playerInfo.Role.IsImpostor)
+                    ImpsAlive++;
+
+                if (playerInfo.IsCrew())
+                    CrewAlive++;
+            }
+            MapOptions.PlayersAlive = AllAlive;
+            MapOptions.CrewAlive = CrewAlive;
+            MapOptions.ImpsAlive = ImpsAlive;
+
+            if (ImpsAlive == 0 && !MapOptions.Allimpsdead)
+                MapOptions.Allimpsdead = true;
+            else if (ImpsAlive == 1 && !MapOptions.LastImp)
+                MapOptions.LastImp = true;
+
+            if (ImpsAlive > 0)
+            {
+                for (int i = 0; i < GameData.Instance.PlayerCount; i++)
+                {
+                    NetworkedPlayerInfo playerInfo = GameData.Instance.AllPlayers[i];
+
+                    if (playerInfo == null || playerInfo.Disconnected || playerInfo.IsDead)
+                        continue;
+
+                    RPCProcedure.UpdateSurvivability(playerInfo.Object);
+                }
+            }
         }
 
         public static bool IsAlive(this PlayerControl player)
@@ -304,6 +387,7 @@ namespace StellarRoles
 
         public static void TogglePlayerVoteAreas(MeetingHud __instance, bool Show)
         {
+            if (!MeetingHud.Instance) return;
             foreach (var playerVoteArea in __instance.playerStates)
             {
                 if (Show && !Spectator.IsSpectator(playerVoteArea.TargetPlayerId))
@@ -312,6 +396,33 @@ namespace StellarRoles
                 {
                     playerVoteArea.gameObject.SetActive(false);
                 }
+            }
+        }
+
+        public static void SetPlayerAlpha(this PlayerControl player, float alphaValue)
+        {
+            player.cosmetics.currentBodySprite.BodySprite.color = player.cosmetics.currentBodySprite.BodySprite.color.SetAlpha(alphaValue);
+            player.cosmetics.skin.layer.color = player.cosmetics.skin.layer.color.SetAlpha(alphaValue);
+            player.cosmetics.hat.FrontLayer.color = player.cosmetics.hat.FrontLayer.color.SetAlpha(alphaValue);
+            player.cosmetics.hat.BackLayer.color = player.cosmetics.hat.BackLayer.color.SetAlpha(alphaValue);
+            player.cosmetics.visor.Alpha = alphaValue;
+            player.cosmetics.colorBlindText.gameObject.SetActive(alphaValue == 1f && DataManager.Settings.Accessibility.ColorBlindMode);
+            player.cosmetics.nameText.gameObject.SetActive(alphaValue == 1f);
+            player.invisibilityAlpha = alphaValue;
+            if (player.cosmetics.currentPet != null)
+            {
+                player.cosmetics.currentPet.SetAlpha(alphaValue);
+                player.cosmetics.PettingHand.SetAlpha(alphaValue);
+            }
+            if (!player.AmOwner)
+            {
+                player.shouldAppearInvisible = alphaValue < 1;
+                if (player.inVent)
+                {
+                    player.Visible = false;
+                    return;
+                }
+                player.Visible = alphaValue == 1;
             }
         }
 
@@ -426,15 +537,12 @@ namespace StellarRoles
                 Button = ParasiteButtons.InfestButton;
                 Clutch = false;
             }
-            if (Button != null) 
+            if (Button != null && Reset)
             {
-                if (Reset)
-                {
-                    float timer = Button.MaxTimer;
-                    if (Spiteful) timer *= SpitefulMultiplier(PlayerControl.LocalPlayer);
-                    if (Clutch) timer *= ClutchMultiplier(PlayerControl.LocalPlayer);
-                    Button.Timer = timer * Multiplier;
-                }
+                float timer = Button.MaxTimer;
+                if (Spiteful) timer *= SpitefulMultiplier(PlayerControl.LocalPlayer);
+                if (Clutch) timer *= ClutchMultiplier(PlayerControl.LocalPlayer);
+                Button.Timer = timer * Multiplier;
             }
         }
 
@@ -492,17 +600,13 @@ namespace StellarRoles
             return result;
         }
 
-        public static DeadBody SetBodyTarget()
+        public static List<DeadBody> DeadBodies(float distance, List<byte> ignorelist = null)
         {
             PlayerControl LocalPlayer = PlayerControl.LocalPlayer;
-            bool isDead = LocalPlayer.Data.IsDead;
             Vector2 truePosition = LocalPlayer.GetTruePosition();
-            float maxDistance = GetKillDistance() * 0.75f;
-            var colliders = Physics2D.OverlapCircleAll(truePosition, maxDistance, Constants.PlayersOnlyMask);
-            DeadBody closestBody = null;
+            var colliders = Physics2D.OverlapCircleAll(truePosition, distance, Constants.PlayersOnlyMask);
             List<DeadBody> list = new();
-            if (isDead)
-                return closestBody;
+            if (LocalPlayer.Data.IsDead) return list;
 
             foreach (Collider2D collider in colliders)
             {
@@ -510,14 +614,32 @@ namespace StellarRoles
                     continue;
 
                 DeadBody component = collider.GetComponent<DeadBody>();
-                float distance = Vector2.Distance(truePosition, component.TruePosition);
-
-                if (PhysicsHelpers.AnythingBetween(truePosition, component.TruePosition, Constants.ShipAndObjectsMask, false) ||
-                    distance > maxDistance)
+                if (ignorelist != null && ignorelist.Any(x => x == component.ParentId))
+                {
                     continue;
+                }
+                if (PhysicsHelpers.AnythingBetween(truePosition, component.TruePosition, Constants.ShipAndObjectsMask, false)) 
+                {
+                    if (Vector2.Distance(truePosition, component.TruePosition) <= 0.25f)
+                    {
+                        list.Add(component);
+                    }
+                    continue;
+                }
 
                 list.Add(component);
             }
+            return list;
+        }
+
+        public static DeadBody SetBodyTarget(float distance)
+        {
+            PlayerControl LocalPlayer = PlayerControl.LocalPlayer;
+            DeadBody closestBody = null;
+            if (LocalPlayer.Data.IsDead) return closestBody;
+
+            Vector2 truePosition = LocalPlayer.GetTruePosition();
+            var list = DeadBodies(distance);
             list.Sort(delegate (DeadBody a, DeadBody b)
             {
                 float magnitude2 = (a.TruePosition - truePosition).magnitude;
@@ -642,6 +764,7 @@ namespace StellarRoles
                 .Replace("Shade", ColorString(Shade.Color, "Shade"))
                 .Replace("Parasite", ColorString(Parasite.Color, "Parasite"))
                 .Replace("Undertaker", ColorString(Undertaker.Color, "Undertaker"))
+                .Replace("Charlatan", ColorString(Charlatan.Color, "Charlatan"))
                 .Replace("Vampire", ColorString(Vampire.Color, "Vampire"))
                 .Replace("Warlock", ColorString(Warlock.Color, "Warlock"))
                 .Replace("Wraith", ColorString(Wraith.Color, "Wraith"))
@@ -819,10 +942,11 @@ namespace StellarRoles
 
         public static AudioClip LoadAudioClipFromResources(string path, string clipName = "UNNAMED_SR_AUDIO_CLIP")
         {
-            // must be "raw (headerless) 2-channel signed 32 bit pcm (le)" (can e.g. use Audacity� to export)
+            // must be "raw (headerless) 2-channel signed 32 bit pcm (le) 48kHz" (can e.g. use Audacity� to export)
             try
             {
-                Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(path);
+                Assembly assembly = Assembly.GetExecutingAssembly();
+                Stream stream = assembly.GetManifestResourceStream(path);
                 byte[] byteAudio = new byte[stream.Length];
                 stream.Read(byteAudio, 0, (int)stream.Length);
                 float[] samples = new float[byteAudio.Length / 4]; // 4 bytes per sample
@@ -832,7 +956,10 @@ namespace StellarRoles
                     offset = i * 4;
                     samples[i] = (float)BitConverter.ToInt32(byteAudio, offset) / int.MaxValue;
                 }
-                AudioClip audioClip = AudioClip.Create(clipName, samples.Length, 2, 48000, false);
+                int channels = 2;
+                int sampleRate = 48000;
+                AudioClip audioClip = AudioClip.Create(clipName, samples.Length / 2, channels, sampleRate, false);
+                audioClip.hideFlags |= HideFlags.HideAndDontSave | HideFlags.DontSaveInEditor;
                 audioClip.SetData(samples, 0);
                 return audioClip;
             }
@@ -885,8 +1012,14 @@ namespace StellarRoles
                 return Romantic.IsCrewmate;
             else if (player == VengefulRomantic.Player)
                 return VengefulRomantic.IsCrewmate;
-            else
-                return !IsNeutral(player);
+            else if (IsNeutralB(player))
+                return false;
+            return true;
+        }
+
+        public static bool IsCrew(this NetworkedPlayerInfo player)
+        {
+            return player.Object?.IsCrew() == true;
         }
 
         public static bool IsKiller(this PlayerControl player)
@@ -1710,7 +1843,7 @@ namespace StellarRoles
 
         public static void AddDeadPlayer(this PlayerControl player, PlayerControl Killer, DeathReason reason)
         {
-            RPCProcedure.Send(CustomRPC.AddDeadPlayer, player, Killer, (byte)reason);
+            //RPCProcedure.Send(CustomRPC.AddDeadPlayer, player, Killer, (byte)reason);
             RPCProcedure.AddDeadPlayer(player, Killer, reason);
         }
 
@@ -1769,10 +1902,28 @@ namespace StellarRoles
         {
             Camera.main.orthographicSize = 3.0f;
             HudManager hudManager = HudManager.Instance;
-            hudManager.UICamera.orthographicSize = 3.0f;
-            hudManager.transform.localScale = Vector3.one;
-            hudManager.Chat.transform.localScale = Vector3.one;
+            if (hudManager != null)
+            {
+                hudManager.UICamera.orthographicSize = 3.0f;
+                hudManager.transform.localScale = Vector3.one;
+                hudManager.Chat.transform.localScale = Vector3.one;
+            }
             ResolutionManager.ResolutionChanged.Invoke((float)Screen.width / Screen.height, Screen.width, Screen.height, Screen.fullScreen);
+        }
+
+        public class PatchedEnumerator() : IEnumerable
+        {
+            public IEnumerator enumerator;
+            public IEnumerator Postfix;
+            public IEnumerator GetEnumerator()
+            {
+                while (enumerator.MoveNext())
+                {
+                    yield return enumerator.Current;
+                }
+                while (Postfix.MoveNext())
+                    yield return Postfix.Current;
+            }
         }
 
         public static int TasksLeft(this PlayerControl player)

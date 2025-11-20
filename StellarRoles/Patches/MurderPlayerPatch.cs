@@ -3,6 +3,7 @@ using StellarRoles.Utilities;
 using System;
 using System.Linq;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 namespace StellarRoles.Patches
 {
@@ -24,10 +25,7 @@ namespace StellarRoles.Patches
                 return false;
             }
 
-            if (AmongUsClient.Instance.AmHost)
-            {
-                Helpers.AddDeadPlayer(target, __instance, DeathReason.Kill);
-            }
+            Helpers.AddDeadPlayer(target, __instance, DeathReason.Kill);
 
             // Allow everyone to murder players
             ResetToCrewmate = !__instance.Data.Role.IsImpostor;
@@ -74,26 +72,34 @@ namespace StellarRoles.Patches
             }
 
             // Detective add body
-            if (Detective.OldDeadBodies != null)
+            if (Detective.Player != null)
             {
-                PlayerControl player = target;
+                if (!Detective.KillersLinkToKills.ContainsKey(killer.PlayerId))
+                {
+                    Detective.KillersLinkToKills.Add(killer.PlayerId, [target.PlayerId]);
+                }
+                else
+                {
+                    Detective.KillersLinkToKills[killer.PlayerId].Add(target);
+                }
 
-                if (!Detective.KillersLinkToKills.TryGetValue(killer.PlayerId, out PlayerList kills))
-                    Detective.KillersLinkToKills.Add(killer.PlayerId, kills = new());
-
-                kills.Add(player);
-
-                _ = Detective.KillerEscapeRoute.TryAdd(player.PlayerId, new KillerEscapeByVent(killer));
+                _ = Detective.KillerEscapeRoute.TryAdd(target.PlayerId, new KillerEscapeByVent(killer));
 
                 Vector2 killerStartingPosition = killer.GetTruePosition();
-                2f.DelayedAction(()=> 
-                {
-                    Vector2 killerEndingPosition = killer.GetTruePosition();
-                    _ = Detective.KillerEscapeDirection.TryAdd(player.PlayerId, new KillerDirection(killerStartingPosition, killerEndingPosition));
+                Vector2 killerEndingPosition = killer.GetTruePosition();
 
-                    var deadPlayer = GameHistory.DeadPlayers.Where(x => x.Player.PlayerId == target.PlayerId).FirstOrDefault();
-                    Detective.FreshDeadBodies.Add((deadPlayer, target.transform.position));
-                });
+                HudManager.Instance.StartCoroutine(Effects.Lerp(2f, new Action<float>((p) =>
+                { // Delayed action
+
+                    if (!MeetingHud.Instance)
+                    {
+                        killerEndingPosition = killer.GetTruePosition();
+                    }
+                    if (p == 1)
+                    {
+                        _ = Detective.KillerEscapeDirection.TryAdd(target.PlayerId, new KillerDirection(killerStartingPosition, killerEndingPosition));
+                    }
+                })));
             }
 
             if (isOwner)
@@ -106,18 +112,18 @@ namespace StellarRoles.Patches
                     Janitor.ChargesRemaining += Janitor.ChargesPerKill;
                 else if (PlayerControl.LocalPlayer == Camouflager.Player)
                     Camouflager.ChargesRemaining += Camouflager.ChargePerKill;
+
+                CharlatanAbilities.CheckKill(target);
             }
 
-            Helpers.CheckImpsAlive();
             Helpers.CheckPlayersAlive();
-            Helpers.SetBodySize();
 
             if (RomanticAbilites.RomanticRoleUpdate(false))
             {
                 VengefulRomantic.Target = killer;
             }
             RomanticAbilites.VengefulRoleUpdate(false);
-            ExtraStats.UpdateSurvivability();
+            //ExtraStats.UpdateSurvivability();
         }
     }
 
@@ -130,6 +136,10 @@ namespace StellarRoles.Patches
             if (HideNextAnimation)
                 source = target;
             HideNextAnimation = false;
+        }
+        public static void Postfix([HarmonyArgument(1)] PlayerControl target)
+        {
+                Helpers.SetBodySize();
         }
     }
 

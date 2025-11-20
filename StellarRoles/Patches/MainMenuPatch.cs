@@ -17,6 +17,8 @@ namespace StellarRoles.Modules
 
         private static void Prefix(MainMenuManager __instance)
         {
+
+            SoundEffectsManager.Load();
             GameObject NewsB = GameObject.Find("NewsButton");
             GameObject AccountB = GameObject.Find("AcountButton");
             GameObject SettingsB = GameObject.Find("SettingsButton");
@@ -93,19 +95,17 @@ TheOtherRoles - Original Codebase
 JustSysAdmin
 
 ";
-                creditsString += $@"<size=60%> Other Credits & Resources:
-Reactor - Use snippets of code
+                creditsString += $@"<size=80%> Other Credits & Resources:
+Reactor - Use of API
 BepInEx - Used to hook game functions
-Essentials - Custom game options by DorCoMaNdO:
 
 Jester - Idea for the Jester role came from Maartii
 ExtraRolesAmongUs - Idea for the Engineer and Guardian role came from NotHunter101
 TownOfHost - Idea for Enginner Advanced Sabotage
 Among-Us-Sheriff-Mod - Idea for the Sheriff role came from Woodi-dev
-TownOfUs - Idea for the Arsonist and similar Mayor role came from Slushiegoose and code snippets from Grenadiar for Nightmare
+Slushiegoose - Idea for the Arsonist, Scavenger, a similar Mayor role, and code snippets from Grenadiar for Nightmare
 BryBry16 - For the code used for Better Polus.
-Ottomated - Idea for the Morphling and Camouflager role came from Ottomated
-Goose-Goose-Duck - Idea for the Scavenger role came from Slushiegoose</size>";
+Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
                 creditsString += "</align>";
 
                 Announcement creditsAnnouncement = new()
@@ -214,6 +214,7 @@ Goose-Goose-Duck - Idea for the Scavenger role came from Slushiegoose</size>";
                 passiveRegionResetConfirmationButtom.OnClick = new ButtonClickedEvent();
                 passiveRegionResetConfirmationButtom.OnClick.AddListener((Action)(() =>
                 {
+                    BlackScreenFix.BeginFix();
                     string regionJsonPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData).Replace("Local", "LocalLow"), "InnerSloth\\Among Us\\regionInfo.json");
                     if (System.IO.File.Exists(regionJsonPath)) System.IO.File.Delete(regionJsonPath);
                     popUp.AnnouncementBodyText.SetText(ActionCompleteString);
