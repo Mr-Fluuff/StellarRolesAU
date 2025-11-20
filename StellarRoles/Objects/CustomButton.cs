@@ -75,7 +75,7 @@ namespace StellarRoles.Objects
             SeeInMeeting = seeInMeeting;
             CanShake = canShake;
             Timer = 16.2f;
-            ActionButton = UnityEngine.Object.Instantiate(DestroyableSingleton<HudManager>.Instance.KillButton, HudManager.Instance.KillButton.transform.parent);
+            ActionButton = UnityEngine.Object.Instantiate(HudManager.Instance.KillButton, HudManager.Instance.KillButton.transform.parent);
             ActionButton.name = buttonText + " Button";
             PassiveButton button = ActionButton.GetComponent<PassiveButton>();
             ShowButtonText = ActionButton.graphic.sprite == sprite || buttonText != "";

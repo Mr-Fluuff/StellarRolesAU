@@ -213,7 +213,7 @@ namespace StellarRoles.Patches
                 if (!GameData.Instance || !__instance.PlayerCounter) return; // No instance
                 var player = GameData.Instance.PlayerCount;
 
-                string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{CustomOptionHolder.LobbySize.GetInt()}");
+                string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{GameOptionsManager.Instance.currentNormalGameOptions.MaxPlayers}");
 
                 Timer = Mathf.Max(0f, Timer -= Time.deltaTime);
                 int minutes = (int)Timer / 60;
@@ -361,7 +361,9 @@ namespace StellarRoles.Patches
         {
             public static void Postfix(LobbyInfoPane __instance)
             {
+                if (CustomOption.Options.Count <= 0) return; // No instance
                 var Preset0 = CustomOption.Options[0];
+                if (Preset0.Selections.Length <= 0) return; // No instance
                 var Preset = Preset0.Selections[Preset0.Selection].ToString();
 
                 var GameModeText = GameObject.Find("GameModeText");

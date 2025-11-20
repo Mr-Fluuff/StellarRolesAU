@@ -760,7 +760,7 @@ namespace StellarRoles
         {
             ErasePlayerRoles(player, false, true);
             player.roleAssigned = false;
-            DestroyableSingleton<RoleManager>.Instance.SetRole(player, RoleTypes.Crewmate);
+            RoleManager.Instance.SetRole(player, RoleTypes.Crewmate);
             player.Data.Role.TeamType = RoleTeamTypes.Crewmate;
             player.roleAssigned = true;
             foreach (PlayerControl otherPlayer in PlayerControl.AllPlayerControls.GetFastEnumerator())

@@ -366,16 +366,16 @@ namespace StellarRoles.Modules
                 {
                     if (maskType == PlayerMaterial.MaskType.ComplexUI || maskType == PlayerMaterial.MaskType.ScrollingUI)
                     {
-                        __instance.Image.sharedMaterial = DestroyableSingleton<HatManager>.Instance.MaskedPlayerMaterial;
+                        __instance.Image.sharedMaterial = HatManager.Instance.MaskedPlayerMaterial;
                     }
                     else
                     {
-                        __instance.Image.sharedMaterial = DestroyableSingleton<HatManager>.Instance.PlayerMaterial;
+                        __instance.Image.sharedMaterial = HatManager.Instance.PlayerMaterial;
                     }
                 }
                 else if (maskType == PlayerMaterial.MaskType.ComplexUI || maskType == PlayerMaterial.MaskType.ScrollingUI)
                 {
-                    __instance.Image.sharedMaterial = DestroyableSingleton<HatManager>.Instance.MaskedMaterial;
+                    __instance.Image.sharedMaterial = HatManager.Instance.MaskedMaterial;
                 }
                 else
                 {

@@ -142,7 +142,7 @@ namespace StellarRoles
                 //Reset states for custom lobby
                 try
                 {
-                    if (!DestroyableSingleton<TutorialManager>.InstanceExists)
+                    if (!TutorialManager.InstanceExists)
                     {
                         GameObject.Find("allul_customlobby(Clone)").SetActive(false);
 

@@ -1273,7 +1273,7 @@ namespace StellarRoles
         public static void TurnToImpostor(this PlayerControl player)
         {
             player.roleAssigned = false;
-            DestroyableSingleton<RoleManager>.Instance.SetRole(player, RoleTypes.Impostor);
+            RoleManager.Instance.SetRole(player, RoleTypes.Impostor);
             player.Data.Role.TeamType = RoleTeamTypes.Impostor;
             player.roleAssigned = true;
             player.SetKillTimer(Helpers.KillCooldown());
@@ -1877,7 +1877,7 @@ namespace StellarRoles
 
         public static void ShareGameVersion()
         {
-            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable, -1);
+            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable, -1);
             writer.Write((byte)CustomRPC.VersionHandshake);
             writer.Write((byte)StellarRolesPlugin.VersionDeclared.Major);
             writer.Write((byte)StellarRolesPlugin.VersionDeclared.Minor);

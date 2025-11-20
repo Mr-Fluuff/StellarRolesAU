@@ -32,7 +32,7 @@ namespace StellarRoles.Patches
         }
     }
 
-    [HarmonyPatch(typeof(RoleOptionsCollectionV08), nameof(RoleOptionsCollectionV08.GetNumPerGame))]
+    [HarmonyPatch(typeof(RoleOptionsCollectionV10), nameof(RoleOptionsCollectionV10.GetNumPerGame))]
     class RoleOptionsDataGetNumPerGamePatch
     {
         public static void Postfix(ref int __result)

@@ -8,14 +8,14 @@ namespace StellarRoles
     [HarmonyPatch]
     public class AUMAntiCheat
     {
-        [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.StartRpc))]
+        /*[HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.StartRpc))]
         public static class CheatStartRPCPatch
         {
             public static bool Prefix([HarmonyArgument(1)] byte callId)
             {
                 return CheckAntiCheat(callId);
             }
-        }
+        }*/
 
         [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.StartRpcImmediately))]
 

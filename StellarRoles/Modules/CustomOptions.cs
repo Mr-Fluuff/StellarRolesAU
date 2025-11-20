@@ -201,7 +201,7 @@ namespace StellarRoles
         {
             var option = Options.FirstOrDefault(x => x.Id == optionId);
             if (option == null) return;
-            var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable, -1);
+            var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable, -1);
             writer.Write((byte)CustomRPC.ShareOptions);
             writer.Write((byte)1);
             writer.WritePacked((uint)option.Id);
@@ -216,7 +216,7 @@ namespace StellarRoles
             while (optionsList.Any())
             {
                 byte amount = (byte)Math.Min(optionsList.Count, 200); // takes less than 3 bytes per option on average
-                var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable, -1);
+                var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable, -1);
                 writer.Write((byte)CustomRPC.ShareOptions);
                 writer.Write(amount);
                 for (int i = 0; i < amount; i++)
@@ -267,7 +267,7 @@ namespace StellarRoles
             newSelection = Mathf.Clamp((newSelection + Selections.Length) % Selections.Length, 0, Selections.Length - 1);
             if (AmongUsClient.Instance?.AmClient == true && notifyUsers && Selection != newSelection)
             {
-                DestroyableSingleton<HudManager>.Instance.Notifier.AddSettingsChangeMessage((StringNames)(this.Id + 6000), Selections[newSelection].ToString(), false);
+                HudManager.Instance.Notifier.AddSettingsChangeMessage((StringNames)(this.Id + 6000), Selections[newSelection].ToString(), false);
                 try
                 {
                     if (GameStartManager.Instance != null && GameStartManager.Instance.LobbyInfoPane != null && GameStartManager.Instance.LobbyInfoPane.LobbyViewSettingsPane != null && GameStartManager.Instance.LobbyInfoPane.LobbyViewSettingsPane.gameObject.activeSelf)
@@ -396,7 +396,7 @@ namespace StellarRoles
                 string vanillaSettingsSub = settingsSplit[2];
                 ModdedOptionsFine = DeserializeOptions(Convert.FromBase64String(ModdedSettings));
                 ShareOptionSelections();
-                if (StellarRolesPlugin.Version > versionInfo && versionInfo < Version.Parse("24.8.7"))
+                if (StellarRolesPlugin.VersionDeclared > versionInfo && versionInfo < Version.Parse("24.8.7"))
                 {
                     vanillaOptionsFine = false;
                     HudManager.Instance.Chat.AddChat(PlayerControl.LocalPlayer, "Host Info: Pasting vanilla settings failed, Modded Options applied!");
@@ -918,8 +918,7 @@ namespace StellarRoles
                 var stringOption = optionBehaviour as StringOption;
                 var TitleText = stringOption.TitleText;
                 TitleText.font = _fontAsset;
-
-
+                
                 // "SetUpFromData"
                 SpriteRenderer[] componentsInChildren = optionBehaviour.GetComponentsInChildren<SpriteRenderer>(true);
                 stringOption.OnValueChanged = new Action<OptionBehaviour>((o) => { });
@@ -928,7 +927,6 @@ namespace StellarRoles
                 var RectTrans = TitleText.transform.GetComponent<RectTransform>();
                 RectTrans.sizeDelta = new Vector2(5, 0.5f);
                 RectTrans.localScale = new Vector3(1.75f, 1.25f);
-
 
                 if (option.isHeader && option.heading == "" && (option.type == CustomOptionType.Neutral || option.type == CustomOptionType.NeutralK || option.type == CustomOptionType.Crewmate || option.type == CustomOptionType.Impostor || option.type == CustomOptionType.Modifier))
                 {
@@ -956,6 +954,7 @@ namespace StellarRoles
 
 
                 menu.Children.Add(optionBehaviour);
+                stringOption.Initialize();
                 num -= 0.45f;
                 menu.scrollBar.SetYBoundsMax(-num - 1.65f);
             }
@@ -1315,7 +1314,7 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV07.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result=true;
@@ -1331,7 +1330,7 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV08.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
@@ -1347,8 +1346,24 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV09.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
+            {
+                __result = true;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(NormalGameOptionsV10), nameof(NormalGameOptionsV10.AreInvalid))]
+        [HarmonyPrefix]
+
+        public static bool Prefix(NormalGameOptionsV10 __instance, ref int maxExpectedPlayers, ref bool __result)
+        {
+            if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
+                                                           || __instance.NumImpostors > 3 || __instance.KillDistance < 0
+                                                           || __instance.KillDistance >= NormalGameOptionsV10.KillDistances.Count
+                                                           || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
                 return false;
@@ -1378,7 +1393,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = LegacyGameOptions.KillDistanceStrings[index];
+                var stringname = NormalGameOptionsV10.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1393,7 +1408,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = LegacyGameOptions.KillDistanceStrings[index];
+                var stringname = NormalGameOptionsV10.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1418,7 +1433,7 @@ namespace StellarRoles
                 {
                     index = GameOptionsManager.Instance.currentHideNSeekGameOptions.KillDistance;
                 }
-                value = LegacyGameOptions.KillDistanceStrings[index];
+                value = NormalGameOptionsV10.KillDistanceStrings[index];
             }
         }
 
@@ -1450,8 +1465,8 @@ namespace StellarRoles
         }
         public static void addKillDistance()
         {
-            LegacyGameOptions.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
-            LegacyGameOptions.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
+            NormalGameOptionsV10.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
+            NormalGameOptionsV10.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
         }
     }
 

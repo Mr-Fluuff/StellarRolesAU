@@ -14,28 +14,29 @@ using StellarRoles.Modules;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Reactor;
+using Reactor.Networking;
 using UnityEngine;
 
 namespace StellarRoles
 {
-    [BepInPlugin(Id, "StellarRoles", UpdateString)]
-    [BepInDependency(SubmergedCompatibility.SUBMERGED_GUID, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInAutoPlugin("me.fluff.stellarroles", "StellarRoles")]
     [BepInProcess("Among Us.exe")]
-    [ReactorModFlags(Reactor.Networking.ModFlags.RequireOnAllClients)]
-    public class StellarRolesPlugin : BasePlugin
+    [BepInDependency(ReactorPlugin.Id)]
+    [ReactorModFlags(ModFlags.RequireOnAllClients)]
+    public partial class StellarRolesPlugin : BasePlugin
     {
         public static GameObject CustomLobbyPrefab { get; set; }
-        public const string Id = "me.fluff.stellarroles";
 
-        public const string VersionString = "25.5.12";
-        public const string UpdateString = "2025.5.12";
+        public static string UpdateString = "2025.11.20";
+        public static string VersionString = UpdateString.Remove(0, 2);
         public const string BetaVersion = "";
 
-        public const string SupportedAUVersion = "2025.3.31";
-        public const string SupportedAUVersionNumber = "16.0.2";
+        public const string SupportedAUVersion = "2025.11.18";
+        public const string SupportedAUVersionNumber = "17.1.0";
 
-        public static Version Version => Version.Parse(VersionString);
-        public static Version UpdateVersion => Version.Parse(UpdateString);
+        public static Version VersionDeclared => System.Version.Parse(VersionString);
+        public static Version UpdateVersion => System.Version.Parse(UpdateString);
 
         internal static BepInEx.Logging.ManualLogSource Logger;
 
@@ -86,9 +87,11 @@ namespace StellarRoles
     [HarmonyPatch(typeof(PlayerBanData), nameof(PlayerBanData.IsBanned), MethodType.Getter)]
     public static class AmBannedPatch
     {
-        public static void Postfix(out bool __result)
+        [HarmonyPrefix]
+        public static bool Prefix(ref bool __result)
         {
             __result = false;
+            return false;
         }
     }
 
