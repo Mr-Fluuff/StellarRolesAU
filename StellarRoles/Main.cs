@@ -68,6 +68,7 @@ namespace StellarRoles
             EnableSoundEffects = Config.Bind("Custom", "Enable Sound Effects", true);
             ShowPopUpVersion = Config.Bind("Custom", "Show PopUp", "0");
             HidePetFromOthers = Config.Bind("Custom", "Hide Pet From Others", true);
+            Helpers.Log(LogLevel.Info, "Stellar Roles v" + VersionString + " loaded!");
 
             DefaultRegions = ServerManager.DefaultRegions;
 

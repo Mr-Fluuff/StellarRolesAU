@@ -233,7 +233,7 @@ namespace StellarRoles.Patches
         }
 
 
-        [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene._ShowRole_d__41))]
+        [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.ShowRole))]
         class SetUpRoleTextPatch
         {
             static public void SetRoleTexts(IntroCutscene __instance)
