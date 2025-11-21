@@ -260,9 +260,9 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
 
         private static void Postfix()
         {
-            //CustomVisorLoader.LaunchVisorFetcher();
-            //CustomHatLoader.LaunchHatFetcher();
-            //CustomNameplateLoader.LaunchNameplateFetcher();
+            CustomVisorLoader.LaunchVisorFetcher();
+            CustomHatLoader.LaunchHatFetcher();
+            CustomNameplateLoader.LaunchNameplateFetcher();
             CustomOptionDefaultSettings.CreatePresets();
         }
     }

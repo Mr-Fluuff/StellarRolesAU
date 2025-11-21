@@ -14,7 +14,8 @@ using static UnityEngine.UI.Button;
 
 namespace StellarRoles.Patches
 {
-    public class GameStartManagerPatch
+    [HarmonyPatch]
+    public static class GameStartManagerPatch
     {
         public static readonly Dictionary<int, PlayerVersion> PlayerVersions = new();
         public static float Timer = 600f;
@@ -22,28 +23,38 @@ namespace StellarRoles.Patches
         private static bool VersionSent = false;
 
         [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
-        public class AmongUsClientOnPlayerJoinedPatch
+        [HarmonyPostfix]
+        public static void AmongUsClientOnPlayerJoinPostfix()
         {
-            public static void Postfix()
+            if (PlayerControl.LocalPlayer != null)
             {
-                if (PlayerControl.LocalPlayer != null)
-                {
-                    Helpers.ShareGameVersion();
-                }
+                Helpers.ShareGameVersion();
             }
         }
 
         [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
-        public class GameStartManagerStartPatch
+        [HarmonyPostfix]
+        public static void GameStartManagerStartPostfix()
         {
-            public static void Postfix()
+            // Trigger version refresh
+            VersionSent = false;
+            // Reset lobby countdown timer
+            Timer = 600f;
+            // Reset kicking timer
+            KickingTimer = 0f;
+        }
+
+        [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.ResetStartState))]
+        [HarmonyPrefix]
+        public static void ResetStartStatePrefix(GameStartManager __instance)
+        {
+            if (__instance.startState is GameStartManager.StartingStates.Countdown)
             {
-                // Trigger version refresh
-                VersionSent = false;
-                // Reset lobby countdown timer
-                Timer = 600f;
-                // Reset kicking timer
-                KickingTimer = 0f;
+                SoundManager.Instance.StopSound(__instance.gameStartSound);
+                if (AmongUsClient.Instance.AmHost)
+                {
+                    GameManager.Instance.LogicOptions.SyncOptions();
+                }
             }
         }
 
@@ -357,23 +368,21 @@ namespace StellarRoles.Patches
         }
 
         [HarmonyPatch(typeof(LobbyInfoPane), nameof(LobbyInfoPane.Update))]
-        public class LobbyInfoPanePatch
+        [HarmonyPostfix]
+        public static void LobbyInfoUpdatePostfix(LobbyInfoPane __instance)
         {
-            public static void Postfix(LobbyInfoPane __instance)
+            if (CustomOption.Options.Count <= 0) return; // No instance
+            var Preset0 = CustomOption.Options[0];
+            if (Preset0.Selections.Length <= 0) return; // No instance
+            var Preset = Preset0.Selections[Preset0.Selection].ToString();
+
+            var GameModeText = GameObject.Find("GameModeText");
+            if (GameModeText == null) return;
+
+            var text = GameModeText.GetComponent<TextMeshPro>().text;
+            if (text != Preset)
             {
-                if (CustomOption.Options.Count <= 0) return; // No instance
-                var Preset0 = CustomOption.Options[0];
-                if (Preset0.Selections.Length <= 0) return; // No instance
-                var Preset = Preset0.Selections[Preset0.Selection].ToString();
-
-                var GameModeText = GameObject.Find("GameModeText");
-                if (GameModeText == null)  return;
-
-                var text = GameModeText.GetComponent<TextMeshPro>().text;
-                if (text != Preset)
-                {
-                    GameModeText.GetComponent<TextMeshPro>().text = Preset;
-                }
+                GameModeText.GetComponent<TextMeshPro>().text = Preset;
             }
         }
     }
