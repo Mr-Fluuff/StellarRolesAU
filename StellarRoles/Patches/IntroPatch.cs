@@ -5,6 +5,7 @@ using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 namespace StellarRoles.Patches
@@ -232,10 +233,13 @@ namespace StellarRoles.Patches
             }
         }
 
-
-        [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.ShowRole))]
-        class SetUpRoleTextPatch
+        [HarmonyPatch]
+        public static class SetUpRoleTextPatch
         {
+            public static MethodBase TargetMethod()
+            {
+                return EnumerationHelpers.GetMoveNext<IntroCutscene>(nameof(IntroCutscene.ShowRole))!;
+            }
             static public void SetRoleTexts(IntroCutscene __instance)
             {
                 // Don't override the intro of the vanilla roles
@@ -246,6 +250,7 @@ namespace StellarRoles.Patches
                 {
                     __instance.RoleText.text = roleInfo.Name;
                     __instance.RoleText.color = roleInfo.Color;
+                    __instance.YouAreText.color = roleInfo.Color;
                     __instance.RoleBlurbText.text = roleInfo.IntroDescription;
                     __instance.RoleBlurbText.color = roleInfo.Color;
                 }
@@ -255,17 +260,22 @@ namespace StellarRoles.Patches
                     __instance.RoleBlurbText.text += Helpers.ColorString(Executioner.Color, $"\nVote out {target?.Data?.PlayerName ?? ""} ");
                 }
             }
-            public static bool Prefix(IntroCutscene __instance)
+
+            public static void Postfix(Il2CppObjectBase __instance)
             {
+                var wrapper = new StateMachineWrapper<IntroCutscene>(__instance);
+                // run before the first yield
+                if (wrapper.GetState() != 1)
+                {
+                    return;
+                }
+
+                var introCutscene = wrapper.Instance;
+
                 RandomSeed.GenerateSeed();
                 if (HelpMenu.RolesUI != null) UnityEngine.Object.Destroy(HelpMenu.RolesUI);
                 if (PreviousGameHistory.HistoryUI != null) PreviousGameHistory.HistoryUI.SetActive(false);
-
-                HudManager.Instance.StartCoroutine(Effects.Lerp(1f, new Action<float>((p) =>
-                {
-                    SetRoleTexts(__instance);
-                })));
-                return true;
+                SetRoleTexts(introCutscene);
             }
         }
 

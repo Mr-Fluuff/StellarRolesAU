@@ -80,7 +80,11 @@ namespace StellarRoles
 
             CustomColors.Load();
             CustomOptionHolder.Load();
-            SubmergedCompatibility.Initialize();
+
+            IL2CPPChainloader.Instance.Finished += SubmergedCompatibility.Initialize;
+            /*CustomVisorLoader.LaunchVisorFetcher();
+            CustomHatLoader.LaunchHatFetcher();*/
+            // IL2CPPChainloader.Instance.Finished += CustomNameplateLoader.LaunchNameplateFetcher;
             AddComponent<ModUpdater>();
         }
     }

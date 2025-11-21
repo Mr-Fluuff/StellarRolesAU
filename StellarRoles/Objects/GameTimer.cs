@@ -74,7 +74,7 @@ namespace StellarRoles.Objects
         }
     }
 
-    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.ShowRole))]
+    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.CoBegin))]
     class StartGameTimer
     {
         public static void Prefix()

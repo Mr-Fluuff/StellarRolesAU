@@ -1,13 +1,43 @@
 ﻿using Il2CppSystem.Collections.Generic;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using HarmonyLib;
 
 namespace StellarRoles.Utilities;
 
 public static class EnumerationHelpers
 {
     public static System.Collections.Generic.IEnumerable<T> GetFastEnumerator<T>(this List<T> list) where T : Il2CppSystem.Object => new Il2CppListEnumerable<T>(list);
+
+#pragma warning disable CS8632
+    public static MethodBase? GetMoveNext<T>(string methodName)
+    {
+        var typeName = typeof(T).FullName;
+        var showRoleStateMachine =
+            typeof(T)
+                .GetNestedTypes()
+                .FirstOrDefault(x=>x.Name.Contains(methodName));
+
+        if (showRoleStateMachine == null)
+        {
+            StellarRolesPlugin.Logger.LogError($"Failed to find {methodName} state machine for {typeName}");
+            return null;
+        }
+
+        var moveNext = AccessTools.Method(showRoleStateMachine, "MoveNext");
+        if (moveNext == null)
+        {
+            StellarRolesPlugin.Logger.LogError($"Failed to find MoveNext method for {typeName}.{methodName}");
+            return null;
+        }
+
+        StellarRolesPlugin.Logger.LogInfo($"Found {methodName}.MoveNext");
+        return moveNext;
+    }
+#pragma warning restore CS8632
 }
 
 public unsafe class Il2CppListEnumerable<T> : System.Collections.Generic.IEnumerable<T>, System.Collections.Generic.IEnumerator<T> where T : Il2CppSystem.Object

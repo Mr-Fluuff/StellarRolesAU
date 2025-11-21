@@ -35,12 +35,12 @@ namespace StellarRoles.Objects
 
         public static class ButtonPositions
         {
-            public static readonly Vector3 LowerRow3 = new(-2f, 0f, 0);  // Not usable for imps beacuse of new button positions!
+            public static readonly Vector3 LowerRow3 = new(-2f, 0f, 0);  // Not usable for imps because of new button positions!
             public static readonly Vector3 LowerRow4 = new(-3f, 0f, 0);
             public static readonly Vector3 LowerRow5 = new(-4f, 0f, 0);
 
-            public static readonly Vector3 UpperRow1 = new(0f, 1f, 0f);  // Not usable for imps beacuse of new button positions!
-            public static readonly Vector3 UpperRow2 = new(-1f, 1f, 0f);  // Not usable for imps beacuse of new button positions!
+            public static readonly Vector3 UpperRow1 = new(0f, 1f, 0f);  // Not usable for imps because of new button positions!
+            public static readonly Vector3 UpperRow2 = new(-1f, 1f, 0f);  // Not usable for imps because of new button positions!
             public static readonly Vector3 UpperRow3 = new(-2f, 1f, 0f);
             public static readonly Vector3 UpperRow4 = new(-3f, 1f, 0f);
         }
