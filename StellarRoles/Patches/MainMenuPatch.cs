@@ -261,10 +261,11 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
 
         private static void Postfix()
         {
+            // TODO: Fix and optimize the hell out of these fetchers, since they cause way too many issues and makes testing incredibly difficult too
             CustomOptionDefaultSettings.CreatePresets();
             CustomVisorLoader.LaunchVisorFetcher();
             CustomHatLoader.LaunchHatFetcher();
-            CustomNameplateLoader.LaunchNameplateFetcher();
+            //CustomNameplateLoader.LaunchNameplateFetcher();
         }
     }
 }

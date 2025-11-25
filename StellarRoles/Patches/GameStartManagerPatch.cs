@@ -19,10 +19,10 @@ namespace StellarRoles.Patches
     {
         public static readonly Dictionary<int, PlayerVersion> PlayerVersions = new();
         public static float Timer = 600f;
-        private static float KickingTimer = 0f;
-        private static bool VersionSent = false;
+        // private static float KickingTimer = 0f;
+        // private static bool VersionSent = false;
 
-        [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
+        /*[HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
         [HarmonyPostfix]
         public static void AmongUsClientOnPlayerJoinPostfix()
         {
@@ -30,9 +30,9 @@ namespace StellarRoles.Patches
             {
                 Helpers.ShareGameVersion();
             }
-        }
+        }*/
 
-        [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
+        /*[HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
         [HarmonyPostfix]
         public static void GameStartManagerStartPostfix()
         {
@@ -42,7 +42,7 @@ namespace StellarRoles.Patches
             Timer = 600f;
             // Reset kicking timer
             KickingTimer = 0f;
-        }
+        }*/
 
         [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.ResetStartState))]
         [HarmonyPrefix]
@@ -75,6 +75,8 @@ namespace StellarRoles.Patches
 
             public static void Postfix(GameStartManager __instance)
             {
+                
+                /*
                 // Send version as soon as CachedPlayer.LocalPlayer.PlayerControl exists
                 if (PlayerControl.LocalPlayer != null && !VersionSent)
                 {
@@ -114,11 +116,11 @@ namespace StellarRoles.Patches
                             versionMismatch = true;
                         }
                     }
-                }
+                }*/
                 // Display message to the host
                 if (AmongUsClient.Instance.AmHost)
                 {
-                    if (versionMismatch)
+                    /*if (versionMismatch)
                     {
                         __instance.GameStartText.text = message;
                         __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 5;
@@ -126,7 +128,7 @@ namespace StellarRoles.Patches
                         __instance.GameStartTextParent.SetActive(true);
                     }
                     else
-                    {
+                    {*/
                         __instance.GameStartText.transform.localPosition = Vector3.zero;
                         __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
                         if (!__instance.GameStartText.text.StartsWith("Starting"))
@@ -134,7 +136,7 @@ namespace StellarRoles.Patches
                             __instance.GameStartText.text = String.Empty;
                             __instance.GameStartTextParent.SetActive(false);
                         }
-                    }
+                    // }
 
                     if (__instance.startState != GameStartManager.StartingStates.Countdown)
                         StopCountdownButton?.Destroy();
@@ -181,7 +183,7 @@ namespace StellarRoles.Patches
                 // Client update with handshake infos
                 else
                 {
-                    if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.VersionDeclared.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
+                    /*if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.VersionDeclared.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
                     {
                         KickingTimer += Time.deltaTime;
                         if (KickingTimer > 10)
@@ -204,7 +206,7 @@ namespace StellarRoles.Patches
                         __instance.GameStartTextParent.SetActive(true);
                     }
                     else
-                    {
+                    {*/
                         __instance.GameStartText.transform.localPosition = Vector3.zero;
                         __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
                         if (!__instance.GameStartText.text.StartsWith("Starting"))
@@ -212,7 +214,7 @@ namespace StellarRoles.Patches
                             __instance.GameStartText.text = String.Empty;
                             __instance.GameStartTextParent.SetActive(false);
                         }
-                    }
+                    //}
                 }
                 // Start Timer
                 if (StartingTimer > 0)
