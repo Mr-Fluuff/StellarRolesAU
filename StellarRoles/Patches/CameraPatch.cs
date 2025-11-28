@@ -293,7 +293,7 @@ namespace StellarRoles.Patches
                     __instance.Dots[__instance.currentCamera].sprite = __instance.DotEnabled;
                     SurvCamera survCamera = __instance.survCameras[__instance.currentCamera];
                     __instance.Camera.transform.position = survCamera.transform.position + __instance.survCameras[__instance.currentCamera].Offset;
-                    __instance.LocationName.text = (survCamera.NewName > StringNames.ExitButton) ? DestroyableSingleton<TranslationController>.Instance.GetString(survCamera.NewName, Array.Empty<UnityEngine.Object>()) : survCamera.CamName;
+                    __instance.LocationName.text = (survCamera.NewName > StringNames.ExitButton) ? TranslationController.Instance.GetString(survCamera.NewName, Array.Empty<UnityEngine.Object>()) : survCamera.CamName;
                     return false;
                 }
 

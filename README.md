@@ -595,6 +595,7 @@ docker run -d -p 22023:22023/udp --env IMPOSTOR_AntiCheatEnabled=false --env IMP
 [TownOfHost](https://github.com/tukasa0001/TownOfHost) - Idea for Enginner Advanced Sabotage\
 [Among-Us-Sheriff-Mod](https://github.com/Woodi-dev/Among-Us-Sheriff-Mod) - Idea for the Sheriff role comes from **Woodi-dev**\
 [TownOfUs](https://github.com/slushiegoose/Town-Of-Us) - Idea for the Arsonist and a similar Mayor role come from **Slushiegoose**\
+[MiraAPI](https://github.com/All-Of-Us-Mods/MiraAPI) - Used for better server dropdown and improved role intro hooks.\
 [BryBry16](https://github.com/Brybry16/BetterPolus) - For the code used for Better Polus.\
 [Ottomated](https://twitter.com/ottomated_) - Idea for the Morphling, Detective, and Camouflager role come from **Ottomated**\
 [Goose-Goose-Duck](https://store.steampowered.com/app/1568590/Goose_Goose_Duck) - Idea for the Scavenger role come from **Slushiegoose**

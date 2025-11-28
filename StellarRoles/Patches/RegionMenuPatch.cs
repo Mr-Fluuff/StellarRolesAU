@@ -153,7 +153,7 @@ namespace StellarRoles.Patches
         public static bool Prefix(RegionMenu __instance, IRegionInfo region)
         {
             if (region.Name != "Custom" || ServerManager.Instance.CurrentRegion.Name == "Custom") return true;
-            DestroyableSingleton<ServerManager>.Instance.SetRegion(region);
+            ServerManager>.Instance.SetRegion(region);
             __instance.RegionText.text = "Custom";
             foreach (PoolableBehavior Button in __instance.ButtonPool.activeChildren)
             {

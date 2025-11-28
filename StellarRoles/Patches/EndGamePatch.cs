@@ -668,7 +668,7 @@ namespace StellarRoles.Patches
         {
             if (!GameData.Instance)
                 return false;
-            if (DestroyableSingleton<TutorialManager>.InstanceExists) // InstanceExists | Don't check Custom Criteria when in Tutorial
+            if (TutorialManager.InstanceExists) // InstanceExists | Don't check Custom Criteria when in Tutorial
                 return true;
             PlayerStatistics statistics = new();
             // TODO: does it really matter if one win condition stops all the others being checked as well

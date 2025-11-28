@@ -167,7 +167,7 @@ namespace StellarRoles
                     }
 
                     RefreshCosmeticsButton.ActionButton.buttonLabelText.text = text;
-                    RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localPosition = new Vector3(0, -0.65f);
+                    RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localPosition = new Vector3(0, -0.65f, -0.02f);
                     RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localScale = Vector3.one * 1.2f;
 
                     return true;

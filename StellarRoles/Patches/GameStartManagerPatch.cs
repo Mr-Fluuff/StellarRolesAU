@@ -14,36 +14,47 @@ using static UnityEngine.UI.Button;
 
 namespace StellarRoles.Patches
 {
-    public class GameStartManagerPatch
+    [HarmonyPatch]
+    public static class GameStartManagerPatch
     {
         public static readonly Dictionary<int, PlayerVersion> PlayerVersions = new();
         public static float Timer = 600f;
-        private static float KickingTimer = 0f;
-        private static bool VersionSent = false;
+        // private static float KickingTimer = 0f;
+        // private static bool VersionSent = false;
 
-        [HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
-        public class AmongUsClientOnPlayerJoinedPatch
+        /*[HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
+        [HarmonyPostfix]
+        public static void AmongUsClientOnPlayerJoinPostfix()
         {
-            public static void Postfix()
+            if (PlayerControl.LocalPlayer != null)
             {
-                if (PlayerControl.LocalPlayer != null)
-                {
-                    Helpers.ShareGameVersion();
-                }
+                Helpers.ShareGameVersion();
             }
-        }
+        }*/
 
-        [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
-        public class GameStartManagerStartPatch
+        /*[HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
+        [HarmonyPostfix]
+        public static void GameStartManagerStartPostfix()
         {
-            public static void Postfix()
+            // Trigger version refresh
+            VersionSent = false;
+            // Reset lobby countdown timer
+            Timer = 600f;
+            // Reset kicking timer
+            KickingTimer = 0f;
+        }*/
+
+        [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.ResetStartState))]
+        [HarmonyPrefix]
+        public static void ResetStartStatePrefix(GameStartManager __instance)
+        {
+            if (__instance.startState is GameStartManager.StartingStates.Countdown)
             {
-                // Trigger version refresh
-                VersionSent = false;
-                // Reset lobby countdown timer
-                Timer = 600f;
-                // Reset kicking timer
-                KickingTimer = 0f;
+                SoundManager.Instance.StopSound(__instance.gameStartSound);
+                if (AmongUsClient.Instance.AmHost)
+                {
+                    GameManager.Instance.LogicOptions.SyncOptions();
+                }
             }
         }
 
@@ -64,6 +75,8 @@ namespace StellarRoles.Patches
 
             public static void Postfix(GameStartManager __instance)
             {
+                
+                /*
                 // Send version as soon as CachedPlayer.LocalPlayer.PlayerControl exists
                 if (PlayerControl.LocalPlayer != null && !VersionSent)
                 {
@@ -86,7 +99,7 @@ namespace StellarRoles.Patches
                     else
                     {
                         PlayerVersion PV = PlayerVersions[client.Id];
-                        int diff = StellarRolesPlugin.Version.CompareTo(PV.version);
+                        int diff = StellarRolesPlugin.VersionDeclared.CompareTo(PV.version);
                         if (diff > 0)
                         {
                             message += $"<color=#FF0000FF>{client.Character.Data.PlayerName} has an older version of StellarRoles (v20{PlayerVersions[client.Id].version.ToString()})\n</color>";
@@ -103,11 +116,11 @@ namespace StellarRoles.Patches
                             versionMismatch = true;
                         }
                     }
-                }
+                }*/
                 // Display message to the host
                 if (AmongUsClient.Instance.AmHost)
                 {
-                    if (versionMismatch)
+                    /*if (versionMismatch)
                     {
                         __instance.GameStartText.text = message;
                         __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 5;
@@ -115,7 +128,7 @@ namespace StellarRoles.Patches
                         __instance.GameStartTextParent.SetActive(true);
                     }
                     else
-                    {
+                    {*/
                         __instance.GameStartText.transform.localPosition = Vector3.zero;
                         __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
                         if (!__instance.GameStartText.text.StartsWith("Starting"))
@@ -123,7 +136,7 @@ namespace StellarRoles.Patches
                             __instance.GameStartText.text = String.Empty;
                             __instance.GameStartTextParent.SetActive(false);
                         }
-                    }
+                    // }
 
                     if (__instance.startState != GameStartManager.StartingStates.Countdown)
                         StopCountdownButton?.Destroy();
@@ -170,7 +183,7 @@ namespace StellarRoles.Patches
                 // Client update with handshake infos
                 else
                 {
-                    if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.Version.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
+                    /*if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.VersionDeclared.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
                     {
                         KickingTimer += Time.deltaTime;
                         if (KickingTimer > 10)
@@ -193,7 +206,7 @@ namespace StellarRoles.Patches
                         __instance.GameStartTextParent.SetActive(true);
                     }
                     else
-                    {
+                    {*/
                         __instance.GameStartText.transform.localPosition = Vector3.zero;
                         __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
                         if (!__instance.GameStartText.text.StartsWith("Starting"))
@@ -201,7 +214,7 @@ namespace StellarRoles.Patches
                             __instance.GameStartText.text = String.Empty;
                             __instance.GameStartTextParent.SetActive(false);
                         }
-                    }
+                    //}
                 }
                 // Start Timer
                 if (StartingTimer > 0)
@@ -213,7 +226,7 @@ namespace StellarRoles.Patches
                 if (!GameData.Instance || !__instance.PlayerCounter) return; // No instance
                 var player = GameData.Instance.PlayerCount;
 
-                string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{CustomOptionHolder.LobbySize.GetInt()}");
+                string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{GameOptionsManager.Instance.currentNormalGameOptions.MaxPlayers}");
 
                 Timer = Mathf.Max(0f, Timer -= Time.deltaTime);
                 int minutes = (int)Timer / 60;
@@ -247,7 +260,7 @@ namespace StellarRoles.Patches
                             return false;
 
                         PlayerVersion PV = PlayerVersions[client.Id];
-                        int diff = StellarRolesPlugin.Version.CompareTo(PV.version);
+                        int diff = StellarRolesPlugin.VersionDeclared.CompareTo(PV.version);
                         if (diff != 0 || !PV.GuidMatches())
                             return false;
                     }
@@ -357,21 +370,21 @@ namespace StellarRoles.Patches
         }
 
         [HarmonyPatch(typeof(LobbyInfoPane), nameof(LobbyInfoPane.Update))]
-        public class LobbyInfoPanePatch
+        [HarmonyPostfix]
+        public static void LobbyInfoUpdatePostfix(LobbyInfoPane __instance)
         {
-            public static void Postfix(LobbyInfoPane __instance)
+            if (CustomOption.Options.Count <= 0) return; // No instance
+            var Preset0 = CustomOption.Options[0];
+            if (Preset0.Selections.Length <= 0) return; // No instance
+            var Preset = Preset0.Selections[Preset0.Selection].ToString();
+
+            var GameModeText = GameObject.Find("GameModeText");
+            if (GameModeText == null) return;
+
+            var text = GameModeText.GetComponent<TextMeshPro>().text;
+            if (text != Preset)
             {
-                var Preset0 = CustomOption.Options[0];
-                var Preset = Preset0.Selections[Preset0.Selection].ToString();
-
-                var GameModeText = GameObject.Find("GameModeText");
-                if (GameModeText == null)  return;
-
-                var text = GameModeText.GetComponent<TextMeshPro>().text;
-                if (text != Preset)
-                {
-                    GameModeText.GetComponent<TextMeshPro>().text = Preset;
-                }
+                GameModeText.GetComponent<TextMeshPro>().text = Preset;
             }
         }
     }

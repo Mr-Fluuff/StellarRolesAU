@@ -6,7 +6,7 @@ namespace StellarRoles
     public static class StellarRoles
     {
         public static Random rnd => new((int)DateTime.Now.Ticks);
-        public static NormalGameOptionsV09 NormalOptions => GameOptionsManager.Instance.currentNormalGameOptions;
+        public static NormalGameOptionsV10 NormalOptions => GameOptionsManager.Instance.currentNormalGameOptions;
 
 
         public static void ClearAndReloadRoles()
@@ -61,7 +61,6 @@ namespace StellarRoles
             Wraith.ClearAndReload();
             Hacker.ClearAndReload();
             Psychic.ClearAndReload();
-            Charlatan.ClearAndReload();
             // Modifier
             Giant.ClearAndReload();
             Mini.ClearAndReload();

@@ -32,7 +32,7 @@ namespace StellarRoles.Objects
             var position = TimerText.gameObject.GetComponent<AspectPosition>();
             position.Alignment = AspectPosition.EdgeAlignments.LeftTop;
             position.DistanceFromEdge = new Vector3(4.5f, 0.11f, 0f) + (HelpMenu.Reference != null ? HelpMenu.Reference.transform.localPosition : Vector3.zero);
-            TimerText.gameObject.SetActive(Enabletimer && Helpers.GameStarted);
+            TimerText.gameObject.SetActive(Helpers.GameStarted && Enabletimer);
 
             if (!_isCountingDown) return;
             GameTime -= Time.deltaTime;
@@ -74,7 +74,7 @@ namespace StellarRoles.Objects
         }
     }
 
-    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.ShowRole))]
+    [HarmonyPatch(typeof(IntroCutscene), nameof(IntroCutscene.CoBegin))]
     class StartGameTimer
     {
         public static void Prefix()

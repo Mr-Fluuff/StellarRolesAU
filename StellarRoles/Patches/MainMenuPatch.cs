@@ -102,6 +102,7 @@ BepInEx - Used to hook game functions
 Jester - Idea for the Jester role came from Maartii
 ExtraRolesAmongUs - Idea for the Engineer and Guardian role came from NotHunter101
 TownOfHost - Idea for Enginner Advanced Sabotage
+MiraAPI - For the code used for better server dropdown and improved role intro hooks.
 Among-Us-Sheriff-Mod - Idea for the Sheriff role came from Woodi-dev
 Slushiegoose - Idea for the Arsonist, Scavenger, a similar Mayor role, and code snippets from Grenadiar for Nightmare
 BryBry16 - For the code used for Better Polus.
@@ -260,10 +261,11 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
 
         private static void Postfix()
         {
+            // TODO: Fix and optimize the hell out of these fetchers, since they cause way too many issues and makes testing incredibly difficult too
+            CustomOptionDefaultSettings.CreatePresets();
             CustomVisorLoader.LaunchVisorFetcher();
             CustomHatLoader.LaunchHatFetcher();
-            CustomNameplateLoader.LaunchNameplateFetcher();
-            CustomOptionDefaultSettings.CreatePresets();
+            //CustomNameplateLoader.LaunchNameplateFetcher();
         }
     }
 }

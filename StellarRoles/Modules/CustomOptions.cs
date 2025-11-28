@@ -122,12 +122,12 @@ namespace StellarRoles
         public static void SwitchPreset(int newPreset)
         {
             SaveVanillaOptions();
-            CustomOption.Preset = newPreset;
+            Preset = newPreset;
             VanillaSettings = StellarRolesPlugin.Instance.Config.Bind($"Preset{Preset}", "GameOptions", "");
             LoadVanillaOptions();
 
             var value = CustomOptionDefaultSettings.Presets((Preset)Preset);
-            foreach (CustomOption option in CustomOption.Options)
+            foreach (CustomOption option in Options)
             {
                 if (option.Id == 0) continue;
                 var optiondefault = option.DefaultSelection;
@@ -201,7 +201,7 @@ namespace StellarRoles
         {
             var option = Options.FirstOrDefault(x => x.Id == optionId);
             if (option == null) return;
-            var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable, -1);
+            var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable, -1);
             writer.Write((byte)CustomRPC.ShareOptions);
             writer.Write((byte)1);
             writer.WritePacked((uint)option.Id);
@@ -212,11 +212,11 @@ namespace StellarRoles
         public static void ShareOptionSelections()
         {
             if (PlayerControl.AllPlayerControls.Count <= 1 || AmongUsClient.Instance!.AmHost == false && PlayerControl.LocalPlayer == null) return;
-            var optionsList = new List<CustomOption>(CustomOption.Options);
+            var optionsList = new List<CustomOption>(Options);
             while (optionsList.Any())
             {
                 byte amount = (byte)Math.Min(optionsList.Count, 200); // takes less than 3 bytes per option on average
-                var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, (byte)254, SendOption.Reliable, -1);
+                var writer = AmongUsClient.Instance!.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable, -1);
                 writer.Write((byte)CustomRPC.ShareOptions);
                 writer.Write(amount);
                 for (int i = 0; i < amount; i++)
@@ -267,7 +267,7 @@ namespace StellarRoles
             newSelection = Mathf.Clamp((newSelection + Selections.Length) % Selections.Length, 0, Selections.Length - 1);
             if (AmongUsClient.Instance?.AmClient == true && notifyUsers && Selection != newSelection)
             {
-                DestroyableSingleton<HudManager>.Instance.Notifier.AddSettingsChangeMessage((StringNames)(this.Id + 6000), Selections[newSelection].ToString(), false);
+                HudManager.Instance.Notifier.AddSettingsChangeMessage((StringNames)(this.Id + 6000), Selections[newSelection].ToString(), false);
                 try
                 {
                     if (GameStartManager.Instance != null && GameStartManager.Instance.LobbyInfoPane != null && GameStartManager.Instance.LobbyInfoPane.LobbyViewSettingsPane != null && GameStartManager.Instance.LobbyInfoPane.LobbyViewSettingsPane.gameObject.activeSelf)
@@ -316,7 +316,7 @@ namespace StellarRoles
                 using (BinaryWriter binaryWriter = new BinaryWriter(memoryStream))
                 {
                     int lastId = -1;
-                    foreach (var option in CustomOption.Options.OrderBy(x => x.Id))
+                    foreach (var option in Options.OrderBy(x => x.Id))
                     {
                         if (option.Id == 0) continue;
                         bool consecutive = lastId + 1 == option.Id;
@@ -396,7 +396,7 @@ namespace StellarRoles
                 string vanillaSettingsSub = settingsSplit[2];
                 ModdedOptionsFine = DeserializeOptions(Convert.FromBase64String(ModdedSettings));
                 ShareOptionSelections();
-                if (StellarRolesPlugin.Version > versionInfo && versionInfo < Version.Parse("24.8.7"))
+                if (StellarRolesPlugin.VersionDeclared > versionInfo && versionInfo < Version.Parse("24.8.7"))
                 {
                     vanillaOptionsFine = false;
                     HudManager.Instance.Chat.AddChat(PlayerControl.LocalPlayer, "Host Info: Pasting vanilla settings failed, Modded Options applied!");
@@ -918,8 +918,7 @@ namespace StellarRoles
                 var stringOption = optionBehaviour as StringOption;
                 var TitleText = stringOption.TitleText;
                 TitleText.font = _fontAsset;
-
-
+                
                 // "SetUpFromData"
                 SpriteRenderer[] componentsInChildren = optionBehaviour.GetComponentsInChildren<SpriteRenderer>(true);
                 stringOption.OnValueChanged = new Action<OptionBehaviour>((o) => { });
@@ -928,7 +927,6 @@ namespace StellarRoles
                 var RectTrans = TitleText.transform.GetComponent<RectTransform>();
                 RectTrans.sizeDelta = new Vector2(5, 0.5f);
                 RectTrans.localScale = new Vector3(1.75f, 1.25f);
-
 
                 if (option.isHeader && option.heading == "" && (option.type == CustomOptionType.Neutral || option.type == CustomOptionType.NeutralK || option.type == CustomOptionType.Crewmate || option.type == CustomOptionType.Impostor || option.type == CustomOptionType.Modifier))
                 {
@@ -956,6 +954,7 @@ namespace StellarRoles
 
 
                 menu.Children.Add(optionBehaviour);
+                stringOption.Initialize();
                 num -= 0.45f;
                 menu.scrollBar.SetYBoundsMax(-num - 1.65f);
             }
@@ -1063,7 +1062,7 @@ namespace StellarRoles
     {
         public static bool Prefix(StringOption __instance)
         {
-            CustomOption option = CustomOption.Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
+            CustomOption option = Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
             if (option == null) return true;
 
             __instance.OnValueChanged = new Action<OptionBehaviour>((o) => { });
@@ -1080,7 +1079,7 @@ namespace StellarRoles
     {
         public static bool Prefix(StringOption __instance)
         {
-            CustomOption option = CustomOption.Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
+            CustomOption option = Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
             if (option == null) return true;
             option.UpdateSelection(option.Selection + 1);
             return false;
@@ -1092,7 +1091,7 @@ namespace StellarRoles
     {
         public static bool Prefix(StringOption __instance)
         {
-            CustomOption option = CustomOption.Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
+            CustomOption option = Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
             if (option == null) return true;
             option.UpdateSelection(option.Selection - 1);
             return false;
@@ -1105,7 +1104,7 @@ namespace StellarRoles
         public static void Postfix(StringOption __instance)
         {
             if (!IL2CPPChainloader.Instance.Plugins.TryGetValue("com.DigiWorm.LevelImposter", out PluginInfo _)) return;
-            CustomOption option = CustomOption.Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
+            CustomOption option = Options.FirstOrDefault(option => option.OptionBehaviour == __instance);
             if (option == null) return;
             if (GameOptionsManager.Instance.CurrentGameOptions.MapId == 6)
             {
@@ -1128,8 +1127,8 @@ namespace StellarRoles
     {
         public static void Postfix()
         {
-            //CustomOption.ShareOptionSelections();
-            CustomOption.SaveVanillaOptions();
+            //ShareOptionSelections();
+            SaveVanillaOptions();
         }
     }
 
@@ -1141,7 +1140,7 @@ namespace StellarRoles
             if (PlayerControl.LocalPlayer != null && AmongUsClient.Instance.AmHost)
             {
                 GameManager.Instance.LogicOptions.SyncOptions();
-                CustomOption.ShareOptionSelections();
+                ShareOptionSelections();
             }
         }
     }
@@ -1152,33 +1151,33 @@ namespace StellarRoles
     {
         private static string buildRoleOptions()
         {
-            var impRoles = buildOptionsOfType(CustomOption.CustomOptionType.Impostor, true) + "\n";
-            var neutralRoles = buildOptionsOfType(CustomOption.CustomOptionType.Neutral, true) + "\n";
-            var nKRoles = buildOptionsOfType(CustomOption.CustomOptionType.NeutralK, true) + "\n";
-            var crewRoles = buildOptionsOfType(CustomOption.CustomOptionType.Crewmate, true) + "\n";
-            var modifiers = buildOptionsOfType(CustomOption.CustomOptionType.Modifier, true);
+            var impRoles = buildOptionsOfType(CustomOptionType.Impostor, true) + "\n";
+            var neutralRoles = buildOptionsOfType(CustomOptionType.Neutral, true) + "\n";
+            var nKRoles = buildOptionsOfType(CustomOptionType.NeutralK, true) + "\n";
+            var crewRoles = buildOptionsOfType(CustomOptionType.Crewmate, true) + "\n";
+            var modifiers = buildOptionsOfType(CustomOptionType.Modifier, true);
             return impRoles + neutralRoles + nKRoles + crewRoles + modifiers;
         }
         public static string buildModifierExtras(CustomOption customOption)
         {
             // find options children with quantity
-            var children = CustomOption.Options.Where(o => o.Parent == customOption);
+            var children = Options.Where(o => o.Parent == customOption);
             var quantity = children.Where(o => o.name.Contains("Quantity")).ToList();
             if (customOption.GetSelection() == 0) return "";
             if (quantity.Count == 1) return $" ({quantity[0].GetQuantity()})";
             return "";
         }
 
-        private static string buildOptionsOfType(CustomOption.CustomOptionType type, bool headerOnly)
+        private static string buildOptionsOfType(CustomOptionType type, bool headerOnly)
         {
             StringBuilder sb = new StringBuilder("\n");
-            var options = CustomOption.Options.Where(o => o.type == type);
+            var options = Options.Where(o => o.type == type);
             foreach (var option in options)
             {
                 if (option.Parent == null)
                 {
                     string line = $"{option.name}: {option.Selections[option.Selection].ToString()}";
-                    if (type == CustomOption.CustomOptionType.Modifier) line += buildModifierExtras(option);
+                    if (type == CustomOptionType.Modifier) line += buildModifierExtras(option);
                     sb.AppendLine(line);
                 }
             }
@@ -1256,22 +1255,22 @@ namespace StellarRoles
                     hudString += (!hideExtras ? "" : "Page 1: Vanilla Settings \n\n") + vanillaSettings;
                     break;
                 case 1:
-                    hudString += "Page 2: StellarRoles Settings \n" + buildOptionsOfType(CustomOption.CustomOptionType.General, false);
+                    hudString += "Page 2: StellarRoles Settings \n" + buildOptionsOfType(CustomOptionType.General, false);
                     break;
                 case 2:
                     hudString += "Page 3: Role and Modifier Rates \n" + buildRoleOptions();
                     break;
                 case 3:
-                    hudString += "Page 4: Impostor Role Settings \n" + buildOptionsOfType(CustomOption.CustomOptionType.Impostor, false);
+                    hudString += "Page 4: Impostor Role Settings \n" + buildOptionsOfType(CustomOptionType.Impostor, false);
                     break;
                 case 4:
-                    hudString += "Page 5: Neutral Role Settings \n" + buildOptionsOfType(CustomOption.CustomOptionType.Neutral, false);
+                    hudString += "Page 5: Neutral Role Settings \n" + buildOptionsOfType(CustomOptionType.Neutral, false);
                     break;
                 case 5:
-                    hudString += "Page 6: Crewmate Role Settings \n" + buildOptionsOfType(CustomOption.CustomOptionType.Crewmate, false);
+                    hudString += "Page 6: Crewmate Role Settings \n" + buildOptionsOfType(CustomOptionType.Crewmate, false);
                     break;
                 case 6:
-                    hudString += "Page 7: Modifier Settings \n" + buildOptionsOfType(CustomOption.CustomOptionType.Modifier, false);
+                    hudString += "Page 7: Modifier Settings \n" + buildOptionsOfType(CustomOptionType.Modifier, false);
                     break;
             }
 
@@ -1315,7 +1314,7 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV07.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result=true;
@@ -1331,7 +1330,7 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV08.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
@@ -1347,8 +1346,24 @@ namespace StellarRoles
         {
             if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
                     || __instance.NumImpostors > 3 || __instance.KillDistance < 0
-                    || __instance.KillDistance >= LegacyGameOptions.KillDistances.Count
+                    || __instance.KillDistance >= NormalGameOptionsV09.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
+            {
+                __result = true;
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(typeof(NormalGameOptionsV10), nameof(NormalGameOptionsV10.AreInvalid))]
+        [HarmonyPrefix]
+
+        public static bool Prefix(NormalGameOptionsV10 __instance, ref int maxExpectedPlayers, ref bool __result)
+        {
+            if (__instance.MaxPlayers > maxExpectedPlayers || __instance.NumImpostors < 1
+                                                           || __instance.NumImpostors > 3 || __instance.KillDistance < 0
+                                                           || __instance.KillDistance >= NormalGameOptionsV10.KillDistances.Count
+                                                           || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
                 __result = true;
                 return false;
@@ -1378,7 +1393,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = LegacyGameOptions.KillDistanceStrings[index];
+                var stringname = NormalGameOptionsV10.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1393,7 +1408,7 @@ namespace StellarRoles
             if (__instance.Title == StringNames.GameKillDistance && Helpers.IsNormal)
             {
                 var index = GameOptionsManager.Instance.currentNormalGameOptions.KillDistance;
-                var stringname = LegacyGameOptions.KillDistanceStrings[index];
+                var stringname = NormalGameOptionsV10.KillDistanceStrings[index];
                 __result = stringname;
                 return false;
             }
@@ -1418,7 +1433,7 @@ namespace StellarRoles
                 {
                     index = GameOptionsManager.Instance.currentHideNSeekGameOptions.KillDistance;
                 }
-                value = LegacyGameOptions.KillDistanceStrings[index];
+                value = NormalGameOptionsV10.KillDistanceStrings[index];
             }
         }
 
@@ -1450,8 +1465,8 @@ namespace StellarRoles
         }
         public static void addKillDistance()
         {
-            LegacyGameOptions.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
-            LegacyGameOptions.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
+            NormalGameOptionsV10.KillDistances = new([0.6f, 1f, 1.8f, 2.5f]);
+            NormalGameOptionsV10.KillDistanceStrings = new(["Very Short", "Short", "Medium", "Long"]);
         }
     }
 

@@ -375,7 +375,7 @@ namespace StellarRoles.Modules
             {
                 static void Prefix(HatParent __instance)
                 {
-                    if (DestroyableSingleton<TutorialManager>.InstanceExists)
+                    if (TutorialManager.InstanceExists)
                     {
                         try
                         {
@@ -400,7 +400,7 @@ namespace StellarRoles.Modules
             {
                 static bool Prefix(HatParent __instance, HatData hat, int color)
                 {
-                    if (!DestroyableSingleton<TutorialManager>.InstanceExists) return true;
+                    if (!TutorialManager.InstanceExists) return true;
 
                     try
                     {
@@ -475,9 +475,9 @@ namespace StellarRoles.Modules
                 }
                 else
                 {
-                    __instance.FrontLayer.sharedMaterial = DestroyableSingleton<HatManager>.Instance.DefaultShader;
+                    __instance.FrontLayer.sharedMaterial = HatManager.Instance.DefaultShader;
                     if (__instance.BackLayer)
-                        __instance.BackLayer.sharedMaterial = DestroyableSingleton<HatManager>.Instance.DefaultShader;
+                        __instance.BackLayer.sharedMaterial = HatManager.Instance.DefaultShader;
                 }
                 int colorId = __instance.matProperties.ColorId;
                 PlayerMaterial.SetColors(colorId, __instance.FrontLayer);
