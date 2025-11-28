@@ -28,7 +28,7 @@ namespace StellarRoles
     {
         public static GameObject CustomLobbyPrefab { get; set; }
 
-        public static string UpdateString = "2025.11.20";
+        public static string UpdateString = "2025.11.27";
         public static string VersionString = UpdateString.Remove(0, 2);
         public const string BetaVersion = "";
 

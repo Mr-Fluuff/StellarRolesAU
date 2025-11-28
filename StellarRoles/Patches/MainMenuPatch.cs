@@ -14,10 +14,10 @@ namespace StellarRoles.Modules
     {
         private static GameObject regionResetConfirmTemplate;
         private static AnnouncementPopUp popUp;
+        private static bool Loaded = false;
 
         private static void Prefix(MainMenuManager __instance)
         {
-
             SoundEffectsManager.Load();
             GameObject NewsB = GameObject.Find("NewsButton");
             GameObject AccountB = GameObject.Find("AcountButton");
@@ -263,9 +263,9 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
         {
             // TODO: Fix and optimize the hell out of these fetchers, since they cause way too many issues and makes testing incredibly difficult too
             CustomOptionDefaultSettings.CreatePresets();
-            CustomVisorLoader.LaunchVisorFetcher();
-            CustomHatLoader.LaunchHatFetcher();
-            //CustomNameplateLoader.LaunchNameplateFetcher();
+            if (Loaded) return;
+            CosmeticsDownloader.LaunchCosmeticsFetcher();
+            Loaded = true;
         }
     }
 }

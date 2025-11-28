@@ -479,10 +479,7 @@ namespace StellarRoles
 
         public static void LoadCosmetics(HatManager __instance)
         {
-            CustomHatLoader.LaunchHatFetcher();
-            CustomVisorLoader.LaunchVisorFetcher();
-            CustomNameplateLoader.LaunchNameplateFetcher();
-
+            CosmeticsDownloader.LaunchCosmeticsFetcher();
             DelayedAction(3, void () =>
             {
                 CustomHats.HatManagerPatch.LoadHats(__instance, false);

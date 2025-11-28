@@ -145,7 +145,7 @@ namespace StellarRoles
             RefreshCosmeticsButton = new CustomButton(
                 () =>
                 {
-                    if (CustomHatLoader.IsRunning || CustomVisorLoader.IsRunning) return;
+                    if (CosmeticsDownloader.IsRunning) return;
 
                     RefreshCosmeticsButton.IsEffectActive = true;
                     RefreshCosmeticsButton.Timer = 5;
@@ -155,13 +155,13 @@ namespace StellarRoles
                 () => { return PlayerControl.LocalPlayer && LobbyBehaviour.Instance; },
                 () =>
                 {
-                    var CosmeticsTotal = CustomHatLoader.TotalHatsToDownload + CustomVisorLoader.TotalVisorsToDownload;
-                    var CosmeticsDownloaded = CustomHatLoader.TotalHatsDownloaded + CustomVisorLoader.TotalVisorsDownloaded;
+                    var CosmeticsTotal = CosmeticsDownloader.TotalHatsToDownload + CosmeticsDownloader.TotalVisorsToDownload;
+                    var CosmeticsDownloaded = CosmeticsDownloader.TotalHatsDownloaded + CosmeticsDownloader.TotalVisorsDownloaded;
                     double CosmeticsLeft = ((double)CosmeticsDownloaded / CosmeticsTotal);
                     string Percent = CosmeticsLeft.ToString("p1");
 
                     string text = "Cosmetics\nRefresh";
-                    if (CustomHatLoader.IsRunning || CustomVisorLoader.IsRunning)
+                    if (CosmeticsDownloader.IsRunning)
                     {
                         text = "Cosmetics\nDownloading\n" + Percent;
                     }
