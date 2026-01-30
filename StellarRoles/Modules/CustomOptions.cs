@@ -1,20 +1,20 @@
-using System.Collections.Generic;
-using UnityEngine;
+using AmongUs.GameOptions;
+using BepInEx;
 using BepInEx.Configuration;
-using System;
-using System.IO;
-using System.Linq;
+using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using Hazel;
-using System.Text;
-using StellarRoles.Utilities;
-using static StellarRoles.StellarRoles;
-using static StellarRoles.CustomOption;
 using Reactor.Utilities.Extensions;
-using AmongUs.GameOptions;
+using StellarRoles.Utilities;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using TMPro;
-using BepInEx.Unity.IL2CPP;
-using BepInEx;
+using UnityEngine;
+using static StellarRoles.CustomOption;
 
 namespace StellarRoles
 {
@@ -190,8 +190,8 @@ namespace StellarRoles
                 gameOptions = GameOptionsManager.Instance.gameOptionsFactory.FromBytes(Convert.FromBase64String(VanillaSettings.Value));
             }
             GameOptionsManager.Instance.GameHostOptions = gameOptions;
-            GameOptionsManager.Instance.CurrentGameOptions = GameOptionsManager.Instance.GameHostOptions;
-            GameManager.Instance.LogicOptions.SetGameOptions(GameOptionsManager.Instance.CurrentGameOptions);
+            GameManager.Instance.LogicOptions.SetGameOptions(gameOptions);
+            GameOptionsManager.Instance.CurrentGameOptions = gameOptions;
             GameManager.Instance.LogicOptions.SyncOptions();
 
             return Updated;
@@ -525,7 +525,8 @@ namespace StellarRoles
                 __instance.StartCoroutine(Effects.Lerp(2f, new Action<float>(p => { ModdedSettingsButton.transform.FindChild("FontPlacer").GetComponentInChildren<TextMeshPro>().text = buttonText; })));
                 var ModdedSettingsPassiveButton = ModdedSettingsButton.GetComponent<PassiveButton>();
                 ModdedSettingsPassiveButton.OnClick.RemoveAllListeners();
-                ModdedSettingsPassiveButton.OnClick.AddListener((System.Action)(() => {
+                ModdedSettingsPassiveButton.OnClick.AddListener((System.Action)(() =>
+                {
                     __instance.ChangeTab((StringNames)targetMenu);
                 }));
                 ModdedSettingsPassiveButton.OnMouseOut.RemoveAllListeners();
@@ -604,12 +605,12 @@ namespace StellarRoles
                     categoryHeaderMasked.SetHeader(StringNames.ImpostorsCategory, 61);
                     categoryHeaderMasked.Title.text = option.heading != "" ? option.heading : option.name;
                     if ((int)optionType == 99)
-                        categoryHeaderMasked.Title.text = new Dictionary<CustomOptionType, string>() 
-                        { 
-                            { CustomOptionType.Impostor, "Impostor Roles" }, 
+                        categoryHeaderMasked.Title.text = new Dictionary<CustomOptionType, string>()
+                        {
+                            { CustomOptionType.Impostor, "Impostor Roles" },
                             { CustomOptionType.Neutral, "Neutral Roles" },
                             { CustomOptionType.NeutralK, "NeutralK Roles" },
-                            { CustomOptionType.Crewmate, "Crewmate Roles" }, 
+                            { CustomOptionType.Crewmate, "Crewmate Roles" },
                             { CustomOptionType.Modifier, "Modifiers" } }[curType];
                     categoryHeaderMasked.Title.outlineColor = Color.white;
                     categoryHeaderMasked.Title.outlineWidth = 0.2f;
@@ -768,7 +769,7 @@ namespace StellarRoles
 
             var GOMGameObject = GameObject.Find("GameSettingsButton");
             GameSettingsText.transform.localPosition = new Vector3(-3.329f, 2.554f, -3f);
-            __instance.StartCoroutine(Effects.Lerp(2f, new Action<float>(p => 
+            __instance.StartCoroutine(Effects.Lerp(2f, new Action<float>(p =>
             {
                 GOMGameObject.transform.FindChild("FontPlacer").GetComponentInChildren<TextMeshPro>().text = "Vanilla Settings";
                 GameSettingsText.GetComponent<TextMeshPro>().text = "Vanilla Settings";
@@ -801,11 +802,13 @@ namespace StellarRoles
             copyButtonActiveRenderer.sprite = _CopyActiveSprite;
             copyButtonPassive.OnClick.RemoveAllListeners();
             copyButtonPassive.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-            copyButtonPassive.OnClick.AddListener((System.Action)(() => {
+            copyButtonPassive.OnClick.AddListener((System.Action)(() =>
+            {
                 copyToClipboard();
                 copyButtonRenderer.color = Color.green;
                 copyButtonActiveRenderer.color = Color.green;
-                __instance.StartCoroutine(Effects.Lerp(1f, new System.Action<float>((p) => {
+                __instance.StartCoroutine(Effects.Lerp(1f, new System.Action<float>((p) =>
+                {
                     if (p > 0.95)
                     {
                         copyButtonRenderer.color = Color.white;
@@ -825,12 +828,14 @@ namespace StellarRoles
             pasteButtonActiveRenderer.sprite = _PasteActiveSprite;
             pasteButtonPassive.OnClick.RemoveAllListeners();
             pasteButtonPassive.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-            pasteButtonPassive.OnClick.AddListener((System.Action)(() => {
+            pasteButtonPassive.OnClick.AddListener((System.Action)(() =>
+            {
                 pasteButtonRenderer.color = Color.yellow;
                 int success = pasteFromClipboard();
                 pasteButtonRenderer.color = success == 3 ? Color.green : success == 0 ? Color.red : Color.yellow;
                 pasteButtonActiveRenderer.color = success == 3 ? Color.green : success == 0 ? Color.red : Color.yellow;
-                __instance.StartCoroutine(Effects.Lerp(1f, new System.Action<float>((p) => {
+                __instance.StartCoroutine(Effects.Lerp(1f, new System.Action<float>((p) =>
+                {
                     if (p > 0.95)
                     {
                         pasteButtonRenderer.color = Color.white;
@@ -858,11 +863,13 @@ namespace StellarRoles
             ActiveSprite.sprite = _ResetActiveSprite;
             resetButtonPassive.OnClick.RemoveAllListeners();
             resetButtonPassive.OnClick = new UnityEngine.UI.Button.ButtonClickedEvent();
-            resetButtonPassive.OnClick.AddListener((System.Action)(() => {
+            resetButtonPassive.OnClick.AddListener((System.Action)(() =>
+            {
                 ResetPreset();
                 InactiveSprite.color = Color.green;
                 ActiveSprite.color = Color.green;
-                __instance.StartCoroutine(Effects.Lerp(1f, new System.Action<float>((p) => {
+                __instance.StartCoroutine(Effects.Lerp(1f, new System.Action<float>((p) =>
+                {
                     if (p > 0.95)
                     {
                         InactiveSprite.color = Color.white;
@@ -887,7 +894,7 @@ namespace StellarRoles
                     categoryHeaderMasked.Title.outlineColor = Color.white;
                     categoryHeaderMasked.Title.outlineWidth = 0.035f;
                     categoryHeaderMasked.Title.fontSizeMax = 4;
-                    categoryHeaderMasked.transform.localScale = new Vector3(0.63f ,0.63f);
+                    categoryHeaderMasked.transform.localScale = new Vector3(0.63f, 0.63f);
                     categoryHeaderMasked.transform.localPosition = new Vector3(-0.903f, num, -2f);
                     categoryHeaderMasked.Background.sprite = GetHeaderSprite();
                     categoryHeaderMasked.Divider.sprite = GetDividerSprite();
@@ -918,7 +925,7 @@ namespace StellarRoles
                 var stringOption = optionBehaviour as StringOption;
                 var TitleText = stringOption.TitleText;
                 TitleText.font = _fontAsset;
-                
+
                 // "SetUpFromData"
                 SpriteRenderer[] componentsInChildren = optionBehaviour.GetComponentsInChildren<SpriteRenderer>(true);
                 stringOption.OnValueChanged = new Action<OptionBehaviour>((o) => { });
@@ -996,7 +1003,8 @@ namespace StellarRoles
                 __instance.StartCoroutine(Effects.Lerp(2f, new Action<float>(p => { ModdedSettingsButton.transform.FindChild("FontPlacer").GetComponentInChildren<TextMeshPro>().text = buttonText; })));
                 var ModdedSettingsPassiveButton = ModdedSettingsButton.GetComponent<PassiveButton>();
                 ModdedSettingsPassiveButton.OnClick.RemoveAllListeners();
-                ModdedSettingsPassiveButton.OnClick.AddListener((System.Action)(() => {
+                ModdedSettingsPassiveButton.OnClick.AddListener((System.Action)(() =>
+                {
                     __instance.ChangeTab(targetMenu, false);
                     GameSettingsText.GetComponent<TextMeshPro>().text = buttonText;
                 }));
@@ -1127,21 +1135,30 @@ namespace StellarRoles
     {
         public static void Postfix()
         {
-            //ShareOptionSelections();
-            SaveVanillaOptions();
+            ShareOptionSelections();
+            //SaveVanillaOptions();
         }
     }
 
-    [HarmonyPatch(typeof(PlayerPhysics), nameof(PlayerPhysics.CoSpawnPlayer))]
+    [HarmonyPatch]
     public class AmongUsClientOnPlayerJoinedPatch
     {
-        public static void Postfix()
+        public static MethodBase TargetMethod()
         {
-            if (PlayerControl.LocalPlayer != null && AmongUsClient.Instance.AmHost)
+            return EnumerationHelpers.GetMoveNext<PlayerPhysics>(nameof(PlayerPhysics.CoSpawnPlayer))!;
+        }
+
+        public static void Postfix(Il2CppObjectBase __instance)
+        {
+            var wrapper = new StateMachineWrapper<IntroCutscene>(__instance);
+            // run last
+            if (wrapper.GetState() != -1)
             {
-                GameManager.Instance.LogicOptions.SyncOptions();
-                ShareOptionSelections();
+                return;
             }
+
+            GameStartManager.Instance.ResetStartState();
+
         }
     }
 
@@ -1317,7 +1334,7 @@ namespace StellarRoles
                     || __instance.KillDistance >= NormalGameOptionsV07.KillDistances.Count
                     || __instance.PlayerSpeedMod <= 0f || __instance.PlayerSpeedMod > 3f)
             {
-                __result=true;
+                __result = true;
                 return false;
             }
             return true;

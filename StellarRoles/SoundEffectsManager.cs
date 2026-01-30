@@ -80,15 +80,15 @@ namespace StellarRoles
             Helpers.Log("Try Play Sound " + path);
             AudioClip clip = Get(path);
             //Stop(clip);
-                try
-                {
-                    var source = SoundManager.Instance.PlaySound(clip, false, volume, audioMixer: musicChannel ? SoundManager.Instance.MusicChannel : null);
-                    source.loop = loop;
-                }
-                catch 
-                {
-                    Helpers.Log("Could Not Play Sound");
-                }
+            try
+            {
+                var source = SoundManager.Instance.PlaySound(clip, false, volume, audioMixer: musicChannel ? SoundManager.Instance.MusicChannel : null);
+                source.loop = loop;
+            }
+            catch
+            {
+                Helpers.Log("Could Not Play Sound");
+            }
         }
 
         public static void Stop(AudioClip clip)

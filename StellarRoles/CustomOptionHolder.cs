@@ -1,4 +1,3 @@
-using Epic.OnlineServices.RTCAudio;
 using System.Collections.Generic;
 using UnityEngine;
 using Types = StellarRoles.CustomOption.CustomOptionType;
@@ -16,7 +15,7 @@ namespace StellarRoles
         private static readonly object[] MinerVents = ["After Meeting", 0f, 2.5f, 5f, 7.5f, 10f, 12.5f, 15f, 17.5f, 20f, 22.5f, 25f, 27.5f, 30f];
         private static readonly object[] EngiVents = ["Unlimited", 5f, 7.5f, 10f, 12.5f, 15f, 17.5f, 20f, 22.5f, 25f];
         private static readonly object[] MayorVotes = ["Disabled", 0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f, 8f, 9f, 10f, 11f, 12f, 13f, 14f, 15f, 16f, 17f, 18f, 19f, 20f];
-        private static readonly object[] Timer = ["Disabled", 1f, 1.5f, 2f, 2.5f, 3f, 3.5f, 4f, 4.5f, 5f, 5.5f, 6f,6.5f, 7f, 7.5f, 8f, 8.5f, 9f, 9.5f, 10f, 10.5f, 11f, 11.5f, 12f, 12.5f, 13f, 13.5f, 14f, 14.5f, 15f, 15.5f, 16f, 16.5f, 17f, 17.5f, 18f, 18.5f, 19f, 19.5f, 20f];
+        private static readonly object[] Timer = ["Disabled", 1f, 1.5f, 2f, 2.5f, 3f, 3.5f, 4f, 4.5f, 5f, 5.5f, 6f, 6.5f, 7f, 7.5f, 8f, 8.5f, 9f, 9.5f, 10f, 10.5f, 11f, 11.5f, 12f, 12.5f, 13f, 13.5f, 14f, 14.5f, 15f, 15.5f, 16f, 16.5f, 17f, 17.5f, 18f, 18.5f, 19f, 19.5f, 20f];
         private static readonly object[] ParasiteControl = ["Unlimited", 5f, 7.5f, 10f, 12.5f, 15f, 17.5f, 20f, 22.5f, 25f, 27.5f, 30f, 32.5f, 35f, 37.5f, 40f, 42.5f, 45f];
 
 
@@ -766,7 +765,7 @@ namespace StellarRoles
             #endregion Neutrals
 
             #region Crewmates
-            CrewmateRolesCountMin = CustomOption.Create(3500, Types.Crewmate, "Minimum Crewmate Roles", 0f, 0f, 15f, 1f, null, true, heading:"Crewmate Min/Max Roles");
+            CrewmateRolesCountMin = CustomOption.Create(3500, Types.Crewmate, "Minimum Crewmate Roles", 0f, 0f, 15f, 1f, null, true, heading: "Crewmate Min/Max Roles");
             CrewmateRolesCountMax = CustomOption.Create(3501, Types.Crewmate, "Maximum Crewmate Roles", 0f, 0f, 15f, 1f);
 
             //Administrator
@@ -1040,7 +1039,7 @@ namespace StellarRoles
 
             isDraftMode = CustomOption.Create(6080, Types.General, cs(Color.red, "Enable Role Draft"), false, null, true, null, "Role Draft");
             draftModeAmountOfChoices = CustomOption.Create(6081, Types.General, "Max Amount Of Roles\nTo Choose From", 5f, 2f, 15f, 1f, isDraftMode, false);
-            draftModeTimeToChoose = CustomOption.Create(6082, Types.General,"Time For Selection", 5f, 5f, 25f, 1f, isDraftMode, false);
+            draftModeTimeToChoose = CustomOption.Create(6082, Types.General, "Time For Selection", 5f, 5f, 25f, 1f, isDraftMode, false);
             draftModeShowRoles = CustomOption.Create(6083, Types.General, "Show Picked Roles", false, isDraftMode, false);
             draftModeHideImpRoles = CustomOption.Create(6084, Types.General, "Hide Impostor Roles", false, draftModeShowRoles, false);
             draftModeHideNeutralRoles = CustomOption.Create(6085, Types.General, "Hide Neutral Roles", false, draftModeShowRoles, false);
@@ -1071,7 +1070,7 @@ namespace StellarRoles
             CustomOption.CreateHeader(7001, Types.General, "Impostor Role Block Comms");
             ImposterKillAbilitiesRoleBlock = CustomOption.Create(7002, Types.General, "Kill Abilties Role Block", false);
             ImposterAbiltiesRoleBlock = CustomOption.Create(7003, Types.General, "Abilities Role Block", false);
-            NeutralKillerRoleBlock = CustomOption.Create(7004, Types.General, "Enabled", false, null, true, heading:"Neutral Killing Role Block Comms");
+            NeutralKillerRoleBlock = CustomOption.Create(7004, Types.General, "Enabled", false, null, true, heading: "Neutral Killing Role Block Comms");
             NeutralRoleBlock = CustomOption.Create(7005, Types.General, "Enabled", false, null, true, heading: "Neutral Role Block Comms");
 
             CustomOption.CreateHeader(7100, Types.General, "Crewmate Role Block Comms");

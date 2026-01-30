@@ -56,7 +56,7 @@ namespace StellarRoles.Patches
         {
             public static Dictionary<byte, NetworkedPlayerInfo.PlayerOutfit> outfits = new();
 
-            static void Prefix(PlayerControl __instance) 
+            static void Prefix(PlayerControl __instance)
             {
                 if (Camouflager.CamouflageTimer > 0) Camouflager.CamouflageTimer = 0f;
                 if (PlayerControl.LocalPlayer == Camouflager.Player && __instance == PlayerControl.LocalPlayer)

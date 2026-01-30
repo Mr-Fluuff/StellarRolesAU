@@ -1,9 +1,8 @@
 using HarmonyLib;
-using StellarRoles.Modules;
+using StellarRoles.Modules.Cosmetics;
 using StellarRoles.Objects;
 using StellarRoles.Patches;
 using UnityEngine;
-using static StellarRoles.Objects.CustomButton;
 
 namespace StellarRoles
 {
@@ -145,7 +144,7 @@ namespace StellarRoles
             RefreshCosmeticsButton = new CustomButton(
                 () =>
                 {
-                    if (CosmeticsDownloader.IsRunning) return;
+                    if (CosmeticsFetcher.IsRunning) return;
 
                     RefreshCosmeticsButton.IsEffectActive = true;
                     RefreshCosmeticsButton.Timer = 5;
@@ -155,17 +154,7 @@ namespace StellarRoles
                 () => { return PlayerControl.LocalPlayer && LobbyBehaviour.Instance; },
                 () =>
                 {
-                    var CosmeticsTotal = CosmeticsDownloader.TotalHatsToDownload + CosmeticsDownloader.TotalVisorsToDownload;
-                    var CosmeticsDownloaded = CosmeticsDownloader.TotalHatsDownloaded + CosmeticsDownloader.TotalVisorsDownloaded;
-                    double CosmeticsLeft = ((double)CosmeticsDownloaded / CosmeticsTotal);
-                    string Percent = CosmeticsLeft.ToString("p1");
-
                     string text = "Cosmetics\nRefresh";
-                    if (CosmeticsDownloader.IsRunning)
-                    {
-                        text = "Cosmetics\nDownloading\n" + Percent;
-                    }
-
                     RefreshCosmeticsButton.ActionButton.buttonLabelText.text = text;
                     RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localPosition = new Vector3(0, -0.65f, -0.02f);
                     RefreshCosmeticsButton.ActionButton.buttonLabelText.transform.localScale = Vector3.one * 1.2f;

@@ -453,7 +453,7 @@ namespace StellarRoles.Patches
         static void SetParasiteTags()
         {
             PlayerControl localplayer = PlayerControl.LocalPlayer;
-            
+
             string suffix = Helpers.ColorString(Parasite.Color, " <size=100%>■</size>");
 
             if (Parasite.Controlled == null) return;
@@ -744,22 +744,22 @@ namespace StellarRoles.Patches
                         }
                     }
 
-/*                    if (component?.Reported == false)
-                    {
-                        *//*                    if (Reportable)
-                                            {
-                                                __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.EnabledColor;
-                                                __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 0f);
+                    /*                    if (component?.Reported == false)
+                                        {
+                                            *//*                    if (Reportable)
+                                                                {
+                                                                    __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.EnabledColor;
+                                                                    __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 0f);
 
-                                                __instance.ReportButton.SetActive(true);
-                                            }
-                                            else
-                                            {
-                                                __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.DisabledClear;
-                                                __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 1f);
-                                            }*//*
-                        if (component.Reported) break;
-                    }*/
+                                                                    __instance.ReportButton.SetActive(true);
+                                                                }
+                                                                else
+                                                                {
+                                                                    __instance.ReportButton.graphic.color = __instance.ReportButton.buttonLabelText.color = Palette.DisabledClear;
+                                                                    __instance.ReportButton.graphic.material.SetFloat(Shader.PropertyToID("_Desat"), 1f);
+                                                                }*//*
+                                            if (component.Reported) break;
+                                        }*/
                 }
             }
 

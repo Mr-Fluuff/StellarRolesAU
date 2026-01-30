@@ -1,9 +1,11 @@
-﻿using HarmonyLib;
-using StellarRoles.Utilities;
+﻿using AmongUs.Data;
+using AmongUs.GameOptions;
+using Assets.CoreScripts;
+using HarmonyLib;
+using Reactor.Utilities.Extensions;
 using System;
 using System.Linq;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 namespace StellarRoles.Patches
 {
@@ -12,8 +14,10 @@ namespace StellarRoles.Patches
     {
         private static bool ResetToCrewmate = false;
         private static bool ResetToDead = false;
+        public static bool HideNextAnimation = false;
+        public static PlayerControl OverlayPlayer = null;
 
-        public static bool Prefix(PlayerControl __instance, [HarmonyArgument(0)] PlayerControl target)
+        public static bool Prefix(PlayerControl __instance, [HarmonyArgument(0)] PlayerControl target, [HarmonyArgument(1)] MurderResultFlags resultFlags)
         {
             if (GameHistory.DeadPlayers.Any(x => x.Player.PlayerId == target.PlayerId))
             {
@@ -21,7 +25,7 @@ namespace StellarRoles.Patches
                 {
                     __instance.ResetKillButton();
                 }
-                KillAnimationCoPerformKillPatch.HideNextAnimation = false;
+                HideNextAnimation = false;
                 return false;
             }
 
@@ -32,7 +36,8 @@ namespace StellarRoles.Patches
             ResetToDead = __instance.Data.IsDead;
             __instance.Data.Role.TeamType = RoleTeamTypes.Impostor;
             __instance.Data.IsDead = false;
-            return true;
+            MurderPlayer(__instance, target, resultFlags);
+            return false;
         }
 
         public static void Postfix(PlayerControl __instance, [HarmonyArgument(0)] PlayerControl target)
@@ -125,21 +130,99 @@ namespace StellarRoles.Patches
             RomanticAbilites.VengefulRoleUpdate(false);
             //ExtraStats.UpdateSurvivability();
         }
-    }
-
-    [HarmonyPatch(typeof(KillAnimation), nameof(KillAnimation.CoPerformKill))]
-    class KillAnimationCoPerformKillPatch
-    {
-        public static bool HideNextAnimation = false;
-        public static void Prefix([HarmonyArgument(0)] ref PlayerControl source, [HarmonyArgument(1)] ref PlayerControl target)
+        public static void MurderPlayer(PlayerControl __instance, PlayerControl target, MurderResultFlags resultFlags)
         {
-            if (HideNextAnimation)
-                source = target;
-            HideNextAnimation = false;
-        }
-        public static void Postfix([HarmonyArgument(1)] PlayerControl target)
-        {
-                Helpers.SetBodySize();
+            __instance.isKilling = false;
+            __instance.logger.Debug(string.Format("{0} trying to murder {1}", __instance.PlayerId, target.PlayerId), null);
+            NetworkedPlayerInfo data = target.Data;
+            if (resultFlags.HasFlag(MurderResultFlags.FailedError))
+            {
+                return;
+            }
+            if (resultFlags.HasFlag(MurderResultFlags.FailedProtected) || (resultFlags.HasFlag(MurderResultFlags.DecisionByHost) && target.protectedByGuardianId > -1))
+            {
+                target.protectedByGuardianThisRound = true;
+                bool flag = PlayerControl.LocalPlayer.Data.Role.Role == RoleTypes.GuardianAngel;
+                if (flag && (int)PlayerControl.LocalPlayer.Data.PlayerId == target.protectedByGuardianId)
+                {
+                    DataManager.Player.Stats.IncrementStat(StatID.Role_GuardianAngel_CrewmatesProtected);
+                    DestroyableSingleton<AchievementManager>.Instance.OnProtectACrewmate();
+                }
+                if (__instance.AmOwner || flag)
+                {
+                    target.ShowFailedMurder();
+                    __instance.SetKillTimer(GameOptionsManager.Instance.CurrentGameOptions.GetFloat(FloatOptionNames.KillCooldown) / 2f);
+                }
+                else
+                {
+                    target.RemoveProtection();
+                }
+                __instance.logger.Debug(string.Format("{0} failed to murder {1} due to guardian angel protection", __instance.PlayerId, target.PlayerId), null);
+                return;
+            }
+            if (resultFlags.HasFlag(MurderResultFlags.Succeeded) || resultFlags.HasFlag(MurderResultFlags.DecisionByHost))
+            {
+                DestroyableSingleton<DebugAnalytics>.Instance.Analytics.Kill(target.Data, __instance.Data);
+                if (__instance.AmOwner)
+                {
+                    if (GameManager.Instance.IsHideAndSeek())
+                    {
+                        DataManager.Player.Stats.IncrementStat(StatID.HideAndSeek_ImpostorKills);
+                    }
+                    else
+                    {
+                        DataManager.Player.Stats.IncrementStat(StatID.ImpostorKills);
+                    }
+                    if (__instance.CurrentOutfitType == PlayerOutfitType.Shapeshifted)
+                    {
+                        DataManager.Player.Stats.IncrementStat(StatID.Role_Shapeshifter_ShiftedKills);
+                    }
+                    if (Constants.ShouldPlaySfx())
+                    {
+                        SoundManager.Instance.PlaySound(__instance.KillSfx, false, 0.8f, null);
+                    }
+                    __instance.SetKillTimer(GameOptionsManager.Instance.CurrentGameOptions.GetFloat(FloatOptionNames.KillCooldown));
+                }
+                DestroyableSingleton<UnityTelemetry>.Instance.WriteMurder();
+                target.gameObject.layer = LayerMask.NameToLayer("Ghost");
+                PlayerControl source = HideNextAnimation ? target : __instance;
+                NetworkedPlayerInfo sourceData = __instance.Data;
+                if (OverlayPlayer != null)
+                {
+                    if (OverlayPlayer.IsMorphed())
+                    {
+                        sourceData = Morphling.MorphTarget.Data;
+                    }
+                    else sourceData = OverlayPlayer.Data;
+                }
+                else if (__instance.IsMorphed())
+                {
+                    sourceData = Morphling.MorphTarget.Data;
+                }
+                if (target.AmOwner)
+                {
+                    DataManager.Player.Stats.IncrementStat(StatID.TimesMurdered);
+                    if (Minigame.Instance)
+                    {
+                        try
+                        {
+                            Minigame.Instance.Close();
+                            Minigame.Instance.Close();
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    DestroyableSingleton<HudManager>.Instance.KillOverlay.ShowKillAnimation(sourceData, data);
+                    target.cosmetics.SetNameMask(false);
+                    target.RpcSetScanner(false);
+                }
+                DestroyableSingleton<AchievementManager>.Instance.OnMurder(__instance.AmOwner, target.AmOwner, __instance.CurrentOutfitType == PlayerOutfitType.Shapeshifted, __instance.shapeshiftTargetPlayerId, (int)target.PlayerId);
+                __instance.MyPhysics.StartCoroutine(__instance.KillAnimations.Random<KillAnimation>().CoPerformKill(source, target));
+                __instance.logger.Debug(string.Format("{0} succeeded in murdering {1}", __instance.PlayerId, target.PlayerId), null);
+                HideNextAnimation = false;
+                OverlayPlayer = null;
+            }
         }
     }
 

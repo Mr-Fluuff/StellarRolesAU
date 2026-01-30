@@ -1,6 +1,5 @@
 using HarmonyLib;
 using StellarRoles.Modules;
-using StellarRoles.Objects;
 using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
@@ -53,10 +52,6 @@ namespace StellarRoles.Patches
             }
 
             HeadHunter.HeadHunterUpdate();
-
-            //Goopy Spawn
-            if (Helpers.IsMap(Map.Polus))
-                Goopy.CreateGoopy();
 
             // Force Reload of SoundEffectHolder
             //SoundEffectsManager.Load();
@@ -225,7 +220,7 @@ namespace StellarRoles.Patches
         {
             public static void Postfix(bool impostorPositioning, ref PoolablePlayer __result)
             {
-                if (RoleDraft.isEnabled) 
+                if (RoleDraft.isEnabled)
                 {
                     __result.ToggleName(false);
                 }

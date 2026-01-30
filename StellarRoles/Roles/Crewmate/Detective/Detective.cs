@@ -197,10 +197,10 @@ namespace StellarRoles
         public static List<int> QuestionOrderCalculation()
         {
             List<int> questionOrder = new();
-            List<int> groupA = new() { 0, 1, 2, 3};
+            List<int> groupA = new() { 0, 1, 2, 3 };
             int a = 0;
             int b = 0;
-            if (GameHistory.DeadPlayers.Any(p => p.Data.PlayerId == Target.Data.PlayerId && p.Tampered)) 
+            if (GameHistory.DeadPlayers.Any(p => p.Data.PlayerId == Target.Data.PlayerId && p.Tampered))
             {
                 groupA.Add(4);
             }
@@ -336,10 +336,10 @@ namespace StellarRoles
                     count += list.Count;
             }
 
-/*            if (PlayerIdToKillerCountQuestion.TryGetValue(playerId, out int killCount))
-            {
-                count += killCount;
-            }*/
+            /*            if (PlayerIdToKillerCountQuestion.TryGetValue(playerId, out int killCount))
+                        {
+                            count += killCount;
+                        }*/
 
             return count;
         }

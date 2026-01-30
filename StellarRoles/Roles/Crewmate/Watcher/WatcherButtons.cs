@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using StellarRoles.Objects;
-using System;
 using System.Linq;
 using UnityEngine;
 
@@ -99,11 +98,9 @@ namespace StellarRoles
             WatcherSensorButton = new CustomButton(
                () =>
                {
-                   Vector3 pos = PlayerControl.LocalPlayer.transform.position;
-                   byte[] buff = new byte[sizeof(float) * 2];
-                   Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
-                   Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
-                   RPCProcedure.PlaceSensor(buff);
+                   Vector2 pos = PlayerControl.LocalPlayer.transform.position;
+
+                   RPCProcedure.PlaceSensor(pos);
                    SoundEffectsManager.Play(Sounds.Hammer);
                    WatcherSensorButton.Timer = 0.5f;
                    Watcher.SensorCount--;

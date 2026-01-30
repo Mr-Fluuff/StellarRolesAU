@@ -1,12 +1,8 @@
-﻿using System;
+﻿using HarmonyLib;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
-using BepInEx.Core.Logging.Interpolation;
-using BepInEx.Logging;
-using HarmonyLib;
-using InnerNet;
 using UnityEngine.ProBuilder;
 
 
@@ -22,7 +18,7 @@ namespace StellarRoles
         public static void UpdateRegions()
         {
             ServerManager serverManager = ServerManager.Instance;
-            IRegionInfo[] regions = 
+            IRegionInfo[] regions =
             [
                 new StaticHttpRegionInfo("Modded NA (MNA)", StringNames.NoTranslation,"www.aumods.org", new Il2CppReferenceArray<ServerInfo>([new ServerInfo("Http-1", "https://www.aumods.org",  443, false)])).CastFast<IRegionInfo>(),
                 new StaticHttpRegionInfo("Modded EU (MEU)", StringNames.NoTranslation,"au-eu.duikbo.at", new Il2CppReferenceArray<ServerInfo>([new ServerInfo("Http-1", "https://au-eu.duikbo.at",  443, false)])).CastFast<IRegionInfo>(),
@@ -41,7 +37,7 @@ namespace StellarRoles
                 IRegionInfo region = serverManager.AvailableRegions[i];
                 if (region.Name.Contains("Custom") || region.Name.Contains("Om3ga"))
                 {
-                    Helpers.Log("Removed " +  region.Name + " Region");
+                    Helpers.Log("Removed " + region.Name + " Region");
                     serverManager.AvailableRegions.RemoveAt(i);
                 }
             }

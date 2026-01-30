@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
-using Hazel;
 using StellarRoles.Objects;
-using System;
+using UnityEngine;
 
 namespace StellarRoles
 {
@@ -87,16 +86,9 @@ namespace StellarRoles
 
                         if (Shade.EvidenceDuration > 0f)
                         {
-                            UnityEngine.Vector3 pos = PlayerControl.LocalPlayer.transform.position;
-                            byte[] buff = new byte[sizeof(float) * 2];
-                            Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
-                            Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
-
-                            MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable);
-                            writer.Write((byte)CustomRPC.PlaceShadeTrace);
-                            writer.WriteBytesAndSize(buff);
-                            writer.EndMessage();
-                            RPCProcedure.PlaceShadeTrace(buff);
+                            Vector2 pos = PlayerControl.LocalPlayer.transform.position;
+                            RPCProcedure.Send(CustomRPC.PlaceShadeTrace, pos);
+                            RPCProcedure.PlaceShadeTrace(pos);
                         }
 
                         EmergeButton.Timer = 0.5f;

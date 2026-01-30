@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Rewired.Utils.Platforms.Windows;
 using System;
 using TMPro;
 using UnityEngine;
@@ -30,7 +29,7 @@ namespace StellarRoles.Patches
         }
 
         [HarmonyPatch(typeof(MainMenuManager), nameof(MainMenuManager.LateUpdate))]
-        [HarmonyPriority (Priority.Last)]
+        [HarmonyPriority(Priority.Last)]
         private static class VersionCheckerMainMenuUpdate
         {
             private static void Postfix()
@@ -92,7 +91,7 @@ namespace StellarRoles.Patches
 
         public static void CreateText(TextMeshPro baseText, bool hud)
         {
-            
+
             Text = Instantiate(baseText);
             Text.enabled = true;
             Text.text = $"StellarRoles v{StellarRolesPlugin.UpdateString} is not compatible with this Among Us Version.\nPlease use Among Us v{StellarRolesPlugin.SupportedAUVersionNumber}";

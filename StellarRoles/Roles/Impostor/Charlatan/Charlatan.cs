@@ -1,5 +1,4 @@
-﻿using StellarRoles.Utilities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace StellarRoles
@@ -16,7 +15,7 @@ namespace StellarRoles
 
         //Conceal
         public static int ConcealChargesPerKill => CustomOptionHolder.CharlatanConcealChargesPerKill.GetInt();
-        public static float ConcealChannelDuration=> CustomOptionHolder.CharlatanConcealChannelDuration.GetFloat();
+        public static float ConcealChannelDuration => CustomOptionHolder.CharlatanConcealChannelDuration.GetFloat();
         public static float ConcealReportRange => CustomOptionHolder.CharlatanConcealReportRange.GetSelection() == 0 ? 0.30f : 0.5f;
 
 

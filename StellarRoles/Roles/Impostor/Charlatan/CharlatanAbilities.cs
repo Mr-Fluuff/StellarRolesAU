@@ -1,10 +1,6 @@
 ﻿using HarmonyLib;
-using StellarRoles.Objects;
-using StellarRoles.Utilities;
-using UnityEngine;
-using System.Collections.Generic;
 using System.Linq;
-using static UnityEngine.GraphicsBuffer;
+using UnityEngine;
 
 namespace StellarRoles
 {
@@ -23,7 +19,7 @@ namespace StellarRoles
             Charlatan.DeadBodies = Helpers.DeadBodies(Charlatan.ConcealRange, Charlatan.ConcealedBodies);
         }
 
-        public static void CharlatanUpdate() 
+        public static void CharlatanUpdate()
         {
             Charlatan.DeceiveTimer -= Time.deltaTime;
 
@@ -36,12 +32,12 @@ namespace StellarRoles
         public static void CharlatanSetDeceiveTarget(this PlayerControl target)
         {
             Charlatan.ReportTarget = target.PlayerId;
-            Helpers.Log("SetDeceiveTarget");
+            //Helpers.Log("SetDeceiveTarget");
         }
 
         public static void ConcealBodiesInRange()
         {
-            foreach(var body in Charlatan.DeadBodies)
+            foreach (var body in Charlatan.DeadBodies)
             {
                 RPCConcealBody(body);
             }
@@ -53,7 +49,7 @@ namespace StellarRoles
             RPCProcedure.Send(CustomRPC.ConcealBody, body);
         }
 
-        public static void CheckKill(PlayerControl target) 
+        public static void CheckKill(PlayerControl target)
         {
             if (PlayerControl.LocalPlayer != Charlatan.Player) return;
 
@@ -65,7 +61,7 @@ namespace StellarRoles
             CharlatanButtons.ConcealButton.Timer = 5f;
         }
 
-        public static void DeceiveAbility() 
+        public static void DeceiveAbility()
         {
             if (Charlatan.ReportTarget == byte.MaxValue) return;
 

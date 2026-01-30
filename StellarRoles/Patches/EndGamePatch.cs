@@ -136,7 +136,7 @@ namespace StellarRoles.Patches
                 if (data == null) continue;
                 var player = data.Object ?? null;
                 List<RoleInfo> roles = PlayerGameInfo.GetRoles(data);
-                
+
                 (int tasksCompleted, int tasksTotal) = TasksHandler.TaskInfo(data, true);
 
                 var playerRoles = new AdditionalTempData.PlayerRoleInfo()
@@ -370,7 +370,7 @@ namespace StellarRoles.Patches
                     //There should only ever be one winning Neutral Killer;
                     if (player.IsCrew() && !player.IsRefugee(out _))
                         EndGameResult.CachedWinners.Add(new CachedPlayerData(player.Data));
-                if (_GameOverReason == CustomGameOverReason.TaskWin) 
+                if (_GameOverReason == CustomGameOverReason.TaskWin)
                 {
                     AdditionalTempData.WinCondition = WinCondition.TaskWin;
                 }

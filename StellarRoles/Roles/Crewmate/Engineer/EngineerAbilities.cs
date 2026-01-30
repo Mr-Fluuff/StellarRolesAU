@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using Hazel;
-using StellarRoles.Utilities;
 using UnityEngine;
 
 namespace StellarRoles

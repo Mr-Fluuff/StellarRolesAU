@@ -72,7 +72,7 @@ namespace StellarRoles.Patches
                 }
                 catch { }
             }
-            public static void Postfix((bool Destroyed, bool Spawn)__state)
+            public static void Postfix((bool Destroyed, bool Spawn) __state)
             {
                 if (__state.Destroyed)
                 {
@@ -90,20 +90,20 @@ namespace StellarRoles.Patches
             }
         }
 
-/*        static void WrapUpPrefix(ExileController.InitProperties init)
-        {
-            PlayerControl exiledPlayer = null;
-            if (init.networkedPlayer != null)
-            {
-                exiledPlayer = init.networkedPlayer.Object;
-            }
-            try
-            {
-                ExtraStats.ExileStats(exiledPlayer);
-            }
-            catch { }
-        }
-*/
+        /*        static void WrapUpPrefix(ExileController.InitProperties init)
+                {
+                    PlayerControl exiledPlayer = null;
+                    if (init.networkedPlayer != null)
+                    {
+                        exiledPlayer = init.networkedPlayer.Object;
+                    }
+                    try
+                    {
+                        ExtraStats.ExileStats(exiledPlayer);
+                    }
+                    catch { }
+                }
+        */
         static void WrapUpPostfix(ExileController.InitProperties init)
         {
             PlayerControl exiledPlayer = null;
@@ -170,7 +170,8 @@ namespace StellarRoles.Patches
                 camera.gameObject.SetActive(true);
                 camera.gameObject.GetComponent<SpriteRenderer>().color = Color.white;
                 allCameras.Add(camera);
-            };
+            }
+            ;
             ShipStatus.Instance.AllCameras = allCameras.ToArray();
             MapOptions.CamerasToAdd.Clear();
 
@@ -212,8 +213,6 @@ namespace StellarRoles.Patches
 
             //Reset Tracked Players
             Tracker.ResetTracked();
-
-            Goopy.StartAnimation();
 
             RomanticAbilites.RomanticRoleUpdate(true);
             RomanticAbilites.VengefulRoleUpdate(true);

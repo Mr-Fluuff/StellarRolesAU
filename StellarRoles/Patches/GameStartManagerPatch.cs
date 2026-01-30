@@ -1,16 +1,11 @@
 using HarmonyLib;
-using Hazel;
 using Reactor.Utilities.Extensions;
 using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
-using static StellarRoles.Patches.GameStartManagerPatch;
-using static UnityEngine.UI.Button;
 
 namespace StellarRoles.Patches
 {
@@ -19,20 +14,10 @@ namespace StellarRoles.Patches
     {
         public static readonly Dictionary<int, PlayerVersion> PlayerVersions = new();
         public static float Timer = 600f;
-        // private static float KickingTimer = 0f;
-        // private static bool VersionSent = false;
+        private static float KickingTimer = 0f;
+        public static bool VersionSent = false;
 
-        /*[HarmonyPatch(typeof(AmongUsClient), nameof(AmongUsClient.OnPlayerJoined))]
-        [HarmonyPostfix]
-        public static void AmongUsClientOnPlayerJoinPostfix()
-        {
-            if (PlayerControl.LocalPlayer != null)
-            {
-                Helpers.ShareGameVersion();
-            }
-        }*/
-
-        /*[HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
+        [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Start))]
         [HarmonyPostfix]
         public static void GameStartManagerStartPostfix()
         {
@@ -42,7 +27,8 @@ namespace StellarRoles.Patches
             Timer = 600f;
             // Reset kicking timer
             KickingTimer = 0f;
-        }*/
+
+        }
 
         [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.ResetStartState))]
         [HarmonyPrefix]
@@ -51,40 +37,45 @@ namespace StellarRoles.Patches
             if (__instance.startState is GameStartManager.StartingStates.Countdown)
             {
                 SoundManager.Instance.StopSound(__instance.gameStartSound);
-                if (AmongUsClient.Instance.AmHost)
-                {
-                    GameManager.Instance.LogicOptions.SyncOptions();
-                }
             }
+
+            if (AmongUsClient.Instance.AmHost)
+            {
+                CustomOption.ShareOptionSelections();
+                GameManager.Instance.LogicOptions.SyncOptions();
+            }
+            Timer = 600f;
+            VersionSent = false;
         }
 
         [HarmonyPatch(typeof(GameStartManager), nameof(GameStartManager.Update))]
         public class GameStartManagerUpdatePatch
         {
             public static float StartingTimer = 0;
-            private static bool update = false;
             public static bool sendGamemode = true;
-            private static GameObject StopCountdownButton;
+            private static GameObject StopCountdownButton = null;
 
             public static void Prefix(GameStartManager __instance)
             {
-                if (!GameData.Instance) return; // No instance
-                __instance.MinPlayers = 1;
-                update = GameData.Instance.PlayerCount != __instance.LastPlayerCount;
+                if (GameData.Instance)
+                {
+                    __instance.MinPlayers = 1;
+                }
             }
 
             public static void Postfix(GameStartManager __instance)
             {
-                
-                /*
-                // Send version as soon as CachedPlayer.LocalPlayer.PlayerControl exists
+                if (CustomOptionHolder.DynamicMap.GetBool())
+                {
+                    __instance.MapImage.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.RandomMapIcon.png", 400f);
+                    __instance.MapImage.flipX = false;
+                }
+
                 if (PlayerControl.LocalPlayer != null && !VersionSent)
                 {
                     VersionSent = true;
                     Helpers.ShareGameVersion();
                 }
-
-
                 // Check version handshake infos
                 bool versionMismatch = false;
                 string message = "";
@@ -116,11 +107,11 @@ namespace StellarRoles.Patches
                             versionMismatch = true;
                         }
                     }
-                }*/
+                }
                 // Display message to the host
                 if (AmongUsClient.Instance.AmHost)
                 {
-                    /*if (versionMismatch)
+                    if (versionMismatch)
                     {
                         __instance.GameStartText.text = message;
                         __instance.GameStartText.transform.localPosition = __instance.StartButton.transform.localPosition + Vector3.up * 5;
@@ -128,7 +119,7 @@ namespace StellarRoles.Patches
                         __instance.GameStartTextParent.SetActive(true);
                     }
                     else
-                    {*/
+                    {
                         __instance.GameStartText.transform.localPosition = Vector3.zero;
                         __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
                         if (!__instance.GameStartText.text.StartsWith("Starting"))
@@ -136,54 +127,56 @@ namespace StellarRoles.Patches
                             __instance.GameStartText.text = String.Empty;
                             __instance.GameStartTextParent.SetActive(false);
                         }
-                    // }
 
-                    if (__instance.startState != GameStartManager.StartingStates.Countdown)
-                        StopCountdownButton?.Destroy();
-                    // Make starting info available to clients:
-                    if (StartingTimer <= 0 && __instance.startState == GameStartManager.StartingStates.Countdown)
-                    {
-                        RPCProcedure.Send(CustomRPC.SetGameStarting);
-                        RPCProcedure.SetGameStarting();
+                        if (__instance.startState != GameStartManager.StartingStates.Countdown)
+                            StopCountdownButton?.Destroy();
+                        // Make starting info available to clients:
+                        if (StartingTimer <= 0 && __instance.startState == GameStartManager.StartingStates.Countdown)
+                        {
+                            RPCProcedure.Send(CustomRPC.SetGameStarting);
+                            RPCProcedure.SetGameStarting();
 
-                        // Activate Stop-Button
-                        StopCountdownButton = GameObject.Instantiate(__instance.StartButton.gameObject, __instance.StartButton.gameObject.transform.parent);
-                        StopCountdownButton.transform.localPosition = __instance.StartButton.transform.localPosition;
-                        StopCountdownButton.SetActive(true);
-                        var startButtonText = StopCountdownButton.GetComponentInChildren<TMPro.TextMeshPro>();
-                        startButtonText.text = "Click Again to Cancel";
-                        startButtonText.fontSize *= 0.8f;
-                        startButtonText.fontSizeMax = startButtonText.fontSize;
-                        startButtonText.fontStyle = FontStyles.UpperCase;
-                        startButtonText.gameObject.transform.localPosition = new Vector3(0, -0.5f, 0);
-                        PassiveButton startButtonPassiveButton = StopCountdownButton.GetComponent<PassiveButton>();
-                        void StopStartFunc()
-                        {
-                            __instance.ResetStartState();
-                            StopCountdownButton.Destroy();
-                            StartingTimer = 0;
-                        }
-                        void Red()
-                        {
-                            __instance.StartCoroutine(Effects.Lerp(.05f, new System.Action<float>((p) => {
-                                startButtonText.color = Color.red;
+                            // Activate Stop-Button
+                            StopCountdownButton = GameObject.Instantiate(__instance.StartButton.gameObject, __instance.StartButton.gameObject.transform.parent);
+                            StopCountdownButton.transform.localPosition = __instance.StartButton.transform.localPosition;
+                            StopCountdownButton.SetActive(true);
+                            var startButtonText = StopCountdownButton.GetComponentInChildren<TMPro.TextMeshPro>();
+                            startButtonText.text = "Click Again to Cancel";
+                            startButtonText.fontSize *= 0.8f;
+                            startButtonText.fontSizeMax = startButtonText.fontSize;
+                            startButtonText.fontStyle = FontStyles.UpperCase;
+                            startButtonText.gameObject.transform.localPosition = new Vector3(0, -0.5f, 0);
+                            PassiveButton startButtonPassiveButton = StopCountdownButton.GetComponent<PassiveButton>();
+                            void StopStartFunc()
+                            {
+                                __instance.ResetStartState();
+                                StopCountdownButton.Destroy();
+                                StartingTimer = 0;
+                            }
+                            void Red()
+                            {
+                                __instance.StartCoroutine(Effects.Lerp(.05f, new System.Action<float>((p) =>
+                                {
+                                    startButtonText.color = Color.red;
+                                })));
+                            }
+                            startButtonPassiveButton.OnClick.AddListener((Action)(() => StopStartFunc()));
+                            startButtonPassiveButton.OnMouseOver.AddListener((Action)(() => Red()));
+                            startButtonPassiveButton.OnMouseOut.AddListener((Action)(() => Red()));
+                            __instance.StartCoroutine(Effects.Lerp(.1f, new System.Action<float>((p) =>
+                            {
+                                startButtonText.text = "^Click Again to Cancel^";
+                                startButtonText.fontStyle = FontStyles.UpperCase;
+                                Red();
                             })));
                         }
-                        startButtonPassiveButton.OnClick.AddListener((Action)(() => StopStartFunc()));
-                        startButtonPassiveButton.OnMouseOver.AddListener((Action)(() => Red()));
-                        startButtonPassiveButton.OnMouseOut.AddListener((Action)(() => Red()));
-                        __instance.StartCoroutine(Effects.Lerp(.1f, new System.Action<float>((p) => {
-                            startButtonText.text = "^Click Again to Cancel^";
-                            startButtonText.fontStyle = FontStyles.UpperCase;
-                            Red();
-                        })));
                     }
                 }
 
                 // Client update with handshake infos
                 else
                 {
-                    /*if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.VersionDeclared.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
+                    if (!PlayerVersions.ContainsKey(AmongUsClient.Instance.HostId) || StellarRolesPlugin.VersionDeclared.CompareTo(PlayerVersions[AmongUsClient.Instance.HostId].version) != 0)
                     {
                         KickingTimer += Time.deltaTime;
                         if (KickingTimer > 10)
@@ -206,7 +199,7 @@ namespace StellarRoles.Patches
                         __instance.GameStartTextParent.SetActive(true);
                     }
                     else
-                    {*/
+                    {
                         __instance.GameStartText.transform.localPosition = Vector3.zero;
                         __instance.GameStartText.transform.localScale = new Vector3(1.2f, 1.2f, 1f);
                         if (!__instance.GameStartText.text.StartsWith("Starting"))
@@ -214,7 +207,7 @@ namespace StellarRoles.Patches
                             __instance.GameStartText.text = String.Empty;
                             __instance.GameStartTextParent.SetActive(false);
                         }
-                    //}
+                    }
                 }
                 // Start Timer
                 if (StartingTimer > 0)
@@ -223,7 +216,7 @@ namespace StellarRoles.Patches
                 }
 
                 // Lobby timer
-                if (!GameData.Instance || !__instance.PlayerCounter) return; // No instance
+                if (GameData.Instance == null || __instance.PlayerCounter == null) return; // No instance
                 var player = GameData.Instance.PlayerCount;
 
                 string currentText = Helpers.ColorString(player >= 4 ? Palette.AcceptedGreen : Palette.ImpostorRed, $"{player}/{GameOptionsManager.Instance.currentNormalGameOptions.MaxPlayers}");
@@ -236,8 +229,6 @@ namespace StellarRoles.Patches
                 string spectatorCount = spectators > 0 ? $"\nSpectators: {spectators}" : "";
 
                 __instance.PlayerCounter.text = currentText + suffix + spectatorCount;
-                //__instance.PlayerCounter.alignment = TMPro.TextAlignmentOptions.Center;
-                //__instance.PlayerCounter.autoSizeTextContainer = true;
             }
         }
 
@@ -265,45 +256,9 @@ namespace StellarRoles.Patches
                             return false;
                     }
 
-
-
                     if (CustomOptionHolder.DynamicMap.GetBool())
                     {
-                        byte chosenMapId = 0;
-                        List<Map> maps = new()
-                        {
-                            Map.Skeld,
-                            Map.Mira,
-                            Map.Polus,
-                            Map.Airship,
-                            Map.Fungal
-                        };
-
-                        if (SubmergedCompatibility.Loaded)
-                            maps.Add(Map.Submerged);
-
-                        List<Map> ensuredMapIds = new();
-                        List<Map> chanceMapIds = new();
-
-                        foreach (Map m in maps)
-                            if (getSelectionForMapId(m) >= 10)
-                                ensuredMapIds.AddRange(Enumerable.Repeat(m, getSelectionForMapId(m, true) / 10));
-                            else
-                                chanceMapIds.AddRange(Enumerable.Repeat(m, getSelectionForMapId(m, true)));
-
-                        if (ensuredMapIds.Count <= 0 && chanceMapIds.Count <= 0)
-                            return true;
-
-                        if (ensuredMapIds.Count > 0)
-                        {
-                            ensuredMapIds = ensuredMapIds.OrderBy(a => StellarRoles.rnd.Next()).ToList();
-                            chosenMapId = (byte)ensuredMapIds.ElementAt(StellarRoles.rnd.Next(ensuredMapIds.Count));
-                        }
-                        else
-                        {
-                            chanceMapIds = chanceMapIds.OrderBy(a => StellarRoles.rnd.Next()).ToList();
-                            chosenMapId = (byte)chanceMapIds.ElementAt(StellarRoles.rnd.Next(chanceMapIds.Count));
-                        }
+                        byte chosenMapId = GetSelectedMap();
                         RPCProcedure.Send(CustomRPC.DynamicMapOption, chosenMapId);
                         GameOptionsManager.Instance.currentNormalGameOptions.MapId = chosenMapId;
                     }
@@ -312,43 +267,68 @@ namespace StellarRoles.Patches
                 return true;
             }
 
-            public static int getSelectionForMapId(Map map, bool multiplyQuantity = false)
+            private static byte GetSelectedMap()
             {
-                int selection = 0;
-                switch (map)
+                var skeldChance = CustomOptionHolder.DynamicMapEnableSkeld.GetSelection();
+                var miraChance = CustomOptionHolder.DynamicMapEnableSkeld.GetSelection();
+                var polusChance = CustomOptionHolder.DynamicMapEnablePolus.GetSelection();
+                var airshipChance = CustomOptionHolder.DynamicMapEnableAirShip.GetSelection();
+                var fungleChance = CustomOptionHolder.DynamicMapEnableFungal.GetSelection();
+                var submergedChance = CustomOptionHolder.DynamicMapEnableSubmerged.GetSelection();
+
+                System.Random rnd = new();
+                int TotalWeight = 0;
+
+                TotalWeight += skeldChance;
+                TotalWeight += miraChance;
+                TotalWeight += polusChance;
+                TotalWeight += airshipChance;
+                TotalWeight += fungleChance;
+                TotalWeight += SubmergedCompatibility.Loaded ? submergedChance : 0;
+
+                if (TotalWeight == 0)
                 {
-                    case Map.Skeld:
-                        selection = CustomOptionHolder.DynamicMapEnableSkeld.GetSelection();
-                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableSkeld.GetQuantity();
-                        break;
-
-                    case Map.Mira:
-                        selection = CustomOptionHolder.DynamicMapEnableMira.GetSelection();
-                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableMira.GetQuantity();
-                        break;
-
-                    case Map.Polus:
-                        selection = CustomOptionHolder.DynamicMapEnablePolus.GetSelection();
-                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnablePolus.GetQuantity();
-                        break;
-
-                    case Map.Airship:
-                        selection = CustomOptionHolder.DynamicMapEnableAirShip.GetSelection();
-                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableAirShip.GetQuantity();
-                        break;
-
-                    case Map.Fungal:
-                        selection = CustomOptionHolder.DynamicMapEnableFungal.GetSelection();
-                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableFungal.GetQuantity();
-                        break;
-
-                    case Map.Submerged:
-                        selection = CustomOptionHolder.DynamicMapEnableSubmerged.GetSelection();
-                        if (multiplyQuantity) selection *= CustomOptionHolder.DynamicMapEnableSubmerged.GetQuantity();
-                        break;
+                    return GameOptionsManager.Instance.currentNormalGameOptions.MapId;
                 }
 
-                return selection;
+                int randomNumber = rnd.Next(0, TotalWeight);
+
+                if (randomNumber < skeldChance) //Skeld
+                {
+                    return 0;
+                }
+                randomNumber -= skeldChance;
+
+                if (randomNumber < miraChance) //Mira
+                {
+                    return 1;
+                }
+                randomNumber -= miraChance;
+
+                if (randomNumber < polusChance) //Polus
+                {
+                    return 2;
+                }
+                randomNumber -= polusChance;
+
+                if (randomNumber < airshipChance) //Airship
+                {
+                    return 4;
+                }
+                randomNumber -= airshipChance;
+
+                if (randomNumber < fungleChance) //Fungle
+                {
+                    return 5;
+                }
+                randomNumber -= fungleChance;
+
+                if (SubmergedCompatibility.Loaded && randomNumber < submergedChance) //Submerged
+                {
+                    return 6;
+                }
+
+                return GameOptionsManager.Instance.currentNormalGameOptions.MapId;
             }
         }
 

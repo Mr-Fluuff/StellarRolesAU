@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
-using Hazel;
 using StellarRoles.Objects;
-using System;
+using UnityEngine;
 
 namespace StellarRoles
 {
@@ -74,16 +73,9 @@ namespace StellarRoles
                 {
                     if (Lantern.CurrentLantern == null)
                     {
-                        UnityEngine.Vector3 pos = PlayerControl.LocalPlayer.transform.position;
-                        byte[] buff = new byte[sizeof(float) * 2];
-                        Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
-                        Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
-
-                        MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable);
-                        writer.Write((byte)CustomRPC.PlaceLantern);
-                        writer.WriteBytesAndSize(buff);
-                        writer.EndMessage();
-                        RPCProcedure.PlaceLantern(buff);
+                        Vector2 pos = PlayerControl.LocalPlayer.transform.position;
+                        RPCProcedure.Send(CustomRPC.PlaceLantern, pos);
+                        RPCProcedure.PlaceLantern(pos);
                         Wraith.LanternTimer = Wraith.CalculateWraithReturn();
                         WraithLanternReturnButton.Timer = 0.5f;
                         RPCProcedure.Send(CustomRPC.PsychicAddCount);

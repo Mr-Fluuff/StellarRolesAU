@@ -79,7 +79,7 @@ namespace StellarRoles
                     }
                     else
                     {
-                        if (Helpers.CheckBombedAttemptAndKill(bombed.Bomber, bombed.CurrentTarget, showAnimation: false) == MurderAttemptResult.SuppressKill)
+                        if (Helpers.CheckBombedAttemptAndKill(bombed.Bomber, bombed.CurrentTarget, showAnimation: false, overlayPlayer: PlayerControl.LocalPlayer) == MurderAttemptResult.SuppressKill)
                             return;
                         bombed.PassedBomb = true;
                         RPCProcedure.Send(CustomRPC.SnapToRpc, PlayerControl.LocalPlayer, bombed.CurrentTarget);

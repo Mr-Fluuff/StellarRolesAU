@@ -1,16 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
+﻿using BepInEx.Unity.IL2CPP.Utils.Collections;
 using HarmonyLib;
 using Hazel;
-using BepInEx.Unity.IL2CPP.Utils.Collections;
-using System.Collections;
-using UnityEngine.UI;
 using Reactor.Utilities.Extensions;
 using StellarRoles.Patches;
-using Object = UnityEngine.Object;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace StellarRoles.Modules
 {
@@ -72,21 +72,21 @@ namespace StellarRoles.Modules
                 yield return null;
             }
 
-            while (pickOrder.Count > 0) 
+            while (pickOrder.Count > 0)
             {
                 picked = false;
                 timer = 0;
                 float maxTimer = CustomOptionHolder.draftModeTimeToChoose.GetFloat();
                 string playerText = "";
-                while (timer < maxTimer || !picked) 
+                while (timer < maxTimer || !picked)
                 {
                     if (pickOrder.Count == 0)
                         break;
                     // wait for pick
                     timer += Time.deltaTime;
-                    if (PlayerControl.LocalPlayer.PlayerId == pickOrder[0]) 
+                    if (PlayerControl.LocalPlayer.PlayerId == pickOrder[0])
                     {
-                        if (!playedAlert) 
+                        if (!playedAlert)
                         {
                             playedAlert = true;
                             SoundManager.Instance.PlaySound(ShipStatus.Instance.SabotageSound, false, 1f, null);
@@ -94,15 +94,16 @@ namespace StellarRoles.Modules
                         // Animate beginning of choice, by changing background color
                         float min = 50 / 255f;
                         Color backGroundColor = new Color(min, min, min, 1);
-                        if (timer < 1) 
+                        if (timer < 1)
                         {
                             float max = 230 / 255f;
-                            if (timer < 0.5f) 
+                            if (timer < 0.5f)
                             { // White flash
                                 float p = timer / 0.5f;
                                 float value = (float)Math.Pow(p, 1f) * max;
                                 backGroundColor = new Color(value, value, value, 1);
-                            } else 
+                            }
+                            else
                             {
                                 float p = (1 - timer) / 0.5f;
                                 float value = (float)Math.Pow(p, 2f) * max + (1 - (float)Math.Pow(p, 2f)) * min;
@@ -119,7 +120,7 @@ namespace StellarRoles.Modules
 
                         // Available Roles:
                         List<RoleInfo> availableRoles = new();
-                        foreach (RoleInfo roleInfo in RoleInfo.AllRoleInfos) 
+                        foreach (RoleInfo roleInfo in RoleInfo.AllRoleInfos)
                         {
                             int impostorCount = PlayerControl.AllPlayerControls.ToArray().ToList().Where(x => x.Data.Role.IsImpostor).Count();
                             if (roleInfo.FactionId == Faction.Modifier) continue;
@@ -149,7 +150,7 @@ namespace StellarRoles.Modules
                             }
 
                             // Handle forcing of 100% roles for impostors
-                            if (PlayerControl.LocalPlayer.Data.Role.IsImpostor) 
+                            if (PlayerControl.LocalPlayer.Data.Role.IsImpostor)
                             {
                                 int impsMax = CustomOptionHolder.ImpostorRolesCountMax.GetSelection();
                                 int impsMin = CustomOptionHolder.ImpostorRolesCountMin.GetSelection();
@@ -164,14 +165,14 @@ namespace StellarRoles.Modules
                             }
 
                             // Player is no impostor! Handle forcing of 100% roles for crew and neutral
-                            else 
+                            else
                             {
                                 // No more neutrals possible!
                                 int neutralsPicked = 0;
                                 int nKPicked = 0;
                                 foreach (var picked in alreadyPicked)
                                 {
-                                    if (RoleInfo.AllRoleInfos.Any(x => x.RoleId == picked && x.FactionId == Faction.Neutral)) 
+                                    if (RoleInfo.AllRoleInfos.Any(x => x.RoleId == picked && x.FactionId == Faction.Neutral))
                                         neutralsPicked++;
                                     if (RoleInfo.AllRoleInfos.Any(x => x.RoleId == picked && x.FactionId == Faction.NK))
                                         nKPicked++;
@@ -202,10 +203,10 @@ namespace StellarRoles.Modules
                                 // More neutrals needed? Then no more crewmates! This takes precedence over crew roles set to 100%!
                                 var crewmatesLeft = pickOrder.Count - pickOrder.Where(x => Helpers.PlayerById(x).Data.Role.IsImpostor).Count();
 
-                                if ((crewmatesLeft <= neutralsMin - neutralsPicked && roleInfo.FactionId != Faction.Neutral) || (crewmatesLeft <= nKMin - nKPicked && roleInfo.FactionId != Faction.NK)) 
+                                if ((crewmatesLeft <= neutralsMin - neutralsPicked && roleInfo.FactionId != Faction.Neutral) || (crewmatesLeft <= nKMin - nKPicked && roleInfo.FactionId != Faction.NK))
                                 {
                                     continue;
-                                } 
+                                }
                                 else if ((neutralsMin - neutrals100 > neutralsPicked) || (nKMin - nK100 > nKPicked))
                                     allowAnyNeutral = true;
                                 // Handle 100% Roles PER Faction.
@@ -231,9 +232,9 @@ namespace StellarRoles.Modules
                             }
                             // Handle role pairings that are blocked, e.g. Vampire Warlock, Cleaner Vulture etc.
                             bool blocked = false;
-                            foreach (var blockedRoleId in CustomOptionHolder.BlockedRolePairings) 
+                            foreach (var blockedRoleId in CustomOptionHolder.BlockedRolePairings)
                             {
-                                if (alreadyPicked.Contains(blockedRoleId.Key) && blockedRoleId.Value.ToList().Contains(roleInfo.RoleId)) 
+                                if (alreadyPicked.Contains(blockedRoleId.Key) && blockedRoleId.Value.ToList().Contains(roleInfo.RoleId))
                                 {
                                     blocked = true;
                                     break;
@@ -245,7 +246,7 @@ namespace StellarRoles.Modules
                         }
 
                         // Fallback for if all roles are somehow removed. (This is only the case if there is a bug, hence print a warning
-                        if (availableRoles.Count == 0) 
+                        if (availableRoles.Count == 0)
                         {
                             if (PlayerControl.LocalPlayer.Data.Role.IsImpostor)
                                 availableRoles.Add(RoleInfo.Impostor);
@@ -256,22 +257,23 @@ namespace StellarRoles.Modules
                         List<RoleInfo> originalAvailable = new(availableRoles);
 
                         // remove some roles, so that you can't always get the same roles:
-                        if (availableRoles.Count > CustomOptionHolder.draftModeAmountOfChoices.GetFloat()) 
+                        if (availableRoles.Count > CustomOptionHolder.draftModeAmountOfChoices.GetFloat())
                         {
                             int countToRemove = availableRoles.Count - (int)CustomOptionHolder.draftModeAmountOfChoices.GetFloat();
-                            while (countToRemove-- > 0) {
+                            while (countToRemove-- > 0)
+                            {
                                 var toRemove = availableRoles.OrderBy(_ => Guid.NewGuid()).First();
                                 availableRoles.Remove(toRemove);
                             }
                         }
 
-                        if (timer >= maxTimer) 
+                        if (timer >= maxTimer)
                         {
                             sendPick((byte)originalAvailable.OrderBy(_ => Guid.NewGuid()).First().RoleId, true);
                         }
 
 
-                        if (GameObject.Find("RoleButton") == null) 
+                        if (GameObject.Find("RoleButton") == null)
                         {
                             int i = 0;
                             int a = 0;
@@ -282,15 +284,15 @@ namespace StellarRoles.Modules
                             var buttonTemplate = HudManager.Instance.SettingsButton.transform;
                             TextMeshPro textTemplate = HudManager.Instance.TaskPanel.taskText;
 
-                            foreach (RoleInfo roleInfo in availableRoles) 
+                            foreach (RoleInfo roleInfo in availableRoles)
                             {
                                 if (a == buttonsPerRow) a = 0;
                                 float row = i / buttonsPerRow;
-/*                                float col = i % buttonsPerRow;
-                                if (buttonsInLastRow != 0 && row == lastRow) 
-                                {
-                                    col += (buttonsPerRow - buttonsInLastRow) / 2f;
-                                }*/
+                                /*                                float col = i % buttonsPerRow;
+                                                                if (buttonsInLastRow != 0 && row == lastRow) 
+                                                                {
+                                                                    col += (buttonsPerRow - buttonsInLastRow) / 2f;
+                                                                }*/
                                 // planned rows: maximum of 4, hence the following calculation for rows as well:
                                 row += (4 - lastRow - 1) / 2f;
 
@@ -320,7 +322,7 @@ namespace StellarRoles.Modules
                                 button.OnClick.RemoveAllListeners();
                                 button.OnClick = new Button.ButtonClickedEvent();
 
-                                button.OnClick.AddListener((Action)(() => 
+                                button.OnClick.AddListener((Action)(() =>
                                 {
                                     sendPick((byte)roleInfo.RoleId, false);
                                 }));
@@ -361,8 +363,8 @@ namespace StellarRoles.Modules
                             buttons.Add(RandomRoleButton);
                         }
 
-                    } 
-                    else 
+                    }
+                    else
                     {
                         int currentPick = PlayerControl.AllPlayerControls.Count - pickOrder.Count + 1;
                         playerText = $"Player {currentPick}";
@@ -371,7 +373,7 @@ namespace StellarRoles.Modules
                     __instance.TeamTitle.text = $"{Helpers.ColorString(Color.red, "<size=280%>Draft Mode</size>")}\n\n\n<size=200%> Currently Picking:</size>\n\n\n<size=250%>{playerText}</size>";
                     int waitMore = pickOrder.IndexOf(PlayerControl.LocalPlayer.PlayerId);
                     string waitMoreText = "";
-                    if (waitMore > 0) 
+                    if (waitMore > 0)
                     {
                         waitMoreText = $" (Your turn in {waitMore})";
                     }

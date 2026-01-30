@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using Reactor.Utilities.Extensions;
 using UnityEngine;
 
 namespace StellarRoles
@@ -40,7 +39,7 @@ namespace StellarRoles
                 $"\n\nOnce infested, Decay can be used to kill the targeted player. If infest duration expires{save} or a meeting is called the infested player will die.{notsave}" +
                 $"\n\nInfest has a {Helpers.ColorString(Color.yellow, InfestCooldown.ToString())} second cooldown and lasts {Helpers.ColorString(Color.yellow, timer)} seconds. " +
                 $"The first cooldown per round cannot be less than standard kill cooldown. {normalKill}";
-        
+
             RoleInfo.Parasite.SettingsDescription = RoleInfo.ParasiteNeutralKiller.SettingsDescription = Helpers.WrapText(info);
         }
 

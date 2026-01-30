@@ -1,5 +1,4 @@
 using AmongUs.Data;
-using AmongUs.GameOptions;
 using BepInEx.Unity.IL2CPP.Utils.Collections;
 using HarmonyLib;
 using Hazel;
@@ -31,10 +30,10 @@ namespace StellarRoles.Modules
                 //settings.MaxPlayers = 15; // Force 15 Player Lobby on Server
                 DataManager.Settings.Multiplayer.ChatMode = QuickChatModes.FreeChatOrQuickChat;
             }
-/*            public static void Postfix([HarmonyArgument(0)] GameOptionsData settings)
-            {
-                settings.MaxPlayers = LobbyLimit;
-            }*/
+            /*            public static void Postfix([HarmonyArgument(0)] GameOptionsData settings)
+                        {
+                            settings.MaxPlayers = LobbyLimit;
+                        }*/
         }
         [HarmonyPatch(typeof(InnerNetClient), nameof(InnerNetClient.JoinGame))]
         public static class InnerNetClientJoinPatch

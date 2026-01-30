@@ -70,7 +70,7 @@ namespace StellarRoles
                             Tracker.TrackActive = true;
                         }
                     })));
-                    (Tracker.DelayDuration + Tracker.CalculateTrackDuration()).DelayedAction(() => 
+                    (Tracker.DelayDuration + Tracker.CalculateTrackDuration()).DelayedAction(() =>
                     {
                         TrackerTrackButton.Timer = Tracker.TrackTargetCooldown;
                         TrackerTrackButton.ActionButton.cooldownTimerText.SetFaceColor(Color.white);

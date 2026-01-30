@@ -1,8 +1,4 @@
-﻿using HarmonyLib;
-using StellarRoles.Utilities;
-using System.Linq;
-
-namespace StellarRoles
+﻿namespace StellarRoles
 {
     public static class ExtraStats
     {
@@ -43,33 +39,33 @@ namespace StellarRoles
             playerVoted = null;
         }
 
-/*        public static void UpdateSurvivability()
-        {
-            if (PlayerControl.LocalPlayer.AmOwner && !localPlayer.Data.IsDead)
-            {
-                Helpers.LogConsole("Update Survivability: " + MapOptions.PlayersAlive);
-
-
-                RPCProcedure.Send(CustomRPC.UpdateSurvivability, localPlayer);
-                RPCProcedure.UpdateSurvivability(localPlayer);
-            }
-        }
-
-        [HarmonyPatch(typeof(ExileController), nameof(ExileController.ReEnableGameplay))]
-        public static class ReEnableGamplayPatch
-        {
-            public static void Postfix()
-            {
-                Helpers.DelayedAction(0.2f, () =>
+        /*        public static void UpdateSurvivability()
                 {
-                    Helpers.CheckPlayersAlive();
-                    if (MapOptions.ImpsAlive > 0)
+                    if (PlayerControl.LocalPlayer.AmOwner && !localPlayer.Data.IsDead)
                     {
-                        UpdateSurvivability();
+                        Helpers.LogConsole("Update Survivability: " + MapOptions.PlayersAlive);
+
+
+                        RPCProcedure.Send(CustomRPC.UpdateSurvivability, localPlayer);
+                        RPCProcedure.UpdateSurvivability(localPlayer);
                     }
-                });
-            }
-        }*/
+                }
+
+                [HarmonyPatch(typeof(ExileController), nameof(ExileController.ReEnableGameplay))]
+                public static class ReEnableGamplayPatch
+                {
+                    public static void Postfix()
+                    {
+                        Helpers.DelayedAction(0.2f, () =>
+                        {
+                            Helpers.CheckPlayersAlive();
+                            if (MapOptions.ImpsAlive > 0)
+                            {
+                                UpdateSurvivability();
+                            }
+                        });
+                    }
+                }*/
     }
 
 }

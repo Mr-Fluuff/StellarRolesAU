@@ -1,3 +1,7 @@
+using AmongUs.Data;
+using Assets.InnerNet;
+using BepInEx;
+using BepInEx.Unity.IL2CPP.Utils;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,17 +9,11 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using BepInEx;
-using BepInEx.Unity.IL2CPP.Utils;
+using Twitch;
 using UnityEngine;
 using UnityEngine.Networking;
-using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using AmongUs.Data;
-using Assets.InnerNet;
-using Twitch;
-using static StarGen;
-using StellarRoles;
+using UnityEngine.UI;
 
 namespace StellarRoles.Modules
 {
@@ -230,7 +228,8 @@ namespace StellarRoles.Modules
                 Date = date == "" ? DateTime.Now.Date.ToString() : date,
                 Text = announcement,
             };
-            mgr.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) => {
+            mgr.StartCoroutine(Effects.Lerp(0.1f, new Action<float>((p) =>
+            {
                 if (p == 1)
                 {
                     var backup = DataManager.Player.Announcements.allAnnouncements;

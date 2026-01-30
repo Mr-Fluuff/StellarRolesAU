@@ -90,7 +90,7 @@ namespace StellarRoles.Modules
                 }
                 popUp = Object.Instantiate(popUpTemplate);
                 popUp.gameObject.SetActive(true);
-                string creditsString = @$"<align=""center"">Special Thanks:
+                string creditsString = @$"<align=""left"">Special Thanks:
 TheOtherRoles - Original Codebase
 JustSysAdmin
 
@@ -102,7 +102,7 @@ BepInEx - Used to hook game functions
 Jester - Idea for the Jester role came from Maartii
 ExtraRolesAmongUs - Idea for the Engineer and Guardian role came from NotHunter101
 TownOfHost - Idea for Enginner Advanced Sabotage
-MiraAPI - For the code used for better server dropdown and improved role intro hooks.
+MiraAPI - For the code used for better server dropdown, improved role intro hooks, and Asset Loading.
 Among-Us-Sheriff-Mod - Idea for the Sheriff role came from Woodi-dev
 Slushiegoose - Idea for the Arsonist, Scavenger, a similar Mayor role, and code snippets from Grenadiar for Nightmare
 BryBry16 - For the code used for Better Polus.
@@ -223,7 +223,7 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
                     __instance.StartCoroutine(Effects.Lerp(0.5f, new Action<float>((p) =>
                     {
                         if (p == 1)
-                        Application.Quit();
+                            Application.Quit();
                     })));
                 }));
                 popUp.OnDismissed = new Action(() => passiveRegionResetConfirmationButtom.gameObject.SetActive(false));
@@ -232,30 +232,30 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
             #endregion RegionReset
 
             #region FriendsList Color
-/*            GameObject FriendsListManager = GameObject.Find("FriendsListManager");
-            if (FriendsListManager != null)
-            {
-                Helpers.Log("Found FriendsListManager");
-            }
+            /*            GameObject FriendsListManager = GameObject.Find("FriendsListManager");
+                        if (FriendsListManager != null)
+                        {
+                            Helpers.Log("Found FriendsListManager");
+                        }
 
-            if (FriendsListManager != null)
-            {
-                Transform friendsListButton = FriendsListManager.transform.FindChild("Friends List Button").FindChild("Friends List Button");
-                friendsListButton.FindChild("Highlight").gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
-                friendsListButton.FindChild("Tab").gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
-            }*/
+                        if (FriendsListManager != null)
+                        {
+                            Transform friendsListButton = FriendsListManager.transform.FindChild("Friends List Button").FindChild("Friends List Button");
+                            friendsListButton.FindChild("Highlight").gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
+                            friendsListButton.FindChild("Tab").gameObject.GetComponent<SpriteRenderer>().color = Color.blue;
+                        }*/
             #endregion FriendsList Color
 
             #region Account Color
-/*            GameObject account = GameObject.Find("AccountManager");
+            /*            GameObject account = GameObject.Find("AccountManager");
 
-            if (account != null)
-            {
-                Helpers.Log("Found AccountManager");
+                        if (account != null)
+                        {
+                            Helpers.Log("Found AccountManager");
 
-                SpriteRenderer accountoutline = account.transform.FindChild("AccountTab").FindChild("AccountWindow").FindChild("Tab").FindChild("AccountTab").gameObject.GetComponent<SpriteRenderer>();
-                accountoutline.color = Color.blue;
-            }*/
+                            SpriteRenderer accountoutline = account.transform.FindChild("AccountTab").FindChild("AccountWindow").FindChild("Tab").FindChild("AccountTab").gameObject.GetComponent<SpriteRenderer>();
+                            accountoutline.color = Color.blue;
+                        }*/
             #endregion Account Color
         }
 
@@ -264,7 +264,6 @@ Ottomated - Idea for the Morphling, Camouflager, and Parasite roles</size>";
             // TODO: Fix and optimize the hell out of these fetchers, since they cause way too many issues and makes testing incredibly difficult too
             CustomOptionDefaultSettings.CreatePresets();
             if (Loaded) return;
-            CosmeticsDownloader.LaunchCosmeticsFetcher();
             Loaded = true;
         }
     }

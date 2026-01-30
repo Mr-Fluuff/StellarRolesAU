@@ -50,7 +50,7 @@ namespace StellarRoles.Patches
             RPCProcedure.ResetVariables();
 
             if (GameOptionsManager.Instance.currentGameOptions.GameMode == GameModes.HideNSeek || RoleDraft.isEnabled) return;
-                AssignRoles();
+            AssignRoles();
         }
 
         private static void AssignRoles()
@@ -270,10 +270,10 @@ namespace StellarRoles.Patches
             }
         }
 
-/*        private static void RemoveSpecatingCrew(RoleAssignmentData data)
-        {
-            data.Crewmates.RemoveAll(player => Spectator.ToBecomeSpectator.Contains(player.PlayerId));
-        }*/
+        /*        private static void RemoveSpecatingCrew(RoleAssignmentData data)
+                {
+                    data.Crewmates.RemoveAll(player => Spectator.ToBecomeSpectator.Contains(player.PlayerId));
+                }*/
 
         private static void BalanceImpostors()
         {

@@ -81,7 +81,8 @@ namespace StellarRoles.Patches
             {
                 public static bool Prefix(SurveillanceMinigame __instance)
                 {
-                    if (Helpers.TutorialActive) {return true;};
+                    if (Helpers.TutorialActive) { return true; }
+                    ;
                     cameraTimer += Time.deltaTime;
                     if (cameraTimer > 0.1f)
                         UseCameraTime();
@@ -211,7 +212,8 @@ namespace StellarRoles.Patches
             [HarmonyPatch(nameof(PlanetSurveillanceMinigame.Update))]
             public static bool UpdatePrefix(PlanetSurveillanceMinigame __instance)
             {
-                if (Helpers.TutorialActive) { return true; };
+                if (Helpers.TutorialActive) { return true; }
+                ;
 
                 cameraTimer += Time.deltaTime;
                 if (cameraTimer > 0.1f)

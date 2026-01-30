@@ -1,7 +1,5 @@
 using Cpp2IL.Core.Extensions;
 using HarmonyLib;
-using Steamworks;
-using StellarRoles.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -146,7 +144,7 @@ namespace StellarRoles.Patches
 
                         if (playerById == null)
                         {
-                            Debug.LogError(string.Format("Couldn't find player info for voter: {0}", voterState.VoterId));
+                            Debug(string.Format("Couldn't find player info for voter: {0}", voterState.VoterId));
                         }
                         else if (i == 0 && voterState.SkippedVote && !playerById.IsDead)
                         {
@@ -940,7 +938,7 @@ namespace StellarRoles.Patches
 
         static void PopulateButtonsPostfix()
         {
-            3f.DelayedAction(()=> 
+            3f.DelayedAction(() =>
             {
                 if (MeetingHud.Instance != null)
                 {
@@ -1120,7 +1118,7 @@ namespace StellarRoles.Patches
                     int num = i % 3;
                     int num2 = i / 3;
                     array[i].transform.localPosition = __instance.VoteOrigin + new Vector3(__instance.VoteButtonOffsets.x * (float)num, __instance.VoteButtonOffsets.y * (float)num2, -0.9f - (float)num2 * 0.01f);
-                    
+
                     if (Spectator.Players.Contains(array[i].TargetPlayerId))
                         array[i].gameObject.SetActive(false);
                 }

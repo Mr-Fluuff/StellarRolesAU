@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using StellarRoles.Objects;
 using System;
 using UnityEngine;
 
@@ -22,17 +21,6 @@ namespace StellarRoles
             return lobby;
         }
 
-        private static void LoadPrefab()
-        {
-            _Prefab = StellarRolesPlugin.CustomLobbyPrefab;
-            if (_Prefab == null)
-            {
-                Helpers.Log(LogLevel.Fatal, "Lobby Prefab Not Found");
-                Application.Quit(1);
-            }
-        }
-        private static GameObject StellarBanner;
-
         [HarmonyPatch(typeof(LobbyBehaviour), nameof(LobbyBehaviour.Start))]
 
         public static class LobbyBehavour_Start_Patch
@@ -41,88 +29,47 @@ namespace StellarRoles
             {
                 if (_Prefab == null)
                 {
-                    LoadPrefab();
+                    _Prefab = UnityEngine.Object.Instantiate(CustomAssets.CustomLobbyPrefab.LoadAsset());
                 }
-
-                GameObject instance = UnityEngine.Object.Instantiate(_Prefab);
-                instance.transform.position = new Vector3(0f, 0.85f, 0f);
-
+                _Prefab.SetActive(true);
+                _Prefab.transform.position = new Vector3(4.44f, 0.85f, 0f);
 
                 GameObject oldLobby = GetOldLobby();
                 oldLobby.GetComponent<Collider2D>().enabled = false;
                 GameObject.Find("Lobby(Clone)/Background").SetActive(false);
-                StellarBanner = new GameObject("StellarBanner");
-                Vector3 position = new(0f, 4.5f, 4.5f / 1000 + 0.001f);
-                StellarBanner.transform.position = position;
-                StellarBanner.transform.localScale = new Vector3(1, 1, 1);
-                StellarBanner.gameObject.transform.SetParent(instance.transform);
-                SpriteRenderer panelRenderer = StellarBanner.AddComponent<SpriteRenderer>();
+
+                var OriginalBG = _Prefab.transform.FindChild("OriginalBG").gameObject;
+                OriginalBG.SetActive(false);
 
 
-                Mochi.ClearMochi();
-                GhostLad.ClearGhost();
-
-                if (DateTime.Today.Month == 2 && DateTime.Today.Day > 11 && DateTime.Today.Day < 16)
+                if ((DateTime.Today.Month == 10 && DateTime.Today.Day >= 17) || (DateTime.Today.Month == 11 && DateTime.Today.Day <= 2))
                 {
-                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.ValentinesBanner.png", 200f);
-
-                    SpriteRenderer leftsprite = GameObject.Find("Lobby(Clone)/Leftbox").GetComponent<SpriteRenderer>();
-                    SpriteRenderer rightsprite = GameObject.Find("Lobby(Clone)/RightBox").GetComponent<SpriteRenderer>();
-
-                    leftsprite.sprite = rightsprite.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.LeftBoxHeart.png", 200f);
-                }
-                else if ((DateTime.Today.Month == 10 && DateTime.Today.Day >= 17) || (DateTime.Today.Month == 11 && DateTime.Today.Day <= 2))
-                {
-                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.HalloweenBanner.png", 200f);
-                    instance.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.HalloweenLobby.png", 100f);
-
-                    GhostLad.CreateGhostLad();
-                    GameObject ghostLad = GhostLad.GhostLadGameObject;
-                    ghostLad.SetActive(true);
-                    ghostLad.transform.position = new Vector3(9.37f, -.11f, 0f);
-                    ghostLad.transform.localScale = new Vector3(1, 1, 1) * 1.8f;
-                    ghostLad.gameObject.transform.SetParent(instance.transform);
-                    Flame.CreateFlames(instance);
-
+                    _Prefab.transform.FindChild("HalloweenBG").gameObject.SetActive(true);
                 }
                 else if (DateTime.Today.Month == 11 && DateTime.Today.Day >= 20 && DateTime.Today.Day <= 30)
                 {
-                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.ThanksgivingBanner.png", 200f);
-                    instance.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.ThanksgivingLobby.png", 100f);
-
-                    GameObject FoxLad = new GameObject("FoxLad");
-                    var rend = FoxLad.AddComponent<SpriteRenderer>();
-                    rend.sprite = Helpers.LoadSpriteFromResources($"StellarRoles.Resources.CustomLobby.FoxLad.png", 225f);
-                    FoxLad.SetActive(true);
-                    FoxLad.transform.position = new Vector3(9.37f, -.11f, 0f);
-                    FoxLad.transform.localScale = new Vector3(1, 1, 1) * 1.2f;
-                    FoxLad.gameObject.transform.SetParent(instance.transform);
-
+                    _Prefab.transform.FindChild("ThanksGivingBG").gameObject.SetActive(true);
                 }
                 else if (DateTime.Today.Month == 12 && DateTime.Today.Day >= 4 && DateTime.Today.Day <= 30)
                 {
-                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.Christmas.png", 200f);
-                    instance.transform.GetChild(0).GetComponent<SpriteRenderer>().sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.ChristmasLobby.png", 100f);
-
-                    GameObject Panda = new GameObject("PandaLad");
-                    var rend = Panda.AddComponent<SpriteRenderer>();
-                    rend.sprite = Helpers.LoadSpriteFromResources($"StellarRoles.Resources.CustomLobby.Panda.png", 225f);
-                    Panda.SetActive(true);
-                    Panda.transform.position = new Vector3(9.37f, -.11f, 0f);
-                    Panda.transform.localScale = new Vector3(1, 1, 1) * 1.3f;
-                    Panda.gameObject.transform.SetParent(instance.transform);
-
+                    _Prefab.transform.FindChild("ChristmasBG").gameObject.SetActive(true);
                 }
                 else
                 {
-                    panelRenderer.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.Banners.StellarBanner.png", 200f);
+                    OriginalBG.SetActive(true);
+                    if (DateTime.Today.Month == 2 && DateTime.Today.Day > 11 && DateTime.Today.Day < 16)
+                    {
+                        OriginalBG.transform.FindChild("Valentines_Banner").gameObject.SetActive(true);
 
-                    Mochi.CreateMochi();
-                    GameObject mochi = Mochi.MochiGameObject;
-                    mochi.SetActive(true);
-                    mochi.transform.position = new Vector3(9.57f, -.11f, 0f);
-                    mochi.transform.localScale = new Vector3(1, 1, 1) * 1.8f;
-                    mochi.gameObject.transform.SetParent(instance.transform);
+                        SpriteRenderer leftsprite = GameObject.Find("Lobby(Clone)/Leftbox").GetComponent<SpriteRenderer>();
+                        SpriteRenderer rightsprite = GameObject.Find("Lobby(Clone)/RightBox").GetComponent<SpriteRenderer>();
+
+                        leftsprite.sprite = rightsprite.sprite = Helpers.LoadSpriteFromResources("StellarRoles.Resources.CustomLobby.LeftBoxHeart.png", 200f);
+                    }
+                    else
+                    {
+                        OriginalBG.transform.FindChild("Stellar_Banner").gameObject.SetActive(true);
+                    }
                 }
 
                 GameObject leftEngine = GameObject.Find("Lobby(Clone)/LeftEngine");
@@ -144,10 +91,8 @@ namespace StellarRoles
                 {
                     if (!TutorialManager.InstanceExists)
                     {
-                        GameObject.Find("allul_customlobby(Clone)").SetActive(false);
-
+                        _Prefab.SetActive(false);
                         _Engine.SetActive(false);
-                        Flame.ClearAllFlames();
                     }
                 }
                 catch

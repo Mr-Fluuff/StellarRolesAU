@@ -1,10 +1,10 @@
-﻿using Il2CppSystem.Collections.Generic;
+﻿using HarmonyLib;
+using Il2CppSystem.Collections.Generic;
 using System;
 using System.Collections;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HarmonyLib;
 
 namespace StellarRoles.Utilities;
 
@@ -19,7 +19,7 @@ public static class EnumerationHelpers
         var showRoleStateMachine =
             typeof(T)
                 .GetNestedTypes()
-                .FirstOrDefault(x=>x.Name.Contains(methodName));
+                .FirstOrDefault(x => x.Name.Contains(methodName));
 
         if (showRoleStateMachine == null)
         {

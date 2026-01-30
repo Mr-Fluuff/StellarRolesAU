@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using Reactor.Utilities.Extensions;
-using Steamworks;
 using System;
 using System.Collections.Generic;
 using TMPro;

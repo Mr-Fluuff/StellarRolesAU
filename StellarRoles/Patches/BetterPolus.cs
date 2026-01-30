@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using StellarRoles.Objects;
 using System.Linq;
 using UnityEngine;
 
@@ -88,10 +89,11 @@ namespace StellarRoles
                 if (!CustomOptionHolder.ColdTempDeathValley.GetBool() && CustomOptionHolder.MoveVitals.GetBool()) MoveTempCold();
                 if (CustomOptionHolder.ColdTempDeathValley.GetBool()) MoveTempColdDV();
                 if (CustomOptionHolder.WifiChartCourseSwap.GetBool()) SwitchNavWifi();
+                if (CustomOptionHolder.VentSystem.GetBool()) AdjustVents();
             }
 
-            if (CustomOptionHolder.VentSystem.GetBool()) AdjustVents();
             AddPengu();
+            Goopy.CreateGoopy();
             IsAdjustmentsDone = true;
         }
 

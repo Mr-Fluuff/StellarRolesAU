@@ -1,6 +1,4 @@
 using HarmonyLib;
-using Il2CppSystem;
-using System.Collections.Generic;
 
 namespace StellarRoles.Utilities;
 

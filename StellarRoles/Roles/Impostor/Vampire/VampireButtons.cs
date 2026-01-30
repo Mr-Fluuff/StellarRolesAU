@@ -1,8 +1,6 @@
 ﻿using BepInEx.Unity.IL2CPP.Utils;
 using HarmonyLib;
 using StellarRoles.Objects;
-using StellarRoles.Utilities;
-using System;
 using System.Collections;
 using UnityEngine;
 

@@ -3,7 +3,6 @@ using HarmonyLib;
 using Reactor.Utilities.Extensions;
 using StellarRoles.Utilities;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -471,23 +470,23 @@ namespace StellarRoles.Patches
     {
         static void Prefix()
         {
-/*            var renderer = HudManager.Instance?.FullScreen;
+            /*            var renderer = HudManager.Instance?.FullScreen;
 
-            if (renderer == null) return;
-            renderer.gameObject.SetActive(true);
-            renderer.enabled = true;
-            //renderer.color = Color.black;
-            var color = Color.black;
+                        if (renderer == null) return;
+                        renderer.gameObject.SetActive(true);
+                        renderer.enabled = true;
+                        //renderer.color = Color.black;
+                        var color = Color.black;
 
-            HudManager.Instance.StartCoroutine(Effects.Lerp(0.75f, new Action<float>((p) =>
-            { // Delayed action
-                var alpha = Mathf.Clamp01(p < 0.25f ? 1 : (1 - p));
-                renderer.color = new Color(color.r, color.g, color.b, alpha);
-                if (p == 1)
-                {
-                    renderer.enabled = false;
-                }
-            })));*/
+                        HudManager.Instance.StartCoroutine(Effects.Lerp(0.75f, new Action<float>((p) =>
+                        { // Delayed action
+                            var alpha = Mathf.Clamp01(p < 0.25f ? 1 : (1 - p));
+                            renderer.color = new Color(color.r, color.g, color.b, alpha);
+                            if (p == 1)
+                            {
+                                renderer.enabled = false;
+                            }
+                        })));*/
 
 
             foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator())
@@ -496,7 +495,7 @@ namespace StellarRoles.Patches
 
                 p.SetPlayerAlpha(0);
             }
-            Helpers.DelayedAction(3f, () => 
+            Helpers.DelayedAction(3f, () =>
             {
                 foreach (var p in PlayerControl.AllPlayerControls.GetFastEnumerator())
                 {

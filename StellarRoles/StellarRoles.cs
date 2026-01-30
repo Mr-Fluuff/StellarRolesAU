@@ -1,12 +1,22 @@
 using AmongUs.GameOptions;
 using System;
+using UnityEngine;
 
 namespace StellarRoles
 {
     public static class StellarRoles
     {
-        public static Random rnd => new((int)DateTime.Now.Ticks);
+        public static System.Random rnd => new((int)DateTime.Now.Ticks);
         public static NormalGameOptionsV10 NormalOptions => GameOptionsManager.Instance.currentNormalGameOptions;
+
+        public static bool IsAndroid()
+        {
+            if (Application.platform == RuntimePlatform.Android)
+            {
+                return true;
+            }
+            return false;
+        }
 
 
         public static void ClearAndReloadRoles()

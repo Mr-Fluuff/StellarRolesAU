@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using HarmonyLib;
+﻿using HarmonyLib;
 using InnerNet;
 
 namespace StellarRoles

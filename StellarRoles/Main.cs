@@ -3,19 +3,22 @@ global using Il2CppInterop.Runtime.Attributes;
 global using Il2CppInterop.Runtime.Injection;
 global using Il2CppInterop.Runtime.InteropTypes;
 global using Il2CppInterop.Runtime.InteropTypes.Arrays;
+global using StellarRoles.Utilities.Assets;
+global using static Reactor.Utilities.Logger<StellarRoles.StellarRolesPlugin>;
 using AmongUs.Data;
 using AmongUs.Data.Player;
 using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
+using Reactor;
+using Reactor.Networking;
 using Reactor.Networking.Attributes;
 using StellarRoles.Modules;
+using StellarRoles.Modules.Cosmetics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Reactor;
-using Reactor.Networking;
 using UnityEngine;
 
 namespace StellarRoles
@@ -28,7 +31,7 @@ namespace StellarRoles
     {
         public static GameObject CustomLobbyPrefab { get; set; }
 
-        public static string UpdateString = "2025.11.27";
+        public static string UpdateString = "2026.1.29";
         public static string VersionString = UpdateString.Remove(0, 2);
         public const string BetaVersion = "";
 
@@ -74,8 +77,6 @@ namespace StellarRoles
 
             CustomServerManager.UpdateRegions();
 
-            AssetLoader.LoadAssets();
-
             Harmony.PatchAll();
 
             CustomColors.Load();
@@ -106,16 +107,6 @@ namespace StellarRoles
             {
                 DataManager.Settings.Multiplayer.ChatMode = InnerNet.QuickChatModes.FreeChatOrQuickChat;
             }
-        }
-    }
-
-    [HarmonyPatch(typeof(FreeChatInputField), nameof(FreeChatInputField.Awake))]
-    public static class FreeChatAwakePatch
-    { 
-        private static void Postfix(FreeChatInputField __instance)
-        {
-            __instance.textArea.characterLimit = 150;
-            __instance.UpdateState();
         }
     }
 

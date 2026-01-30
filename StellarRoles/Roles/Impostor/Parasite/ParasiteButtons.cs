@@ -1,6 +1,4 @@
 ﻿using HarmonyLib;
-using Hazel;
-using StellarRoles;
 using StellarRoles.Objects;
 using System;
 
@@ -55,7 +53,7 @@ namespace StellarRoles
                 "SecondAbility",
                 false,
                 0f,
-                () => {},
+                () => { },
                 false,
                 "Infest"
             );
@@ -90,12 +88,12 @@ namespace StellarRoles
                 "SecondAbility",
                 false,
                 0f,
-                () => {},
+                () => { },
                 false,
                 "Decay"
             );
         }
-       
+
 
         public static void SetParasiteCooldowns()
         {

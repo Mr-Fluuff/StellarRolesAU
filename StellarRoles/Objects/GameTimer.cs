@@ -1,12 +1,7 @@
 ﻿using HarmonyLib;
 using Reactor.Utilities.Extensions;
-using StellarRoles.Modules;
 using StellarRoles.Patches;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
@@ -26,24 +21,27 @@ namespace StellarRoles.Objects
         {
             if (TimerText == null)
             {
-                CreateTimerText();
+                if (!Helpers.TutorialActive)
+                    CreateTimerText();
             }
-
-            var position = TimerText.gameObject.GetComponent<AspectPosition>();
-            position.Alignment = AspectPosition.EdgeAlignments.LeftTop;
-            position.DistanceFromEdge = new Vector3(4.5f, 0.11f, 0f) + (HelpMenu.Reference != null ? HelpMenu.Reference.transform.localPosition : Vector3.zero);
-            TimerText.gameObject.SetActive(Helpers.GameStarted && Enabletimer);
-
-            if (!_isCountingDown) return;
-            GameTime -= Time.deltaTime;
-            UpdateTimer(GameTime);
-
-            if (GameTime <= 0.0f)
+            else
             {
-                _isCountingDown = false;
-                if (AmongUsClient.Instance.AmHost && Helpers.GameStarted)
+                var position = TimerText.gameObject.GetComponent<AspectPosition>();
+                position.Alignment = AspectPosition.EdgeAlignments.LeftTop;
+                position.DistanceFromEdge = new Vector3(4.5f, 0.11f, 0f) + (HelpMenu.Reference != null ? HelpMenu.Reference.transform.localPosition : Vector3.zero);
+                TimerText.gameObject.SetActive(Helpers.GameStarted && Enabletimer);
+
+                if (!_isCountingDown) return;
+                GameTime -= Time.deltaTime;
+                UpdateTimer(GameTime);
+
+                if (GameTime <= 0.0f)
                 {
-                    EndGame();
+                    _isCountingDown = false;
+                    if (AmongUsClient.Instance.AmHost && Helpers.GameStarted)
+                    {
+                        EndGame();
+                    }
                 }
             }
         }
@@ -56,16 +54,20 @@ namespace StellarRoles.Objects
 
         public static void CreateTimerText()
         {
-            var font = GameObject.Find("PingTrackerTMP").GetComponent<TextMeshPro>();
-            TimerText = UnityEngine.Object.Instantiate(font);
-            TimerText.gameObject.GetComponent<PingTracker>().Destroy();
-            TimerText.transform.SetParent(HudManager._instance.transform);
-            TimerText.transform.localScale = Vector3.one * 1f;
-            TimerText.gameObject.layer = 5;
-            TimeSpan ts = TimeSpan.FromSeconds(GameTime);
-            TimerText.text = ts.ToString(format: @"mm\:ss");
+            var ping = GameObject.Find("PingTrackerTMP");
+            if (ping != null)
+            {
+                var font = ping.GetComponent<TextMeshPro>();
+                TimerText = UnityEngine.Object.Instantiate(font);
+                TimerText.gameObject.GetComponent<PingTracker>().Destroy();
+                TimerText.transform.SetParent(HudManager._instance.transform);
+                TimerText.transform.localScale = Vector3.one * 1f;
+                TimerText.gameObject.layer = 5;
+                TimeSpan ts = TimeSpan.FromSeconds(GameTime);
+                TimerText.text = ts.ToString(format: @"mm\:ss");
 
-            TimerText.gameObject.SetActive(false);
+                TimerText.gameObject.SetActive(false);
+            }
         }
 
         public static void EndGame()

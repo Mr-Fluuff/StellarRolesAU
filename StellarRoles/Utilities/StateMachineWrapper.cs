@@ -1,7 +1,7 @@
+using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HarmonyLib;
 
 // This is originally from MiraAPI: https://github.com/All-Of-Us-Mods/MiraAPI/blob/master/MiraAPI/Utilities/StateMachineWrapper.cs
 namespace StellarRoles.Utilities;

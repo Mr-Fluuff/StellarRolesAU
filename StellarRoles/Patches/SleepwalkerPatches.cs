@@ -52,7 +52,7 @@ namespace StellarRoles.Patches
             public static void StartMeeting()
             {
                 var localplayer = PlayerControl.LocalPlayer;
-               
+
                 if (!localplayer.AmOwner) return;
                 if (localplayer.inMovingPlat) return;
                 if (localplayer.onLadder) return;

@@ -1,8 +1,9 @@
-using AmongUs.Data;
 using AmongUs.GameOptions;
 using Cpp2IL.Core.Extensions;
 using HarmonyLib;
 using Hazel;
+using Reactor.Networking;
+using Reactor.Networking.Extensions;
 using StellarRoles.Modules;
 using StellarRoles.Objects;
 using StellarRoles.Patches;
@@ -33,13 +34,13 @@ namespace StellarRoles
 
             foreach (var item in parameters)
             {
-                writer.Write(item);
+                writer.W(item);
             }
 
             AmongUsClient.Instance.FinishRpcImmediately(writer);
         }
 
-        public static void Write(this MessageWriter writer, object parameter)
+        public static void W(this MessageWriter writer, object parameter)
         {
             if (parameter is byte @byte)
                 writer.Write(@byte);
@@ -61,6 +62,8 @@ namespace StellarRoles
                 writer.Write(vent.Id);
             else if (parameter is RoleId roleId)
                 writer.Write((byte)roleId);
+            else if (parameter is Vector2 vector)
+                writer.Write(vector);
         }
 
         // Main Controls
@@ -616,13 +619,9 @@ namespace StellarRoles
             }
         }
 
-        public static void VersionHandshake(int major, int minor, int build, int revision, Guid guid, int clientId)
+        public static void VersionHandshake(int major, int minor, int build, Guid guid, int clientId)
         {
-            System.Version ver;
-            if (revision < 0)
-                ver = new System.Version(major, minor, build);
-            else
-                ver = new System.Version(major, minor, build, revision);
+            Version ver = new(major, minor, build);
             GameStartManagerPatch.PlayerVersions[clientId] = new GameStartManagerPatch.PlayerVersion(ver, guid);
         }
 
@@ -700,7 +699,7 @@ namespace StellarRoles
 
         public static void UpdateSurvivability(PlayerControl player)
         {
-            Helpers.Log($"Surviveability {player.name} : {MapOptions.PlayersAlive}");
+            //Helpers.Log($"Surviveability {player.name} : {MapOptions.PlayersAlive}");
             if (!PlayerGameInfo.Mapping.TryGetValue(player.PlayerId, out PlayerGameInfo gameInfo))
                 PlayerGameInfo.Mapping.Add(player.PlayerId, gameInfo = new());
             gameInfo.survivability = MapOptions.PlayersAlive;
@@ -708,19 +707,19 @@ namespace StellarRoles
 
         public static void UpdateTasks(PlayerControl player)
         {
-            Helpers.Log($"Surviveability {player.name} : {MapOptions.PlayersAlive}");
+            //Helpers.Log($"Surviveability {player.name} : {MapOptions.PlayersAlive}");
             if (!PlayerGameInfo.Mapping.TryGetValue(player.PlayerId, out PlayerGameInfo gameInfo))
                 PlayerGameInfo.Mapping.Add(player.PlayerId, gameInfo = new());
             gameInfo.survivability = MapOptions.PlayersAlive;
         }
 
-        public static void UncheckedMurderPlayer(PlayerControl source, PlayerControl target, bool showAnimation, bool bombkill)
+        public static void UncheckedMurderPlayer(PlayerControl source, PlayerControl target, bool showAnimation = true, bool bombkill = false, PlayerControl overlayPlayer = null)
         {
             if (!Helpers.GameStarted)
                 return;
 
             if (!showAnimation)
-                KillAnimationCoPerformKillPatch.HideNextAnimation = true;
+                MurderPlayerPatch.HideNextAnimation = true;
 
             if (Romantic.Player != null && Romantic.HasLover && Romantic.Lover == target)
                 VengefulRomantic.Target = source.IsBombed(out Bombed bombed) ? bombed.Bomber : source;
@@ -728,6 +727,10 @@ namespace StellarRoles
             if (Medic.Target == target && Medic.Player != null && !Medic.Player.Data.IsDead)
                 MedicHeartMonitorFlash(source, bombkill);
 
+            if (overlayPlayer != null)
+            {
+                MurderPlayerPatch.OverlayPlayer = overlayPlayer;
+            }
             source.MurderPlayer(target, MurderResultFlags.Succeeded);
         }
 
@@ -1302,9 +1305,9 @@ namespace StellarRoles
             }
         }
 
-        public static void PlaceShadeTrace(byte[] buffer)
+        public static void PlaceShadeTrace(Vector2 pos)
         {
-            _ = new ShadeTrace(ConvertPosition(buffer), Shade.EvidenceDuration);
+            _ = new ShadeTrace(pos, Shade.EvidenceDuration);
         }
 
         public static void SetInvisible(PlayerControl target, bool reset, bool fungle = false)
@@ -1390,67 +1393,19 @@ namespace StellarRoles
             });
         }
 
-        public static void Mine(int ventId, byte[] buffer, float zAxis)
+        public static void PlaceMinerVent(Vector2 pos)
         {
-            Vector3 position = ConvertPosition(buffer);
-
-            Vent ventPrefab = UnityEngine.Object.FindObjectOfType<Vent>();
-            Vent vent = UnityEngine.Object.Instantiate(ventPrefab, ventPrefab.transform.parent);
-            vent.Id = ventId;
-            vent.transform.position = new Vector3(position.x, position.y, zAxis);
-
-            if (Miner.Vents.Count > 0)
-            {
-                Vent leftVent = Miner.Vents[^1];
-                vent.Left = leftVent;
-                leftVent.Right = vent;
-            }
-            else
-            {
-                vent.Left = null;
-            }
-            vent.Right = null;
-            vent.Center = null;
-            List<Vent> allVents = ShipStatus.Instance.AllVents.ToList();
-            allVents.Add(vent);
-            ShipStatus.Instance.AllVents = allVents.ToArray();
-            Miner.Vents.Add(vent);
-            if (SubmergedCompatibility.IsSubmerged)
-            {
-                vent.gameObject.layer = 12;
-                vent.gameObject.AddSubmergedComponent(SubmergedCompatibility.Classes.ElevatorMover); // just in case elevator vent is not blocked
-                Transform transform = vent.gameObject.transform;
-                if (transform.position.y > -7)
-                    transform.position = new Vector3(transform.position.x, transform.position.y, 0.03f);
-                else
-                {
-                    transform.position = new Vector3(transform.position.x, transform.position.y, 0.0009f);
-                    transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y, -0.003f);
-                }
-            }
+            _ = new MinerVent(pos);
         }
 
-        private static Vector3 ConvertPosition(byte[] buffer)
+        public static void PlaceLantern(Vector2 pos)
         {
-            Vector3 position = Vector3.zero;
-            position.x = BitConverter.ToSingle(buffer, 0 * sizeof(float));
-            position.y = BitConverter.ToSingle(buffer, 1 * sizeof(float));
-            return position;
+            _ = new Lantern(pos);
         }
 
-        public static void PlaceMinerVent(byte[] buffer)
+        public static void PlaceSensor(Vector2 pos)
         {
-            _ = new MinerVent(ConvertPosition(buffer));
-        }
-
-        public static void PlaceLantern(byte[] buffer)
-        {
-            _ = new Lantern(ConvertPosition(buffer));
-        }
-
-        public static void PlaceSensor(byte[] buffer)
-        {
-            Sensor sensor = new(ConvertPosition(buffer));
+            Sensor sensor = new(pos);
             if (!Sensor.Sensors.ContainsKey(sensor.Id))
                 Sensor.Sensors.Add(sensor.Id, sensor);
         }
@@ -1946,29 +1901,28 @@ namespace StellarRoles
                     byte major = reader.ReadByte();
                     byte minor = reader.ReadByte();
                     byte patch = reader.ReadByte();
-                    float timer = reader.ReadSingle();
-                    if (!AmongUsClient.Instance.AmHost && timer >= 0f) GameStartManagerPatch.Timer = timer;
                     int versionOwnerId = reader.ReadPackedInt32();
-                    byte revision = 0xFF;
-                    Guid guid;
-                    if (reader.Length - reader.Position >= 17)
-                    { // enough bytes left to read
-                        revision = reader.ReadByte();
-                        // GUID
-                        byte[] gbytes = reader.ReadBytes(16);
-                        guid = new Guid(gbytes);
-                    }
-                    else
+                    // GUID
+                    Guid guid = new Guid();
+                    string gbytes = reader.ReadString();
+                    if (Guid.TryParse(gbytes, out Guid Result))
                     {
-                        guid = new Guid(new byte[16]);
+                        guid = Result;
                     }
-                    RPCProcedure.VersionHandshake(major, minor, patch, revision == 0xFF ? -1 : revision, guid, versionOwnerId);
+                    ;
+                    RPCProcedure.VersionHandshake(major, minor, patch, guid, versionOwnerId);
                     break;
                 case CustomRPC.AddGameInfo:
                     RPCProcedure.AddGameInfo(reader.ReadPlayer(), (InfoType)reader.ReadByte());
                     break;
                 case CustomRPC.UncheckedMurderPlayer:
-                    RPCProcedure.UncheckedMurderPlayer(reader.ReadPlayer(), reader.ReadPlayer(), reader.ReadBoolean(), reader.ReadBoolean());
+                    PlayerControl source = reader.ReadPlayer();
+                    PlayerControl target = reader.ReadPlayer();
+                    bool showAnimation = reader.ReadBoolean();
+                    bool bombKill = reader.ReadBoolean();
+                    byte overlay = reader.ReadByte();
+                    PlayerControl overlayPlayer = overlay == byte.MaxValue ? null : Helpers.PlayerById(overlay);
+                    RPCProcedure.UncheckedMurderPlayer(source, target, showAnimation, bombKill, overlayPlayer);
                     break;
                 case CustomRPC.ParalyzePlayer:
                     var nightmare = reader.ReadByte();
@@ -2086,7 +2040,7 @@ namespace StellarRoles
                     VengefulRomantic.AvengedLover = true;
                     break;
                 case CustomRPC.PlaceShadeTrace:
-                    RPCProcedure.PlaceShadeTrace(reader.ReadBytesAndSize());
+                    RPCProcedure.PlaceShadeTrace(reader.ReadVector2());
                     break;
                 case CustomRPC.AddPet:
                     PlayerPetsToHide.Add(reader.ReadPlayer());
@@ -2104,10 +2058,11 @@ namespace StellarRoles
                     Lantern.BreakLantern();
                     break;
                 case CustomRPC.PlaceMinerVent:
-                    RPCProcedure.PlaceMinerVent(reader.ReadBytesAndSize());
+                    Vector3 pos = reader.ReadVector2();
+                    RPCProcedure.PlaceMinerVent(pos);
                     break;
                 case CustomRPC.PlaceLantern:
-                    RPCProcedure.PlaceLantern(reader.ReadBytesAndSize());
+                    RPCProcedure.PlaceLantern(reader.ReadVector2());
                     break;
                 case CustomRPC.TripSensor:
                     RPCProcedure.TripSensor(reader.ReadPlayer());

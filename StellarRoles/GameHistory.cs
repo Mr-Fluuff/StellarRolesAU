@@ -1,13 +1,10 @@
-﻿using Reactor.Utilities.Extensions;
-using StellarRoles.Objects;
+﻿using StellarRoles.Objects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.UI;
 using static StellarRoles.Patches.AdditionalTempData;
 using Object = UnityEngine.Object;
 
@@ -206,7 +203,7 @@ namespace StellarRoles
             RightArrow.color = Color.green;
 
             var LeftButton = new CustomPassiveButton(LeftArrow.transform);
-            LeftButton.button.OnClick.AddListener((Action)(() => 
+            LeftButton.button.OnClick.AddListener((Action)(() =>
             {
                 LeftArrow.gameObject.SetActive(false);
                 LeftArrow.color = Color.green;
@@ -261,7 +258,7 @@ namespace StellarRoles
             UITitle.text = "Last Game Summary";
             UITitle.transform.FindChild("RightArrow").gameObject.SetActive(true);
             UITitle.transform.FindChild("LeftArrow").gameObject.SetActive(false);
-            if (PreviousGameList.Count == 0) 
+            if (PreviousGameList.Count == 0)
             {
                 UIInfo.text = PlaceHolder();
             }

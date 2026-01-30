@@ -3,7 +3,8 @@ using AmongUs.GameOptions;
 using HarmonyLib;
 using Hazel;
 using InnerNet;
-using StellarRoles.Modules;
+using Reactor.Utilities;
+using StellarRoles.Modules.Cosmetics;
 using StellarRoles.Objects;
 using StellarRoles.Patches;
 using StellarRoles.Utilities;
@@ -208,7 +209,7 @@ namespace StellarRoles
             }
         }
 
-        public static int TrueRandom(int min, int max) 
+        public static int TrueRandom(int min, int max)
         {
             var rnd = StellarRoles.rnd.Next();
 
@@ -463,13 +464,21 @@ namespace StellarRoles
 
         public static void DelayedAction(this float delay, Action action)
         {
-            HudManager.Instance.StartCoroutine(Effects.Lerp(delay, new Action<float>((p) =>
-            { // Delayed action
-                if (p == 1)
-                {
-                    action();
-                }
-            })));
+            Coroutines.Start(_DelayedAction(delay, action));
+            /*            HudManager.Instance.StartCoroutine(Effects.Lerp(delay, new Action<float>((p) =>
+                        { // Delayed action
+                            if (p == 1)
+                            {
+                                action();
+                            }
+                        })));*/
+        }
+
+        public static IEnumerator _DelayedAction(float delay, Action action)
+        {
+            yield return new WaitForSeconds(delay);
+            action();
+            yield break;
         }
 
         public static ClientData GetClientData(this PlayerControl player)
@@ -479,7 +488,7 @@ namespace StellarRoles
 
         public static void LoadCosmetics(HatManager __instance)
         {
-            CosmeticsDownloader.LaunchCosmeticsFetcher();
+            CosmeticsFetcher.LaunchCosmeticsFetcher();
             DelayedAction(3, void () =>
             {
                 CustomHats.HatManagerPatch.LoadHats(__instance, false);
@@ -615,7 +624,7 @@ namespace StellarRoles
                 {
                     continue;
                 }
-                if (PhysicsHelpers.AnythingBetween(truePosition, component.TruePosition, Constants.ShipAndObjectsMask, false)) 
+                if (PhysicsHelpers.AnythingBetween(truePosition, component.TruePosition, Constants.ShipAndObjectsMask, false))
                 {
                     if (Vector2.Distance(truePosition, component.TruePosition) <= 0.25f)
                     {
@@ -1814,10 +1823,11 @@ namespace StellarRoles
             return MurderAttemptResult.PerformKill;
         }
 
-        public static void UncheckedMurderPlayer(PlayerControl killer, PlayerControl target, bool showAnimation = true, bool bombkill = false)
+        public static void UncheckedMurderPlayer(PlayerControl killer, PlayerControl target, bool showAnimation = true, bool bombkill = false, PlayerControl overlayPlayer = null)
         {
-            RPCProcedure.Send(CustomRPC.UncheckedMurderPlayer, killer, target, showAnimation, bombkill);
-            RPCProcedure.UncheckedMurderPlayer(killer, target, showAnimation, bombkill);
+            byte overlayPlayerId = overlayPlayer != null ? overlayPlayer.PlayerId : byte.MaxValue;
+            RPCProcedure.Send(CustomRPC.UncheckedMurderPlayer, killer, target, showAnimation, bombkill, overlayPlayerId);
+            RPCProcedure.UncheckedMurderPlayer(killer, target, showAnimation, bombkill, overlayPlayer);
         }
 
         public static void ExilePlayer(PlayerControl player)
@@ -1844,14 +1854,14 @@ namespace StellarRoles
             RPCProcedure.AddDeadPlayer(player, Killer, reason);
         }
 
-        public static MurderAttemptResult CheckBombedAttemptAndKill(PlayerControl killer, PlayerControl target, bool isMeetingStart = false, bool showAnimation = true)
+        public static MurderAttemptResult CheckBombedAttemptAndKill(PlayerControl killer, PlayerControl target, bool isMeetingStart = false, bool showAnimation = true, PlayerControl overlayPlayer = null)
         {
             // The local player checks for the validity of the kill and performs it afterwards (different to vanilla, where the host performs all the checks)
             // The kill attempt will be shared using a custom RPC, hence combining modded and unmodded versions is impossible
 
             MurderAttemptResult murder = CheckBombedAttempt(target, isMeetingStart);
             if (murder == MurderAttemptResult.PerformKill)
-                UncheckedMurderPlayer(killer, target, showAnimation, true);
+                UncheckedMurderPlayer(killer, target, showAnimation, true, overlayPlayer);
             return murder;
         }
 
@@ -1879,17 +1889,15 @@ namespace StellarRoles
             writer.Write((byte)StellarRolesPlugin.VersionDeclared.Major);
             writer.Write((byte)StellarRolesPlugin.VersionDeclared.Minor);
             writer.Write((byte)StellarRolesPlugin.VersionDeclared.Build);
-            writer.Write(AmongUsClient.Instance.AmHost ? GameStartManagerPatch.Timer : -1f);
             writer.WritePacked(AmongUsClient.Instance.ClientId);
-            writer.Write((byte)(StellarRolesPlugin.VersionDeclared.Revision < 0 ? 0xFF : StellarRolesPlugin.VersionDeclared.Revision));
             Guid moduleVersionId = Assembly.GetExecutingAssembly().ManifestModule.ModuleVersionId;
-            writer.Write(moduleVersionId.ToByteArray());
+            writer.Write(moduleVersionId.ToString());
             AmongUsClient.Instance.FinishRpcImmediately(writer);
+
             RPCProcedure.VersionHandshake(
                 StellarRolesPlugin.VersionDeclared.Major,
                 StellarRolesPlugin.VersionDeclared.Minor,
                 StellarRolesPlugin.VersionDeclared.Build,
-                StellarRolesPlugin.VersionDeclared.Revision,
                 moduleVersionId,
                 AmongUsClient.Instance.ClientId
             );

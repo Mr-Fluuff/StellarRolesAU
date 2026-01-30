@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
-using Hazel;
 using StellarRoles.Objects;
-using System;
 using UnityEngine;
 
 namespace StellarRoles
@@ -18,16 +16,10 @@ namespace StellarRoles
             MineButton = new CustomButton(
               () =>
               {
-                  Vector3 pos = PlayerControl.LocalPlayer.transform.position;
-                  byte[] buff = new byte[sizeof(float) * 2];
-                  Buffer.BlockCopy(BitConverter.GetBytes(pos.x), 0, buff, 0 * sizeof(float), sizeof(float));
-                  Buffer.BlockCopy(BitConverter.GetBytes(pos.y), 0, buff, 1 * sizeof(float), sizeof(float));
+                  Vector2 pos = PlayerControl.LocalPlayer.transform.position;
 
-                  MessageWriter writer = AmongUsClient.Instance.StartRpcImmediately(PlayerControl.LocalPlayer.NetId, 254, SendOption.Reliable);
-                  writer.Write((byte)CustomRPC.PlaceMinerVent);
-                  writer.WriteBytesAndSize(buff);
-                  writer.EndMessage();
-                  RPCProcedure.PlaceMinerVent(buff);
+                  RPCProcedure.Send(CustomRPC.PlaceMinerVent, pos);
+                  RPCProcedure.PlaceMinerVent(pos);
                   SoundEffectsManager.Play(Sounds.Mine);
                   Miner.ChargesRemaining--;
                   MineButton.Timer = MineButton.MaxTimer * Helpers.SpitefulMultiplier(PlayerControl.LocalPlayer) * Helpers.ClutchMultiplier(PlayerControl.LocalPlayer);

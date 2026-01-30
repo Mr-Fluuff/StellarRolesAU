@@ -1,11 +1,7 @@
 ﻿using HarmonyLib;
-using InnerNet;
 using Reactor.Utilities.Extensions;
 using StellarRoles.Objects;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace StellarRoles
@@ -203,7 +199,7 @@ namespace StellarRoles
             static bool Prefix(PlayerPhysics __instance)
             {
                 if (__instance.AmOwner && __instance.myPlayer == Parasite.Controlled && Parasite.Controlled != null)
-                return false;
+                    return false;
 
                 return true;
             }

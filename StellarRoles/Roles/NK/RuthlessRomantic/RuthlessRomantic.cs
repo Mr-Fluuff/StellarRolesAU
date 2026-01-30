@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 
@@ -51,7 +50,7 @@ namespace StellarRoles
         {
             if (PlayerToRuthlessRomantic.Count == 0) return false;
 
-            foreach(var player in PlayerToRuthlessRomantic.Values)
+            foreach (var player in PlayerToRuthlessRomantic.Values)
             {
                 if (player.DeadLover == null) continue;
                 if (player.DeadLover == p) return true;

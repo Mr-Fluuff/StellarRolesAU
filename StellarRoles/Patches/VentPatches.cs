@@ -1,7 +1,5 @@
 ﻿using HarmonyLib;
 using StellarRoles.Objects;
-using StellarRoles.Utilities;
-using System;
 using UnityEngine;
 using static StellarRoles.MapOptions;
 
@@ -119,7 +117,7 @@ namespace StellarRoles.Patches
 
                     Helpers.SetMovement(false);
 
-                    Trapper.TrapRootDuration.DelayedAction(()=> { Helpers.SetMovement(true); });
+                    Trapper.TrapRootDuration.DelayedAction(() => { Helpers.SetMovement(true); });
                     if (Constants.ShouldPlaySfx())
                     {
                         SoundManager.Instance.PlaySound(PlayerControl.LocalPlayer.MyPhysics.ImpostorDiscoveredSound, false, 0.8f, null);
