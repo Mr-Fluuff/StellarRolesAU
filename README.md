@@ -2,10 +2,9 @@
 <p align="center">
 This mod is not affiliated with Among Us or Innersloth LLC, and the content contained therein is not endorsed or otherwise sponsored by Innersloth LLC. Portions of the materials contained herein are property of Innersloth LLC. © Innersloth LLC.</p>
 
+![Banner](StellarRoles/Resources/Banner.png)
 
-![Banner](StellarRoles/Resources/Banners/StellarBanner.png)
-
-**StellarRoles** is a mod for [Among Us](https://store.steampowered.com/app/945360/Among_Us) which adds new [Roles](#roles) & [Modifiers](#modifier), new [Settings](#settings) and new [Custom Cosmetics](#custom-cosmetics) to the game.\
+**StellarRoles** is a mod for [Among Us](https://store.steampowered.com/app/945360/Among_Us) which adds new [Roles](#roles) & [Modifiers](#modifier), new [Settings](#stellar-settings) and new [Custom Cosmetics](#custom-cosmetics) to the game.\
 Even more roles are coming soon. o.o
 
 | Impostors                       | Crewmates                       | Neutral                     | Neutral Killers                         | Modifiers                       |
@@ -30,15 +29,18 @@ Even more roles are coming soon. o.o
 The [Role Assignment](#role-assignment) sections explains how the roles are being distributed among the players.
 
 # Latest Release
-| Among Us - Version| Mod Version | Link |
-|:-----------------:|:-----------:|:----:|
-| v16.0.0/v16.0.2   | v2025.5.12  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2025.5.12/StellarRoles.zip)
+#### Disclaimer: Stellar Roles is not guaranteed to work on the latest versions of Among Us when the game updates.
+
+| Among Us Version | Mod Version | Link |
+|:-------:|:-----------:|:----:|
+| v17.1.0 | v2026.1.29 | [Download - Steam](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2026.1.29/StellarRoles.Steam.zip) <br> [Download - Epic Games](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2026.1.29/StellarRoles.EpicGames.zip)
 
 <details>
   <summary>For older Releases click here</summary>
 
 | Among Us - Version   | Mod Version | Link |
 |:--------------------:|:-----------:|:----:|
+| v16.0.0/v16.0.2      | v2025.5.12  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2025.5.12/StellarRoles.zip)
 | 2024.11.26           | v2024.12.5  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.12.5/StellarRoles.zip)
 | 2024.9.4             | v2024.10.21 | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.10.21/StellarRoles.zip)
 | 2024.6.4             | v2024.6.17  | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v2024.6.17/StellarRoles.zip)
@@ -69,461 +71,17 @@ The [Role Assignment](#role-assignment) sections explains how the roles are bein
 | 2023.3.28            | v1.3.1      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.1/StellarRoles.zip)
 | 2023.3.28            | v1.3.0      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.3.0/StellarRoles.zip)
 | 2023.2.28            | v1.2.4 Dev H| [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.2.4/StellarRoles.zip)
-| 2022.6.21 & 2022.7.12| v1.0.5     | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.0.5/StellarRoles.zip)
+| 2022.6.21 & 2022.7.12| v1.0.5      | [Download](https://github.com/Mr-Fluuff/StellarRolesAU/releases/download/v1.0.5/StellarRoles.zip)
 </details>
 
-# Changelog
+# Changelog - Version 2026.1.29
 
-## Version 2024.5.12 - LATEST
-    
-**Patch Notes**
-
-- Updated to Among Us v16.0.2
-- Added the very popular Draft Mode!!! :D
-- Added Version Compatibility Checker (will now let you know your on the wrong Among Us Version)
-- Adjust a lot of tournament log stuff (Thank you Vanellus and Comp Players for your feedback)
-- Added a "Stop Countdown" button to the lobby
-- Added some Easter Eggs (check the trash) :D
-- Reset Region button should now fix your region file as well as your settings.amongus file to allow you to go back to a previous version easier
-- Implemented some Anti-Cheat things
-- Removed Custom Region (for now)
-
-**Bug Fixes**
-
-- Fixed Assassin crashing everyone's game when last impostors misfires
-- Fixed Sleepwalker getting stuck outside the map on Airship & Fungle
-- Fixed Watcher Spawning on Fungle
-- Fixed Undertaker Lag Dragging
-- Fixed End Game Stats being different for clients vs host when a player disconnects
-- Fixed Tournament Game Timer instantly ending the game on start
-- Fixed Imp Chat Freaking out and should now close properly instead of having to double close it manually
-- Fixed dying in meeting overlay being under the nameplates
-- Fixed a TON of null references and small bugs that you wont know the difference besides less lag and smoother gameplay. (it just mainly helps me) :D
+- Updated to Among Us v17.1.0 (Thank you Atony for all your help)
+- Cosmetic System Overhaul > we now use assetbundles for our cosmetics. Instead of the old system downloading every hat, visor, nameplate individually from the git, it now looks at the assetbundle on the git and determins if it needs updated and will download one single file. This is much faster and better for load times when starting among us :D. You can still put a test hat in the same folder as always you just won't see all the other hats in their anymore
+- Custom Lobby > the lobby has changed see if you can find the secret lol
+- Goopy > go check out the lava pit on polus
 
   ---
-
-<details>
-  <summary>For older Changelogs click here</summary>
-  
- <details>
-   <summary><b>Version 2024.12.5</b></summary>
-    
-**Patch Notes**
-
-Updated to Among Us v2024.11.26
-
-**Bug Fixes**
-
-- Fixed view settings menu to show appropriate colors and fixed it showing blank values
-- Fixed fake heart on end screen when a player was disconnected
-- Fixed Detective breaking the game
-- Fixed zoom sometimes breaking game for ghost on meeting call
-- Fixed Imposter chat icon color flashing randomly
-- Fixed Unreportable bodies when they would be pushed up against a game object
-- Updated help cards to load faster and take up less memory space
-- Fixed Parasite movement to be client sided instead of server sided. This will drastically improve the way you play now as there is little to no movement lag!!
-
-**New Things**
-
-- Added a New Role!!! Charlatan is a new impostor role that can deceive the crew!! Lower report range of bodies and self report away from a body!! Check out more in the Help Card!
-- Added a new Detective prompt. If a body is was Dragged (Undertaker), Decayed (Parasite), or Deceived (Charlatan), a new prompt will be put into the strong info group (More likely to get this on a body rather than a crime scene)
-- Reworked how you get detective prompts. There are 2 Groups. Group A is strong info. Group B is not as strong info. On a body you will always get 3 A and 1 B prompts in a random order. On a crime scene will be 3 B and 1A.
-- Adjusted Role assignment to hopefully be more random. (If your imp 4 times in a row that's just bad luck) :(
-- Added a New Christmas/Holidays Custom lobby and banner!!! Thank you Seagirl13!!! We love our artists
-- Added a few new custom sounds for certain roles o.o. My fav is scavenger eat. :D More of these to be added in the future with a small twist.
- </details>
-
-  
-  <details>
-  <summary><b>Version 2024.10.21</b></summary>
-    
-**Patch Notes**
-
-- Updated to Among Us v2024.9.4 (yes we know a new version just came out today... we just didn't want to delay this release anymore than we had too...)
-
-**Bug Fixes**
-
-- Fixed A LOT of memory leak problems... This should help with stutters, things being out of sync, and reduce the amount of crashing
-- Fixed Hot Potato Mode! Pass the bomb as much as you want now :D
-- Fixed Custom Region Menu Breaking
-- Fixed Detective & Undertaker Interactions (You can now inspect a body that the undertaker has dragged)
-- Fixed Kill Abilities (Bomb, Curse, Bite, Ect..) not showing correctly on end game stats
-- Reduced the amount of extra assets we added over time
-- Cleaned Up a lot of the code (this is mainly for us but its nice to say)
-
-**New Things**
-
-- Added a New Role!!! Parasite may sound familiar o.o. This role allows you to infest a player and control them like a puppet. Please check Stells wiki for more details!!! (Thanks to one of our wonderful artists Crayonvex for the roles art)
-- Added a New History Button!! After the game you will get access to this button on your screen. Clicking it will bring up last games stats and you can also check the tournament stats on this screen!
-- Added a New Halloween Lobby!!! Thanks to one of our wonderful artists Seagirl13 we have a "spooky" Custom Lobby that replaces the standard lobby to the right of dropship before the game starts!! The Devs are soup :D (This lobby only shows up around Halloween times)
-- Added a New Game Timer Option... Now you can set a timer and if crew does not get tasks done before time runs out the Impostors win by default. (Note: Neutral Roles are not compatible with this timer.. it was created for the Tournament lobbies)
-</details>
-
-
-  <details>
-  <summary><b>Version 2024.6.17</b></summary>
-A minor release to fix connecting with online servers.    
-  </details>
-
-  <details>
-  <summary><b>Version 2024.6.15</b></summary>
-    
-**Fixes**
-
-- Fixed Cultist bug where sometimes it would not remove an impostor at game start resulting in another imposter than intended.
-- Fixed Administrator and Hacker button sprites when on levelImpostor maps. (Will now just show Skeld sprite when on custom maps for now)
-- Fixed Bombed/Bomber player getting a medic flash when killing the medic target. (Only get a flash if you are the one physically killing the medic target and not a bombed player.
-- Fixed Jailor able to jail someone when dead.
-
-**Updates**
-
-- Added a task limit to Mira Logs.   
-  </details>
-
-
-  <details>
-  <summary><b>Version 2024.6.6</b></summary>
-    
-  - Compatible with Among Us v2024.6.4
-  - Fixed Cultist crashing clients on game startup (For Real this time)
-  
-  </details>
-
-  <details>
-  <summary><b>Version 2024.6.2</b></summary>
-  
-**Bug Fixes**
-
-- Fixed Lantern Recall crashing all clients. (Now uses same method as switching vents)
-- Fixed vanilla settings not reverting back to default after a game that had override map settings on.
-- Fixed Airship Sleepwalker bug.
-- Tweaked how cultist spawns. (Should help with mass dc on gamestart)
-
-**Small Features**
-
-- Separated Modded and Vanilla Colors. This was done so people can still use the AutoDeafen for discord. If using autodeafen then only select vanilla colors.
-  </details>
-
-  <details>
-  <summary><b>Version 2024.4.28</b></summary>
-  
-**The BORING Stuff**
-
-- Updated to New Among us v2024.3.5
-- Fixed Crashes on End Screen
-- Fixed Vanilla Climbing Animation Bug.... I think :D
-- Fixed NK Morphling name not showing red to impostors when morphed as an impostor
-- Added workaround for when two people kill the same person. (host will refund the second killers cooldown and destroy second body)
-- Other small bug fixes
-
-**The FUN Stuff**
-
-- Added Tournament Logs for the sweats (WIP)
-- Added IMPOSTOR CHAT in meeting!?!? (Cultist team will still be the only ones with Mid-Round Chat :P)
-  </details>
-
-  <details>
-  <summary><b>Version 2024.2.21</b></summary>
-    
-**Bug Fixes**
-
-- Fixed Bomber Hot Potato Bugs
-- Fixed Mayor not spawning when anonymous votes were on
-- Fixed Null errors to make starting the game a little smoother
-- Fixed Follower becoming disabled roles
-- Fixed Investigator turned follower still having footprints
-- Changed the RPC system to better help with desync issues
-- Reworked Some Code for Better Stability
-- Fixed Role assignments being different than lobby settings
-
-**Small Features**
-
-- Added admin task restriction options for Skeld and Polus
-  
-  </details>
-
-  <details>
-  <summary><b>Version 2023.12.26</b></summary>
-    
-**Bug Fixes**
-
-- Fixed a bug that caused the guessing menu to sometimes not appear in meetings
-- Fixed a bug where Custom Options would reset on game restart
-  
-  </details>
-
-  <details>
-  <summary><b>Version 2023.12.24</b></summary>
-
-**HotFix**
-
-Fixed Something I broke in v2023.12.22 that broke a lot of things. (Actually fixed now. I apologize)
-  
-  </details>
-
-
-  <details>
-  <summary><b>Version 2023.12.23</b></summary>
-
-**HotFix**
-
-Fixed Something I broke in v2023.12.22 that broke a lot of things.
-  
-  </details>
-
-  <details>
-  <summary><b>Version 2023.12.22</b></summary>
-
-**Bug Fixes**
-
-- Fixed issue with sometimes calling emergency meeting and getting stuck. (We blame the Shade)
-- Reworked Cosmetics Refresh Button. (Hopefully wont crash anyone now :D)
-- Reworked the kill overlay in meetings. (Shouldn't have nameplates overlapping anymore)
-- Fixed Medic Battery Sometimes continuing to count down when a meeting was called while battery was active.
-- Hopefully fixed Scavenger converting too early at start of meeting.
-  
-  </details>
-<details>
-<summary><b>Version 2023.12.12</b></summary>
-
-**Bug Fixes**
-
-- Fixed some rpc issues when users disconnect mid game.
-- Fixed some presets not loading correctly.
-
-**Changes**
-
-- Renamed Streamer Prox Preset to "Proximity".
-- Renamed Streamer Non-Prox Preset to "Standard".
-- Added Block roles options for Fungle.
-- Moved the settings tab to be with its friends again lol. (Maps will never get in the way of friendship) :D
-
-</details>
-
-  <details>
-  <summary><b>Version 2023.11.30</b></summary>
-
-- Added New Map Settings Tab and moved everything map related into that tab. (General was getting a little crowded)
-- Added Polus Camera task setting
-- Added Guardian Self Protect option. (Will only protect you for 1 round per Game)
-- Reworked Jailor. (Removed self jail limit and instead when a guesser clicks on a jailed player they can ONLY guess jailor. This was to combat the self jailing on 3 or 4 alive to hard clear yourself and not be able to be guessed)
-
-  </details>
-
-  <details>
-  <summary><b>Version 2023.11.28</b></summary>
-    
-  - Compatible with Among Us v2023.11.28.
-</details>    
-
-  <details>
-  <summary><b>Version 2023.11.25</b></summary>
-
-  **Bug Fixes**
-
-- Fixed Shade/Wraith/Camo interaction with Mushroom Mix-up Sabotage.
-- Fixed Chat bugging out when zoomed out.
-- Fixed Wraith Lantern not going on cooldown after Lantern breaks.
-- Fixed Alive Cultist able to see Dead Follower role.
-
-  </details>
-
-  <details>
-  <summary><b>Version 2023.11.23</b></summary>
-
-**Huge Fix!**
-
-- Fixed Snap To Task Bug introduced in this version of Among Us!!!
-
-**Updates**
-
-- Updated to new version of Among Us v2023.10.24! There's a Fungus Among Us!
-- Added Custom Nameplates.
-- Added New Fungle Tweak Options. (Admin Panel, Easier Fish Task, Easier Doors, Optional Binoculars)
-- Added Cosmetic Refresh Button to lobby.
-- Removed Bounty Hunter.
-- Changed Main Menu Buttons to look more fancy.
-- Added Jailor Limit Self Jail Option.
-- Updated Stellar Presets to include vanilla options.
-- Added Individual Map Override Settings. (Kill CD, Button CD, Crew Vision, Task Counts)
-- Added Vanilla Style venting options to Engineer.
-- Added Optional Flashlight Mode.
-
-**Several Bug Fixes**
-
-- Everything to do with Fungle Update is hopefully fixed. If you find any more bugs please submit them to our [Discord](https://discord.gg/7UcvM9CFdY).
-- Fix Sleepwalker getting stuck on ladders and moving platforms after meetings.
-- Fix Role Assignment. (Hopefully no more double roles in the future)
-- Death by Bomb/Vampire will now delay if crewmate is on a moving platform or a ladder to make it reportable.
-- Mini can now open bottom decom while its face is smooshed against the door. (No more backing up)
-- Plus Many more minor fixes.
-
- </details>
-
-  <details>
-  <summary><b>Version 2023.10.11</b></summary>
-    
-**Bug Fixes**
-
-- Fix Mayor Vote not counting twice if skipped
-- Fix refugee only win when no refugees in game
-- Fix bomber snap to look like vanilla kill
-- Fix vampire having kill button even when turned off
-- Fix Shade evidence causing crashes
-- Fixed disconnect showing the role of the disconnected (Again...)
-- Re-Added Vanilla Plus Preset by high demand
-
- </details>
-
-  <details>
-  <summary><b>Version 2023.10.3</b></summary>
-
-  **Hot Fix**
-  - Fixed DC causing game to freeze and meeting screen to be weird
-
-</details>
-
-  <details>
-  <summary><b>Version 2023.10.1</b></summary>
-    
-  **Minor Update**
-
-- Changed Version Number Format to match Among Us format and for ease of updating.
-
-**Bug Fixes**
-
-- Fixed Custom Hats/Visors not loading when new cosmetics added.
-- Fixed Engineer vent highlights staying lit after engineer leaves the vent.
-- Fixed Engineer Remote fix not repairing lights sabotage.
-- Fixed Cultist convert stealing role from Rouge Imps.
-- Fixed showing the role of the disconnected player in meeting.
-- More Performance Tweaks.
-- Fixed Better Polus Not working
-
-**Added Features**
-
-New Easter egg on Polus. (Check the snowmen)
-
-</details>
-
-  <details>
-  <summary><b>Version 1.4.4</b></summary>
-  
-- Updated to New Among Us Version 2023.7.12.
-- Huge Refactor. (Should make it easier for less power hungry computers)
-- Goopy!! Now everyone can enjoy goopy together!!! He will now appear at the same time for everyone.
-- Cultist Upgrade: Ever thought being a follower wasn't exciting enough? Now there is an option for the follower to become an Imp role based on their previous role.
-- New Role (Psychic): This is a new Passive role that has two buttons. The players button will show how many players are around you. The abilities button will show how many abilities have been used in that round in real time. Try it out!!
-- Removed Swapper: Yes we all know how some of you loved this troll role, but it's just not what we want this pack to be.
-- Reworked the Help Menu!!! This now works in the lobby as well as in the middle of the game. You no longer need to wait for a meeting to find out what another role does.
-- Zoom!! When you are a ghost and have done all your tasks or don't have tasks, you can now use your scroll wheel to zoom in/out.
-- Submerged is now compatible with the new version!! (Download Button should appear on Main Menu)
-- Hats/Visors News!!!: We have Custom hats yes, but now we also have custom visors!!! Did I mention they are animated??? (If hats/visors do not load for you, give it time to download them all, then restart your game)
-- New Bomber Feature: Hot Potato Mode is Finished!!! I'm sure you already figured this one out lol. (No Passbackies)
-- Changeling Menu has also been upgraded to new fancy UI.
-- Tracker has been reworked. (See Discord for Changes)
-- New Miner Setting: Delayed Vents. (When placing a vent, delay how long it takes to show up to everyone else)
-- New Mayor Ability: Retire! When the Mayor finishes tasks they can choose to permanently remove their second vote in an attempt to hide their role from the assassin! (You still keep the power to see votes tho)
-- A lot of Bug Fixes
----
-  </details>
-  <details>
-    
-  <summary><b>Version 1.3.7</b></summary>
-  
-- Vigi can guess Neutral Killers again
-- Hacker Info Card Art Added
----
-  </details>
-  <details>
-  <summary><b>Version 1.3.6</b></summary>
-  
-- Fixed Changeling stealing Hacker from partner
-- Fixed Security Cams while Hacker Jam Active Briefly Showing behind static when flipping camera (Thanks Sugden)
-- Fixed Out of order Vigilante Guessing Menu
-- Minor Bug Fixes and Optimizations
----
-  </details>
-  <details>
-  <summary><b>Version 1.3.5</b></summary>
-
-- NEW Impostor Role Hacker (Hack into the system and Jam the crewmates signals with this new role!)
-- Removed Nobody Wins (Seems a lot of feedback did not like this option)
-- Updated some info cards to display the correct info
-- Changed Camouflager (Now gain charges depending on how many crewmates they take out)
-- Added Tooltips to Parity Cop Meeting indicators
-- Added Copy/Paste game settings buttons
-- Added Reset Current Preset button
-- Fixed Meeting info not showing correct because of desync
-- Hide Pets is Back!!!! No longer will your little guy betray you to the crewmates!
----
-  </details>
-    <details>
-  <summary><b>Version 1.3.4</b></summary>
-
-- Guardian can no longer target in vents
-- Added Spectator Button Art
-- Spectator will now be known in the meeting to avoid confusion
-- Camouflager game start cooldown is now 75% normal cooldown
-- Minor Bug Fixes / Optimizations
----
-  </details>
-    <details>
-  <summary><b>Version 1.3.3</b></summary>
-
-- Bombed Players now die even if the bomber dies before the bomb goes off
-- Players killed by a bombed player now see Bomber in kill screen instead of the victim
-- Presets have been updated (Delete StellarRoles.config File to update these)
-- Added New Game Start Kill Cooldown Option
----
-  </details>
-    <details>
-  <summary><b>Version 1.3.2</b></summary>
-  
-- Added bug reporting Feature in Lobby (/bug "Message Here")
-- Fixed Swapper able to swap Dead Players
-- Removed Guessing Buttons and UI when dead
-- Changed how Dynamic Lobby Size works (Hopefully this fixes disconnect issues)
-- Changed assigning spectators to host assign only
-- Spiteful Confirm Eject
-- Ability to turn off Non-Crew Flash Settings
-- Fixed Vigilante not being able to guess imp roles
----
-  </details>
-  <details>
-  <summary><b>Version 1.3.1</b></summary>
-  
-Bug Fixes/Tweaks:
-- Refugee now displays properly in the in-game guide book
-- End game screen now plays the proper noise based on which alignment won
-- Scavenger button art fixed
-- Assassin count now properly spawns the correct number of assassins
-- If the lobby setting requires a specific number of tasks to complete an objected (Ex: Mayor seeing vote colors) is higher than the total number of tasks in the lobby, then completing tasks will earn that objective instead
-- All guesser menus will now force close when a jail is applied to a player.
-- The mini crewmate pet no longer randomly displays the wrong color.
-- Pyromaniac douses are no longer interrupted by another player entering the pyromaniac's target highlight
-- Scavenger should convert to Refugee at the correct number of players remaining(this time for sure)
-- Administrator, Watcher, and Medic batteries should properly pause their charging during meetings when tasks are complete.
-
-Role Changes:
-- Administrator, Watcher, and Medic now trigger a 5 second cooldown when their mobile info button is initiated
-- Non-Crewmates who have been tracked by a tracker now get a flash notification on a configurable delay.
-- Non-Crewmates who have killed a player monitored by a medic now get a flash notification on a configurable delay.
-- Non-Crewmates who have tripped a Watcher's sensor now get a flash notification on a configurable delay.
-- Watcher now has an optional setting to make their sensor arrow anonymous.
-- Shuffle is now a default ability of the Headhunter and is no longer optional.
-- Cultist kill notification flashes are now red instead of purple.
-- Vigilante can no longer be set as the Executioner's target.
-- Several role encyclopedia entries have been fixed.
-- Impostors and Neutral Killers can no longer be the target of an Assassin(can still be shot by Vigilante).
-- Neutral Killers can now have the option to either inherit the Assassin power after impostors have all died or at the start of the game. This option can also be disabled.
-
-Other Changes:
-- Built-in lobby presets have been reworked, and now include the following presets: Streamer Prox, Streamer Non-Prox, Beginner, Chaotic, Stell's Lobby
-how does that look
----
-  </details>
-  </details>
 
 # Installation
 
@@ -553,36 +111,6 @@ Not working? You might want to install the dependency [vc_redist](https://aka.ms
 3. Enable `winhttp.dll` via the proton winecfg (https://docs.bepinex.dev/articles/advanced/steam_interop.html#open-winecfg-for-the-target-game)
 4. Launch the game via Steam
 
-## Custom Servers
-A custom server is not necessary and official servers are working just fine with the mod, but in case you want to set up and host your own server, here's a guide for you to follow.
-
-**Setup the Server:**
-1. Get the Impostor release (https://github.com/Impostor/Impostor)
-2. Follow the steps (using the server release you just downloaded) on the official Impostor-Documentation (https://github.com/Impostor/Impostor/wiki/Running-the-server)
-3. Make sure to set the following values to false in the config.json file:
-```    ...
-     'AntiCheat': {
-       'Enabled': false,
-      'BanIpFromGame': false
-    }
-```
-4. Make sure to forward the right ports on the hosting machine.
-5. Run the server and setup the client.
-Setting up Server as Docker Container:
-If you want to run the server as a docker container you'll need to use the image
-aeonlucid/impostor:nightly
-
-(Currently only the 'nightly' tag is starting a server supporting 2021.3.31 or later)
-In addition to running it we need to set the environment variables to disable the AntiCheat feature.
-IMPOSTOR_AntiCheatEnabled=false
-IMPOSTOR_AntiCheatBanIpFromGame=false
-
-Example to docker run command:
-docker run -p 22023:22023/udp --env IMPOSTOR_AntiCheatEnabled=false --env IMPOSTOR_AntiCheatBanIpFromGame=false aeonlucid/impostor:nightly
-
-Or use to run it in the background
-docker run -d -p 22023:22023/udp --env IMPOSTOR_AntiCheatEnabled=false --env IMPOSTOR_AntiCheatBanIpFromGame=false aeonlucid/impostor:nightly
-
 
 # Credits & Resources
 [TheOtherRoles](https://github.com/TheOtherRolesAU/TheOtherRoles) - Original Codebase used for this mod.\
@@ -611,11 +139,11 @@ Stellar Roles adds a few new general settings to Among Us:
 - **Game Timer (Minutes)** - Allows the host to set a game timer. If Crewmates do not get their tasks done before time runs out the Impostors will win. (Neutral Roles are not compatible with this setting).
 - **Number Of Meetings** - Allows the host to set how many times a meeting (not body report) can be called by players in total.
 - **Impostor Chat** - Enables an additional chat during meetings that only Impostors can see/type in.
-- **Minimum and Maximum # of Crewmate Roles** - The minimum and maximum number of Crewmate roles that can spawn in a game.
-- **Minimum and Maximum # of Impostor Roles** - The minimum and maximum number of Impostor roles that can spawn in a game.
-- **Minimum and Maximum # of Neutral Roles** - The minimum and maximum number of Neutral roles that can spawn in a game.
-- **Minimum and Maximum # of Neut Killing Roles** - The minimum and maximum number of Neut Killing roles that can spawn in a game.
-- **Minimum and Maximum # of Modifiers** - The minimum and maximum number of Modifiers that can spawn in a game.
+- **Min and Max # of Crewmate Roles** - The minimum and maximum number of Crewmate roles that can spawn in a game.
+- **Min and Max # of Impostor Roles** - The minimum and maximum number of Impostor roles that can spawn in a game.
+- **Min and Max # of Neutral Roles** - The minimum and maximum number of Neutral roles that can spawn in a game.
+- **Min and Max # of Neut Killing Roles** - The minimum and maximum number of Neut Killing roles that can spawn in a game.
+- **Min and Max # of Modifiers** - The minimum and maximum number of Modifiers that can spawn in a game.
 
 ---
 
@@ -1346,7 +874,7 @@ If the Engineer is inside a vent, depending on the options the killers will see 
 The Guardian can shield one player per round, which makes the player unkillable.\
 The shielded player can still be voted out and might also be an Impostor.\
 If the set in the options, when Guardian dies the shield disappears with them.\
-The Sheriff will not die if they try to kill a shielded Crewmate and won't perform a kill if they try to kill a shielded Impostor.\
+The Sheriff will not die if they try to kill a shielded Crewmate and won't perform a kill if they try to kill a shielded Impostor.
 
 ### Game Options
 | Name                    | Description                                                          | Valid Value                                          |
@@ -1401,7 +929,7 @@ A jailed player is immune to guessing, and can only guess Jailor themselves.\
 ## Mayor
 ### **Team: Crewmates**
 The Mayor's vote counts as 2 votes.\
-The Mayor can see the vote colors after completing a configurable amount of tasks, depending on the options.\
+The Mayor can see the vote colors after completing a configurable amount of tasks, depending on the options.
 
 ### Game Options
 | Name                                      | Description                                                                      | Valid Value   |
@@ -1503,7 +1031,7 @@ If they try to kill a Crewmate, they die instead.\
 
 ## Spy
 ### **Team: Crewmates**
-The Spy is a Crewmate whose goal is to deceive the Impostors.\ 
+The Spy is a Crewmate whose goal is to deceive the Impostors.\
 The Spy in-game has a red nickname for Impostors and will be placed with them on the Spawn screen.\
 You can set whether the Sheriff can kill the Spy or not.
 There are two possibilities (depending on the set options):
@@ -1526,7 +1054,7 @@ There are two possibilities (depending on the set options):
 ### **Team: Crewmates**
 The Tracker has two abilities: Mark and Track.								
 The Mark ability is used on players to allow the Tracker to later track them. When the tracker uses their Track ability a short delay will begin, then all marked players will have an arrow pointing to them for a set duration.\
-The arrow updates its position every few seconds.\
+The arrow updates its position every few seconds.
 
 **NOTE**
 - If the tracked player is on a different floor on Submerged, the arrow will always point to the elevator
@@ -1549,7 +1077,7 @@ The arrow updates its position every few seconds.\
 The Trapper is a role that can either cover up or place traps on vents. Traps are armed instantly, while covers take a round to be both visible and active after they are placed.\
 Covered vents cannot be entered or exited through but can be traveled through. All players can see a vent cover.\
 Trapped vents are invisible to all players except for venting roles who spend at least 3 seconds in close proximity to them. A revealed trap will look like the vent is shaded green.\
-If a player attempts to use a trapped vent, the trap will be consumed, the Trapper and trapped player will get a green flash on their screen, and the trapped player will be stuck in place for a few seconds.\
+If a player attempts to use a trapped vent, the trap will be consumed, the Trapper and trapped player will get a green flash on their screen, and the trapped player will be stuck in place for a few seconds.
 
 **NOTE:**
 - Cover and Trap share cooldown 
