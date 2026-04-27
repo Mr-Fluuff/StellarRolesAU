@@ -270,7 +270,7 @@ namespace StellarRoles.Patches
             private static byte GetSelectedMap()
             {
                 var skeldChance = CustomOptionHolder.DynamicMapEnableSkeld.GetSelection();
-                var miraChance = CustomOptionHolder.DynamicMapEnableSkeld.GetSelection();
+                var miraChance = CustomOptionHolder.DynamicMapEnableMira.GetSelection();
                 var polusChance = CustomOptionHolder.DynamicMapEnablePolus.GetSelection();
                 var airshipChance = CustomOptionHolder.DynamicMapEnableAirShip.GetSelection();
                 var fungleChance = CustomOptionHolder.DynamicMapEnableFungal.GetSelection();
